@@ -1,7 +1,7 @@
-import { TZ } from '../src';
+import { tzFromUTC, tzFromWall, tzResolveId } from '../src';
 
 {
-  const id = TZ.resolveId('Pacific/Samoa');
+  const id = tzResolveId('Pacific/Samoa');
   console.log(id);
 
   const ZONES = [
@@ -15,7 +15,7 @@ import { TZ } from '../src';
 
   const now = new Date(2020, 2, 18, 12, 30, 0).getTime();
   for (const zoneid of ZONES) {
-    const info = TZ.fromUTC(zoneid, now);
+    const info = tzFromUTC(zoneid, now);
     console.log(`${zoneid.padEnd(18)} -> ${JSON.stringify(info)}`);
   }
 }
@@ -24,7 +24,7 @@ import { TZ } from '../src';
   // Sun Mar  8 2020 02:10:00 AM NY time
   const local = 1583633400000;
   const zoneid = 'America/New_York';
-  const [utc, info] = TZ.fromWall(zoneid, local)!;
+  const [utc, info] = tzFromWall(zoneid, local)!;
   console.log(utc);
   console.log(JSON.stringify(info));
 }

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import * as zlib from 'zlib';
-import { TZ } from '@phensley/timezone';
+import { tzResolveId, tzZoneIds } from '@phensley/timezone';
 import { getSupplemental } from '../../../cldr';
 import { objectToString, Code, HEADER, NOLINT_MAXLINE } from './util';
 import { parseLanguageTag } from '@phensley/cldr-core';
@@ -104,7 +104,7 @@ export const getAliases = (_data: any): Code[] => {
   result.push(Code.languagetag(['autogen.aliases.ts'], code));
 
   // Find time zone aliases that are not already handled in the @phensley/timezone package
-  const zoneids = TZ.zoneIds();
+  const zoneids = tzZoneIds();
   const zones = Object.keys(zoneAlias)
     .filter((alias) => {
       const zi = zoneids.indexOf(alias);
@@ -114,7 +114,7 @@ export const getAliases = (_data: any): Code[] => {
       }
 
       // if alias fails to resolve, include in this list
-      return TZ.resolveId(alias) === undefined;
+      return tzResolveId(alias) === undefined;
     })
     .sort()
     .map((k) => [k, zoneAlias[k]].join(':'))

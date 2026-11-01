@@ -1,4 +1,4 @@
-import { TZ } from '@phensley/timezone';
+import { tzFromWall } from '@phensley/timezone';
 import { add } from './add';
 import { CalendarDate } from './calendar';
 import { daysInMonth, initGregorianFields, leapGregorian, monthStart, ymdToJD } from './gregorianmath';
@@ -137,7 +137,7 @@ export class GregorianDate extends CalendarDate {
     const epoch = unixEpochFromJD(jd, ms);
     const zoneId = f.zoneId || this.timeZoneId();
     // Find UTC epoch for wall clock time in the requested timezone
-    const r = TZ.fromWall(zoneId, epoch);
+    const r = tzFromWall(zoneId, epoch);
     return this._new().initFromUnixEpoch(r ? r[0] : epoch, zoneId);
   }
 }

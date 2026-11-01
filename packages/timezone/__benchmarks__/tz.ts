@@ -2,7 +2,7 @@
 
 import { Suite } from 'benchmark';
 import { makeSuite } from './util';
-import { TZ } from '../src';
+import { tzFromUTC } from '../src';
 
 const asUTC = (d: number | Date) => (typeof d === 'number' ? d : +d - d.getTimezoneOffset() * 60000);
 
@@ -23,7 +23,7 @@ ZONES.forEach((zid) => {
   DATES.forEach((date) => {
     const utc = asUTC(date);
     timezoneSuite.add(`lookup ${zid} ${date.toUTCString()}`, () => {
-      TZ.fromUTC(zid, utc);
+      tzFromUTC(zid, utc);
     });
   });
 });

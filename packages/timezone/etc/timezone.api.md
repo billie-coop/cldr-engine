@@ -5,6 +5,9 @@
 ```ts
 
 // @public
+export const defaultTimeZoneData: RawData;
+
+// @public
 export interface RawData {
     index: string;
     links: string;
@@ -13,28 +16,25 @@ export interface RawData {
 }
 
 // @public
-export const TZ: Tz;
+export const setTimeZoneData: (raw: RawData) => void;
 
 // @public
-export interface Tz {
-    fromUTC(zoneid: string, utc: number): ZoneInfo | undefined;
-    fromWall(zoneid: string, wall: number): [number, ZoneInfo] | undefined;
-    resolveId(id: string): string | undefined;
-    utcZone(): ZoneInfo;
-    zoneIds(): string[];
-    zoneMeta(id: string): ZoneMeta | undefined;
-}
+export const tzFromUTC: (zoneid: string, utc: number) => ZoneInfo | undefined;
 
 // @public
-export class TzImpl {
-    constructor(raw: RawData);
-    fromUTC(zoneid: string, utc: number): ZoneInfo | undefined;
-    fromWall(zoneid: string, wall: number): [number, ZoneInfo] | undefined;
-    resolveId(id: string): string | undefined;
-    utcZone(): ZoneInfo;
-    zoneIds(): string[];
-    zoneMeta(id: string): ZoneMeta | undefined;
-}
+export const tzFromWall: (zoneid: string, wall: number) => [number, ZoneInfo] | undefined;
+
+// @public
+export const tzResolveId: (id: string) => string | undefined;
+
+// @public
+export const tzUtcZone: () => ZoneInfo;
+
+// @public
+export const tzZoneIds: () => string[];
+
+// @public
+export const tzZoneMeta: (id: string) => ZoneMeta | undefined;
 
 // @public
 export interface ZoneInfo {

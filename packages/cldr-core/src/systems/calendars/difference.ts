@@ -1,4 +1,4 @@
-import { TZ } from '@phensley/timezone';
+import { tzFromWall } from '@phensley/timezone';
 import { dateAdd } from './add';
 import { CalendarDate, DateDiffOptions } from './calendar';
 import { CalendarConstants } from './constants';
@@ -313,7 +313,7 @@ const timeDifference = (state: DifferenceState): [YearMonthDay, number] => {
 
     const jd = ymdToJD(intermediate.year, intermediate.month, intermediate.day, state.monthCount);
     let epoch = unixEpochFromJD(jd, ms1);
-    epoch = TZ.fromWall(zoneId, epoch)![0];
+    epoch = tzFromWall(zoneId, epoch)![0];
     delta = state.epoch2 - epoch;
     if (Math.sign(delta) !== -state.incr) {
       break;
@@ -362,7 +362,7 @@ const roundResult = (state: DifferenceState, result: TimePeriod) => {
   let startEpoch = unixEpochFromJD(jd, state.ms1);
 
   // Get wall clock UNIX epoch timestamp.
-  startEpoch = TZ.fromWall(state.date1.timeZoneId(), startEpoch)![0];
+  startEpoch = tzFromWall(state.date1.timeZoneId(), startEpoch)![0];
 
   // Repeat the above to get the end date that is +/- 1 day after the start date.
   // The +1 or -1 increment depends on the direction of the comparison.
@@ -371,7 +371,7 @@ const roundResult = (state: DifferenceState, result: TimePeriod) => {
   const end = adjustDays(start.year, start.month, start.day + state.incr);
   const endJd = ymdToJD(end.year, end.month, end.day, state.monthCount);
   let endEpoch = unixEpochFromJD(endJd, state.ms1);
-  endEpoch = TZ.fromWall(state.date1.timeZoneId(), endEpoch)![0];
+  endEpoch = tzFromWall(state.date1.timeZoneId(), endEpoch)![0];
 
   // Get the difference between start and end.
   const delta = endEpoch - startEpoch;

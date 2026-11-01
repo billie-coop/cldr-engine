@@ -1,5 +1,5 @@
 import { Timestamp } from './_helpers';
-import { TZ, ZoneInfo } from '../src';
+import { ZoneInfo, tzFromUTC, tzResolveId, tzUtcZone, tzZoneIds } from '../src';
 
 const OCT272019_010000 = new Timestamp(1572138000000);
 
@@ -7,17 +7,17 @@ test('invalid zone ids', () => {
   const t = OCT272019_010000;
   let info: ZoneInfo | undefined;
 
-  info = TZ.fromUTC('RANDOM', t.n);
+  info = tzFromUTC('RANDOM', t.n);
   expect(info).toEqual(undefined);
 });
 
 test('resolve id', () => {
   let alias: string | undefined;
 
-  alias = TZ.resolveId('RANDOM');
+  alias = tzResolveId('RANDOM');
   expect(alias).toEqual(undefined);
 
-  alias = TZ.resolveId('Pacific/Samoa');
+  alias = tzResolveId('Pacific/Samoa');
   expect(alias).toEqual('Pacific/Pago_Pago');
 });
 
@@ -25,19 +25,19 @@ test('aliases', () => {
   const t = OCT272019_010000;
   let info: ZoneInfo | undefined;
 
-  info = TZ.fromUTC('Africa/Addis_Ababa', t.n)!;
+  info = tzFromUTC('Africa/Addis_Ababa', t.n)!;
   expect(info.zoneid).toEqual('Africa/Nairobi');
 
-  info = TZ.fromUTC('Pacific/Samoa', t.n)!;
+  info = tzFromUTC('Pacific/Samoa', t.n)!;
   expect(info.zoneid).toEqual('Pacific/Pago_Pago');
 });
 
 test('utc zone', () => {
-  expect(TZ.utcZone()).toEqual({ zoneid: 'Etc/UTC', abbr: 'UTC', dst: 0, offset: 0 });
+  expect(tzUtcZone()).toEqual({ zoneid: 'Etc/UTC', abbr: 'UTC', dst: 0, offset: 0 });
 });
 
 test('zone ids', () => {
-  const ids = TZ.zoneIds();
+  const ids = tzZoneIds();
 
   expect(ids).toContainEqual('America/New_York');
   expect(ids).toContainEqual('Etc/UTC');
@@ -48,9 +48,9 @@ test('zone ids', () => {
 });
 
 test('all zones', () => {
-  const ids = TZ.zoneIds();
+  const ids = tzZoneIds();
   for (const id of ids) {
-    const info = TZ.fromUTC(id, OCT272019_010000.n);
+    const info = tzFromUTC(id, OCT272019_010000.n);
     expect(info).toBeDefined();
   }
 });

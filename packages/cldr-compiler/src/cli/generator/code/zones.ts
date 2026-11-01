@@ -1,4 +1,4 @@
-import { TZ } from '@phensley/timezone';
+import { tzResolveId, tzZoneIds } from '@phensley/timezone';
 import { lineWrap, Code, HEADER, NOLINT_MAXLINE } from './util';
 import chalk from 'chalk';
 
@@ -99,7 +99,7 @@ const buildMetaZones2 = (data: any): Metazones => {
   const zonemap = new Map<number, number>();
 
   // Array of canonical time zone ids
-  const zoneids = TZ.zoneIds();
+  const zoneids = tzZoneIds();
 
   Object.keys(data).forEach((id, mi) => {
     // Map the metazone id to the index of the time zone id in the TZ data.
@@ -107,7 +107,7 @@ const buildMetaZones2 = (data: any): Metazones => {
     if (zi === -1) {
       // We have an alias, e.g. Africa/Addis_Ababa, so follow the link to
       // get the correct tzdb id.
-      const zid = TZ.resolveId(id);
+      const zid = tzResolveId(id);
       if (zid === undefined) {
         throw new Error(`${chalk.red('Error')} tzdb / cldr mismatch. zone id failed ${id}`);
       }
@@ -158,11 +158,11 @@ const buildMetaZones2 = (data: any): Metazones => {
 };
 
 const buildStableIdMapping = (data: any): string => {
-  const tzids = TZ.zoneIds();
+  const tzids = tzZoneIds();
   const stableids = data.timeZoneIds;
   const res: string[] = [];
   for (const stableid of stableids) {
-    const resolved = TZ.resolveId(stableid);
+    const resolved = tzResolveId(stableid);
     if (resolved === undefined || stableid === resolved) {
       continue;
     }

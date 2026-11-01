@@ -1,6 +1,6 @@
 import { MetaZoneType } from '@phensley/cldr-types';
 import { TimeZoneStableIdIndex } from '../../schema';
-import { TZ } from '@phensley/timezone';
+import { tzFromUTC, tzResolveId, tzUtcZone, tzZoneIds } from '@phensley/timezone';
 
 import { zoneAliasRaw } from './autogen.aliases';
 import { metazoneData } from './autogen.zonedata';
@@ -23,9 +23,9 @@ interface MetazoneRecord {
 export const zoneInfoFromUTC = (zoneid: string, utc: number): ZoneInfo => {
   init();
 
-  let tzinfo = TZ.fromUTC(zoneid, utc);
+  let tzinfo = tzFromUTC(zoneid, utc);
   if (tzinfo === undefined) {
-    tzinfo = TZ.utcZone();
+    tzinfo = tzUtcZone();
   }
 
   // For the purposes of CLDR stable timezone ids, check if the passed-in
@@ -60,7 +60,7 @@ export const getStableTimeZoneId = (zoneid: string): string => {
     return zoneid;
   }
   // Resolve the passed-in string to a real tzdb zone id
-  const realid = TZ.resolveId(zoneid);
+  const realid = tzResolveId(zoneid);
   if (realid) {
     // Map to a CLDR stable id
     return metazones!.getStableId(realid);
@@ -100,7 +100,7 @@ class Metazones {
     }
 
     // mapping of zoneid to metazone records
-    const zoneids = TZ.zoneIds();
+    const zoneids = tzZoneIds();
     const zoneindex = numarray(raw.zoneindex, 36);
 
     // Mapping of tzdb id back to cldr stable id used for schema lookups

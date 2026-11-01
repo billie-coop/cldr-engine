@@ -1,4 +1,4 @@
-import { TZ } from '@phensley/timezone';
+import { tzFromWall } from '@phensley/timezone';
 import { CalendarDate } from './calendar';
 import { CalendarConstants } from './constants';
 import { timePeriod, TimePeriod } from './interval';
@@ -82,7 +82,7 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
   // Get the wall clock timezone offset. We use the CalendarDate's timezoneId
   // knowing it will always resolve to a valid timezone record, since constructing
   // an instance must pass through the timezone resolution process.
-  const wall = TZ.fromWall(orig.timeZoneId(), epoch)!;
+  const wall = tzFromWall(orig.timeZoneId(), epoch)!;
   epoch = wall[0];
 
   // Add the time components.

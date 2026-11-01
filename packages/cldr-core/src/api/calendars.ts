@@ -8,7 +8,7 @@ import {
 } from '@phensley/cldr-types';
 
 import { DecimalArg, Part } from '@phensley/decimal';
-import { TZ, ZoneInfo } from '@phensley/timezone';
+import { ZoneInfo, tzFromUTC, tzFromWall, tzResolveId, tzZoneIds, tzZoneMeta } from '@phensley/timezone';
 
 import { Bundle } from '../resource';
 
@@ -393,11 +393,11 @@ export class CalendarsImpl implements Calendars {
   }
 
   timeZoneIds(): string[] {
-    return TZ.zoneIds();
+    return tzZoneIds();
   }
 
   resolveTimeZoneId(zoneid: string): string | undefined {
-    return TZ.resolveId(substituteZoneAlias(zoneid));
+    return tzResolveId(substituteZoneAlias(zoneid));
   }
 
   timeZoneInfo(zoneid: string): TimeZoneInfo {
@@ -417,7 +417,7 @@ export class CalendarsImpl implements Calendars {
       names.long[key] = tz.metaZones.long.get(this.bundle, key, metazone);
       names.short[key] = tz.metaZones.short.get(this.bundle, key, metazone);
     }
-    const { countries, latitude, longitude, stdoffset } = TZ.zoneMeta(id)!; // Factory fallback will return a record
+    const { countries, latitude, longitude, stdoffset } = tzZoneMeta(id)!; // Factory fallback will return a record
     return {
       id,
       city: {
@@ -433,11 +433,11 @@ export class CalendarsImpl implements Calendars {
   }
 
   timeZoneFromUTC(utc: number, zoneid: string): ZoneInfo | undefined {
-    return TZ.fromUTC(zoneid, utc);
+    return tzFromUTC(zoneid, utc);
   }
 
   timeZoneFromWall(wall: number, zoneid: string): [number, ZoneInfo] | undefined {
-    return TZ.fromWall(zoneid, wall);
+    return tzFromWall(zoneid, wall);
   }
 
   timePeriodToQuantity(period: Partial<TimePeriod>): Quantity[] {
