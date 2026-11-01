@@ -1,7 +1,7 @@
 import { Schema } from '@phensley/cldr-types';
 import { SchemaConfig } from './schema';
 
-import { LRU } from '@phensley/cldr-utils';
+import { LRU, createLRU, lruGet, lruSet, lruSize } from '@phensley/cldr-utils';
 
 import {
   Calendars,
@@ -239,7 +239,7 @@ export class CLDRFramework {
   protected static defaultConfig?: SchemaConfig;
 
   constructor(protected options: CLDROptions) {
-    this.packCache = new LRU(options.packCacheSize || 2);
+    this.packCache = createLRU(options.packCacheSize || 2);
     this.loader = options.loader;
     this.asyncLoader = options.asyncLoader;
     this._config = options.config || CLDRFramework.defaultConfig || EMPTY_CONFIG;
@@ -259,7 +259,7 @@ export class CLDRFramework {
   }
 
   info(): string {
-    return `packs loaded: ${this.packCache.size()}`;
+    return `packs loaded: ${lruSize(this.packCache)}`;
   }
 
   /**
@@ -305,12 +305,12 @@ export class CLDRFramework {
     const resolved = typeof locale === 'string' ? CLDRFramework.resolveLocale(locale) : locale;
     const language = tagLanguage(resolved.tag);
 
-    let pack = this.packCache.get(language);
+    let pack = lruGet(this.packCache, language);
     if (pack === undefined) {
       const data = this.loader!(language);
       pack = loadPack(data);
       this.check(pack);
-      this.packCache.set(language, pack);
+      lruSet(this.packCache, language, pack);
     }
     return this.build(resolved, pack);
   }
@@ -326,7 +326,7 @@ export class CLDRFramework {
     const language = tagLanguage(resolved.tag);
 
     const promise = new Promise<CLDR>((resolve, reject) => {
-      const pack = this.packCache.get(language);
+      const pack = lruGet(this.packCache, language);
       if (pack !== undefined) {
         resolve(this.build(resolved, pack));
         return;
@@ -337,7 +337,7 @@ export class CLDRFramework {
         .then((raw) => {
           const _pack = loadPack(raw);
           this.check(_pack);
-          this.packCache.set(language, _pack);
+          lruSet(this.packCache, language, _pack);
           resolve(this.build(resolved, _pack));
         })
         .catch(reject);

@@ -1,5 +1,5 @@
 import { makeSuite } from './util';
-import { Checksum } from '../src';
+import { checksumGet, checksumUpdate, createChecksum } from '../src';
 
 export const fnv1aSuite = makeSuite('FNV1a');
 
@@ -12,17 +12,17 @@ const BYTE3 = makestr(N, '€');
 const BYTE4 = makestr(N, '𝄞');
 
 fnv1aSuite.add('1-byte sequence', () => {
-  new Checksum().update(BYTE1).get();
+  checksumGet(checksumUpdate(createChecksum(), BYTE1));
 });
 
 fnv1aSuite.add('2-byte sequence', () => {
-  new Checksum().update(BYTE2).get();
+  checksumGet(checksumUpdate(createChecksum(), BYTE2));
 });
 
 fnv1aSuite.add('3-byte sequence', () => {
-  new Checksum().update(BYTE3).get();
+  checksumGet(checksumUpdate(createChecksum(), BYTE3));
 });
 
 fnv1aSuite.add('4-byte sequence', () => {
-  new Checksum().update(BYTE4).get();
+  checksumGet(checksumUpdate(createChecksum(), BYTE4));
 });

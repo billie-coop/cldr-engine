@@ -8,7 +8,7 @@ import {
 } from '@phensley/cldr-types';
 
 import { Part } from '@phensley/decimal';
-import { Cache } from '@phensley/cldr-utils';
+import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
 import { GeneralInternals, Internals } from '../../internals/internals';
 import { Bundle } from '../../resource';
@@ -34,7 +34,7 @@ export class GeneralInternalsImpl implements GeneralInternals {
     const schema = internals.schema;
     this.layout = schema.Layout;
     this.listPatterns = schema.ListPatterns;
-    this.wrapperPatternCache = new Cache(parseWrapperPattern, cacheSize);
+    this.wrapperPatternCache = createCache(parseWrapperPattern, cacheSize);
   }
 
   characterOrder(bundle: Bundle): string {
@@ -106,7 +106,7 @@ export class GeneralInternalsImpl implements GeneralInternals {
   }
 
   formatWrapper(format: string, args: string[]): string {
-    const pattern = this.wrapperPatternCache.get(format);
+    const pattern = cacheGet(this.wrapperPatternCache, format);
     let res = '';
     for (const node of pattern) {
       if (typeof node === 'string') {
@@ -122,7 +122,7 @@ export class GeneralInternalsImpl implements GeneralInternals {
   }
 
   parseWrapper(raw: string): WrapperNode[] {
-    return this.wrapperPatternCache.get(raw);
+    return cacheGet(this.wrapperPatternCache, raw);
   }
 
   private _wrap<R>(pattern: string, value: AbstractValue<R>, args: R[]): R {

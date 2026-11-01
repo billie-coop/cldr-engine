@@ -23,7 +23,7 @@ import {
   decimalShiftright,
 } from '@phensley/decimal';
 
-import { Cache } from '@phensley/cldr-utils';
+import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
 import {
   CurrencyFormatOptions,
@@ -68,7 +68,7 @@ export class NumberInternalsImpl implements NumberInternals {
     const schema = internals.schema;
     this.currencies = schema.Currencies;
     this.numbers = schema.Numbers;
-    this.numberPatternCache = new Cache(parseNumberPattern, cacheSize);
+    this.numberPatternCache = createCache(parseNumberPattern, cacheSize);
   }
 
   adjustDecimal(num: Decimal, options: DecimalAdjustOptions = {}): Decimal {
@@ -107,7 +107,7 @@ export class NumberInternalsImpl implements NumberInternals {
   }
 
   getNumberPattern(raw: string, negative: boolean): NumberPattern {
-    return this.numberPatternCache.get(raw)[negative ? 1 : 0];
+    return cacheGet(this.numberPatternCache, raw)[negative ? 1 : 0];
   }
 
   formatDecimal<T>(

@@ -1,33 +1,30 @@
 import { Constants, FNV } from './fnv';
 
 /**
- * FNV-1A incremental checksum.
+ * Running FNV-1A checksum (mutable container).
  *
  * @public
  */
-export class Checksum {
-  private v: number = 0;
-
-  constructor() {
-    this.v = Constants.FNV1A_BASIS;
-  }
-
-  /**
-   * Add the string to the checksum.
-   *
-   * @public
-   */
-  update(s: string): this {
-    this.v = FNV(this.v, s);
-    return this;
-  }
-
-  /**
-   * Get the checksum value.
-   *
-   * @public
-   */
-  get(): number {
-    return this.v;
-  }
+export interface Checksum {
+  v: number;
 }
+
+/**
+ * @public
+ */
+export const createChecksum = (): Checksum => ({ v: Constants.FNV1A_BASIS });
+
+/**
+ * Add a string to the checksum. Returns the same checksum for chaining.
+ *
+ * @public
+ */
+export const checksumUpdate = (c: Checksum, s: string): Checksum => {
+  c.v = FNV(c.v, s);
+  return c;
+};
+
+/**
+ * @public
+ */
+export const checksumGet = (c: Checksum): number => c.v;

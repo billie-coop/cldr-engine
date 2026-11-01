@@ -1,5 +1,5 @@
 import { CalendarSchema, PluralType } from '@phensley/cldr-types';
-import { LRU } from '@phensley/cldr-utils';
+import { LRU, createLRU, lruGet, lruSet } from '@phensley/cldr-utils';
 import { decimal } from '@phensley/decimal';
 
 import { Internals } from '../../internals';
@@ -81,7 +81,7 @@ export class CalendarPatterns {
     this.buildIntervalMatcher();
 
     this.intervalFallback = fieldGet(this.schema.intervalFormatFallback, bundle);
-    this.skeletonRequestCache = new LRU<CachedSkeletonRequest>(cacheSize);
+    this.skeletonRequestCache = createLRU<CachedSkeletonRequest>(cacheSize);
   }
 
   dayPeriods(): ThreeLevelMap {
@@ -109,11 +109,11 @@ export class CalendarPatterns {
   }
 
   getCachedSkeletonRequest(key: string): CachedSkeletonRequest | undefined {
-    return this.skeletonRequestCache.get(key);
+    return lruGet(this.skeletonRequestCache, key);
   }
 
   setCachedSkeletonRequest(key: string, req: CachedSkeletonRequest): void {
-    this.skeletonRequestCache.set(key, req);
+    lruSet(this.skeletonRequestCache, key, req);
   }
 
   getDatePattern(width: string): DateTimeNode[] {

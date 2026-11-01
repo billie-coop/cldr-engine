@@ -1,4 +1,4 @@
-import { Checksum } from '../src';
+import { checksumGet, checksumUpdate, createChecksum } from '../src';
 
 /*
 
@@ -18,7 +18,7 @@ Appendix C: A Few Test Vectors
 
 */
 
-const fnv1a = (s: string): number => new Checksum().update(s).get();
+const fnv1a = (s: string): number => checksumGet(checksumUpdate(createChecksum(), s));
 
 test('fnv1a test vectors', () => {
   expect(fnv1a('')).toEqual(0x811c9dc5);
@@ -31,9 +31,9 @@ test('fnv1a test vectors', () => {
 });
 
 test('order', () => {
-  const c1 = new Checksum();
-  ['arab', 'guru', 'deva'].forEach((s) => c1.update(s));
-  const c2 = new Checksum();
-  ['deva', 'guru', 'arab'].forEach((s) => c2.update(s));
-  expect(c1.get()).not.toEqual(c2.get());
+  const c1 = createChecksum();
+  ['arab', 'guru', 'deva'].forEach((s) => checksumUpdate(c1, s));
+  const c2 = createChecksum();
+  ['deva', 'guru', 'arab'].forEach((s) => checksumUpdate(c2, s));
+  expect(checksumGet(c1)).not.toEqual(checksumGet(c2));
 });

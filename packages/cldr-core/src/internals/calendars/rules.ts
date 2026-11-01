@@ -1,5 +1,5 @@
 import { DayPeriodType } from '@phensley/cldr-types';
-import { binarySearch, Cache } from '@phensley/cldr-utils';
+import { binarySearch, Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
 import { Bundle } from '../../resource/bundle';
 import { numarray } from '../../utils/string';
@@ -22,7 +22,7 @@ export class DayPeriodRules {
   private cache: Cache<Rule>;
 
   constructor(cacheSize: number) {
-    this.cache = new Cache(parseRule, cacheSize);
+    this.cache = createCache(parseRule, cacheSize);
   }
 
   get(bundle: Bundle, minutes: number): DayPeriodType | undefined {
@@ -30,7 +30,7 @@ export class DayPeriodRules {
     if (raw === undefined) {
       return undefined;
     }
-    const rule = this.cache.get(raw);
+    const rule = cacheGet(this.cache, raw);
     const i = binarySearch(rule.minutes, true, minutes);
     return rule.keys[i];
   }

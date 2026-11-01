@@ -1,4 +1,4 @@
-import { Cache } from '@phensley/cldr-utils';
+import { Cache, cacheGet, cacheSize, createCache } from '@phensley/cldr-utils';
 import { PluralRules, getPluralRules } from '@phensley/plurals';
 import { buildMessageMatcher, parseMessagePattern, MessageCode, MessageMatcher } from './parser';
 import { evaluateMessage, MessageArg, MessageFormatFuncMap, MessageNamedArgs } from './evaluation';
@@ -75,7 +75,7 @@ export const createMessageFormatter = (options: MessageFormatterOptions = {}): M
   const plurals = options.plurals || getPluralRules(options.language || 'root', options.region);
   const size = options.cacheSize || DEFAULT_CACHE_SIZE;
   const matcher = buildMessageMatcher(Object.keys(formatters));
-  const cache = new Cache<MessageCode>((s) => parseMessagePattern(s, matcher, options.disableEscapes), size);
+  const cache = createCache<MessageCode>((s) => parseMessagePattern(s, matcher, options.disableEscapes), size);
   return { plurals, converter, formatters, matcher, cache };
 };
 
@@ -95,7 +95,7 @@ export const formatMessage = (
     formatter.plurals,
     formatter.converter,
     formatter.formatters,
-    formatter.cache.get(message),
+    cacheGet(formatter.cache, message),
     positional,
     named,
   );
@@ -106,4 +106,4 @@ export const formatMessage = (
  * @public
  */
 export const messageFormatterToString = (formatter: MessageFormatter): string =>
-  `MessageFormatter(formatters=${JSON.stringify(Object.keys(formatter.formatters))} cached=${formatter.cache.size()})`;
+  `MessageFormatter(formatters=${JSON.stringify(Object.keys(formatter.formatters))} cached=${cacheSize(formatter.cache)})`;

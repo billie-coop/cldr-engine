@@ -1,49 +1,38 @@
-import { LRU } from './lru';
+import { createLRU, lruGet, lruSet, lruSize, LRU } from './lru';
 
 /**
- * Links an arrow function to an LRU cache. The function converts
- * a string to a value of type T. The string itself is used as
- * the cache key.
- *
- * Examples:
- *  * Caching a number or date pattern. The cache key is the string
- *    representation of the pattern.
- *  * Caching any object that is expensive to create, where the cache
- *    key identifies the type of object to cache.
+ * Bounded cache of values built from a string key on first use (mutable container).
  *
  * @public
  */
-export class Cache<T> {
-  private storage: LRU<T>;
-
-  constructor(
-    private builder: (s: string) => T,
-    capacity: number,
-  ) {
-    this.storage = new LRU(capacity);
-  }
-
-  /**
-   * Return the number of items stored in the cache.
-   *
-   * @public
-   */
-  size(): number {
-    return this.storage.size();
-  }
-
-  /**
-   * Fetch an item from the cache. If the item is not found,
-   * it will be built and stored in the cache.
-   *
-   * @public
-   */
-  get(raw: string): T {
-    let o = this.storage.get(raw);
-    if (o === undefined) {
-      o = this.builder(raw);
-      this.storage.set(raw, o);
-    }
-    return o;
-  }
+export interface Cache<T> {
+  readonly builder: (s: string) => T;
+  readonly storage: LRU<T>;
 }
+
+/**
+ * @public
+ */
+export const createCache = <T>(builder: (s: string) => T, capacity: number): Cache<T> => ({
+  builder,
+  storage: createLRU<T>(capacity),
+});
+
+/**
+ * @public
+ */
+export const cacheSize = <T>(cache: Cache<T>): number => lruSize(cache.storage);
+
+/**
+ * Get the value for a key, building and caching it if absent.
+ *
+ * @public
+ */
+export const cacheGet = <T>(cache: Cache<T>, raw: string): T => {
+  let o = lruGet(cache.storage, raw);
+  if (o === undefined) {
+    o = cache.builder(raw);
+    lruSet(cache.storage, raw, o);
+  }
+  return o;
+};

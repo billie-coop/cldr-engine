@@ -1,50 +1,50 @@
-import { LRU } from '../src/lru';
+import { createLRU, lruGet, lruSet, lruSize, lruToString } from '../src';
 
 test('basics', () => {
-  const cache = new LRU<number>(5);
-  cache.set('aaa', 1);
-  cache.set('bbb', 2);
-  cache.set('ccc', 3);
-  expect(cache.toString()).toEqual('ccc=3 bbb=2 aaa=1');
+  const cache = createLRU<number>(5);
+  lruSet(cache, 'aaa', 1);
+  lruSet(cache, 'bbb', 2);
+  lruSet(cache, 'ccc', 3);
+  expect(lruToString(cache)).toEqual('ccc=3 bbb=2 aaa=1');
 
-  expect(cache.get('x')).toEqual(undefined);
+  expect(lruGet(cache, 'x')).toEqual(undefined);
 
-  cache.set('ddd', 4);
-  cache.set('eee', 5);
-  expect(cache.get('ddd')).toEqual(4);
-  expect(cache.toString()).toEqual('ddd=4 eee=5 ccc=3 bbb=2 aaa=1');
+  lruSet(cache, 'ddd', 4);
+  lruSet(cache, 'eee', 5);
+  expect(lruGet(cache, 'ddd')).toEqual(4);
+  expect(lruToString(cache)).toEqual('ddd=4 eee=5 ccc=3 bbb=2 aaa=1');
 
-  cache.set('fff', 6);
-  expect(cache.toString()).toEqual('fff=6 ddd=4 eee=5 ccc=3 bbb=2');
+  lruSet(cache, 'fff', 6);
+  expect(lruToString(cache)).toEqual('fff=6 ddd=4 eee=5 ccc=3 bbb=2');
 
-  cache.set('ccc', 33);
-  expect(cache.toString()).toEqual('ccc=33 fff=6 ddd=4 eee=5 bbb=2');
+  lruSet(cache, 'ccc', 33);
+  expect(lruToString(cache)).toEqual('ccc=33 fff=6 ddd=4 eee=5 bbb=2');
 
-  cache.set('ggg', 6);
-  expect(cache.toString()).toEqual('ggg=6 ccc=33 fff=6 ddd=4 eee=5');
+  lruSet(cache, 'ggg', 6);
+  expect(lruToString(cache)).toEqual('ggg=6 ccc=33 fff=6 ddd=4 eee=5');
 });
 
 test('defaults', () => {
-  const cache = new LRU<string>();
+  const cache = createLRU<string>();
   for (let i = 0; i < 200; i++) {
-    cache.set(i, String(i));
+    lruSet(cache, i, String(i));
   }
-  expect(cache.size()).toEqual(100);
+  expect(lruSize(cache)).toEqual(100);
   for (let i = 17; i < 300; i += 3) {
-    cache.get(i);
+    lruGet(cache, i);
   }
   for (let i = 15; i < 400; i += 3) {
-    cache.get(i);
+    lruGet(cache, i);
   }
-  expect(cache.size()).toEqual(100);
+  expect(lruSize(cache)).toEqual(100);
 });
 
 test('zero capacity', () => {
   // Special case where nothing is retained in the lru. This is used
   // to performance test code that depends on a cache, in order to
   // factor out the caching itself.
-  const cache = new LRU<number>(0);
-  cache.set('aaa', 1);
-  expect(cache.size()).toEqual(0);
-  expect(cache.get('aaa')).toEqual(undefined);
+  const cache = createLRU<number>(0);
+  lruSet(cache, 'aaa', 1);
+  expect(lruSize(cache)).toEqual(0);
+  expect(lruGet(cache, 'aaa')).toEqual(undefined);
 });

@@ -1,6 +1,6 @@
 import { decimal } from '@phensley/decimal';
 import { DateTimePatternField, DateTimePatternFieldType } from '@phensley/cldr-types';
-import { Cache } from '@phensley/cldr-utils';
+import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
 import { DateFormatOptions, DateIntervalFormatOptions } from '../../common';
 import { NumberParams } from '../../common/private';
@@ -38,7 +38,7 @@ export class CalendarManager {
     // calendars config array should always be non-empty
     this.availableCalendars = new Set(internals.config.calendars || []);
     const schema = internals.schema;
-    this.patternCache = new Cache((calendar: string) => {
+    this.patternCache = createCache((calendar: string) => {
       if (this.availableCalendars.has(calendar)) {
         switch (calendar) {
           case 'buddhist':
@@ -54,7 +54,7 @@ export class CalendarManager {
   }
 
   getCalendarPatterns(calendar: string): CalendarPatterns {
-    return this.patternCache.get(calendar);
+    return cacheGet(this.patternCache, calendar);
   }
 
   getDateFormatRequest(date: CalendarDate, options: DateFormatOptions, params: NumberParams): DateFormatRequest {

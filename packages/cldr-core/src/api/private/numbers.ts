@@ -1,6 +1,6 @@
 import { NumbersSchema, NumberSystemInfo, NumberSystemName } from '@phensley/cldr-types';
 
-import { Cache } from '@phensley/cldr-utils';
+import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
 import { Internals } from '../../internals';
 import { NumberSystemType } from '../../common';
@@ -23,7 +23,7 @@ export class NumberParamsCache {
     private bundle: Bundle,
     private internals: Internals,
   ) {
-    this.numberParamsCache = new Cache((s: string) => this.build(s as NumberSystemName), 20);
+    this.numberParamsCache = createCache((s: string) => this.build(s as NumberSystemName), 20);
     this.numbers = internals.schema.Numbers;
     this.latnSystemInfo = scopeGet(this.numbers.numberSystem, 'latn') as NumberSystemInfo;
     this.latnSystem = this.buildNumberSystem('latn');
@@ -54,7 +54,7 @@ export class NumberParamsCache {
       }
     }
 
-    return this.numberParamsCache.get(realName);
+    return cacheGet(this.numberParamsCache, realName);
   }
 
   protected select(numberSystem: NumberSystemType): NumberSystemName {

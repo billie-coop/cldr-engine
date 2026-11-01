@@ -1,4 +1,4 @@
-import { Cache } from '../src/cache';
+import { cacheGet, cacheSize, createCache } from '../src';
 
 interface Foo {
   key: string;
@@ -7,16 +7,16 @@ interface Foo {
 const parser = (k: string): Foo => ({ key: k });
 
 test('basics', () => {
-  const cache = new Cache<Foo>(parser, 3);
-  expect(cache.get('foo')).toEqual({ key: 'foo' });
-  expect(cache.size()).toEqual(1);
-  expect(cache.get('foo')).toEqual({ key: 'foo' });
-  expect(cache.size()).toEqual(1);
+  const cache = createCache<Foo>(parser, 3);
+  expect(cacheGet(cache, 'foo')).toEqual({ key: 'foo' });
+  expect(cacheSize(cache)).toEqual(1);
+  expect(cacheGet(cache, 'foo')).toEqual({ key: 'foo' });
+  expect(cacheSize(cache)).toEqual(1);
 
-  expect(cache.get('bar')).toEqual({ key: 'bar' });
-  expect(cache.get('quux')).toEqual({ key: 'quux' });
-  expect(cache.size()).toEqual(3);
+  expect(cacheGet(cache, 'bar')).toEqual({ key: 'bar' });
+  expect(cacheGet(cache, 'quux')).toEqual({ key: 'quux' });
+  expect(cacheSize(cache)).toEqual(3);
 
-  expect(cache.get('zzz')).toEqual({ key: 'zzz' });
-  expect(cache.size()).toEqual(3);
+  expect(cacheGet(cache, 'zzz')).toEqual({ key: 'zzz' });
+  expect(cacheSize(cache)).toEqual(3);
 });

@@ -1,5 +1,5 @@
 import { KeyIndexMap } from '@phensley/cldr-types';
-import { Checksum } from '@phensley/cldr-utils';
+import { checksumGet, checksumUpdate, createChecksum } from '@phensley/cldr-utils';
 
 /**
  * Compute a checksum on a KeyIndexMap used to configure the
@@ -9,21 +9,21 @@ import { Checksum } from '@phensley/cldr-utils';
  * @internal
  */
 export const checksumIndices = (version: string, map: KeyIndexMap): string => {
-  const c = new Checksum();
+  const c = createChecksum();
   // Checksum will ignore the patch level of the version, indicating that packs from any
   // patch level will work together.
   const v = version.split('.').slice(0, 2).join('.');
-  c.update(v);
+  checksumUpdate(c, v);
 
   // Visit map keys in sorted order
   const keys = Object.keys(map).sort();
   for (const key of keys) {
-    c.update(key);
+    checksumUpdate(c, key);
 
     // Mapped values must be visited in their existing order.
     for (const val of map[key].keys) {
-      c.update(val);
+      checksumUpdate(c, val);
     }
   }
-  return c.get().toString(16);
+  return checksumGet(c).toString(16);
 };

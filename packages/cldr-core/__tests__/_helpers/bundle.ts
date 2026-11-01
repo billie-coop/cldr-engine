@@ -3,7 +3,7 @@ import { createHash } from 'crypto';
 import * as fs from 'fs';
 import { join } from 'path';
 
-import { LRU } from '@phensley/cldr-utils';
+import { createLRU, lruGet, lruSet } from '@phensley/cldr-utils';
 import { resolveLanguageTag } from '@phensley/locale';
 
 import { loadPack as parsePack, CLDRFramework, SchemaConfig, packGet } from '../../src';
@@ -16,7 +16,7 @@ const pkg = require('../../package.json');
 
 const TEMPROOT = join(__dirname, '..', '..', '.custom-packs');
 
-const bundleCache = new LRU<Bundle>(15);
+const bundleCache = createLRU<Bundle>(15);
 
 interface PackSpec {
   hash: string;
@@ -113,11 +113,11 @@ export const languageBundle = (tag: string, config?: SchemaConfig): Bundle => {
     key = `${hash}-${pkg.version}-${tag}`;
   }
 
-  let bundle = bundleCache.get(key);
+  let bundle = lruGet(bundleCache, key);
   if (bundle === undefined) {
     const pack = loadPack(language, spec);
     bundle = packGet(pack, locale);
-    bundleCache.set(key, bundle);
+    lruSet(bundleCache, key, bundle);
   }
   return bundle;
 };

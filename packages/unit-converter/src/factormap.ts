@@ -11,7 +11,7 @@ import {
   decimalAlignexp,
   decimalPrecision,
 } from '@phensley/decimal';
-import { Heap } from '@phensley/cldr-utils';
+import { createHeap, heapEmpty, heapPop, heapPush } from '@phensley/cldr-utils';
 import { FactorDef } from './types';
 
 type M<T> = { [dst: string]: T | undefined };
@@ -213,12 +213,12 @@ const factorGraph = (map: UnitFactors): FactorGraph => {
  * precision of the conversion factors.
  */
 const shortestPath = (graph: G<Edge>, src: string, dst: string): string[] | undefined => {
-  const heap = new Heap(cmp, [[src, 0]]);
+  const heap = createHeap(cmp, [[src, 0]]);
   const edges: M<C> = {};
   edges[src] = [0, undefined];
 
-  while (!heap.empty()) {
-    const [edge, cost] = heap.pop()!;
+  while (!heapEmpty(heap)) {
+    const [edge, cost] = heapPop(heap)!;
     if (edge === dst) {
       break;
     }
@@ -233,7 +233,7 @@ const shortestPath = (graph: G<Edge>, src: string, dst: string): string[] | unde
       const path = edges[n];
       if (!path || newcost < path[0]) {
         edges[n] = [newcost, edge];
-        heap.push([n, newcost]);
+        heapPush<E>(heap, [n, newcost]);
       }
     }
   }

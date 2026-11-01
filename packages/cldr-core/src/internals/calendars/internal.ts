@@ -1,5 +1,5 @@
 import { CalendarSchema, DayPeriodType, Schema } from '@phensley/cldr-types';
-import { Cache } from '@phensley/cldr-utils';
+import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
 import { DateTimeNode, intervalPatternBoundary, parseDatePattern } from '../../parsing/date';
 import { Bundle } from '../../resource';
@@ -31,14 +31,14 @@ export class CalendarInternalsImpl implements CalendarInternals {
   ) {
     this.schema = internals.schema;
     this.dayPeriodRules = new DayPeriodRules(cacheSize);
-    this.patternCache = new Cache(parseDatePattern, cacheSize);
+    this.patternCache = createCache(parseDatePattern, cacheSize);
     this.availableCalendars = new Set(internals.config.calendars || []);
-    this.hourPatternCache = new Cache((raw: string): [DateTimeNode[], DateTimeNode[]] => {
+    this.hourPatternCache = createCache((raw: string): [DateTimeNode[], DateTimeNode[]] => {
       const parts = raw.split(';');
-      return [this.patternCache.get(parts[0]), this.patternCache.get(parts[1])];
+      return [cacheGet(this.patternCache, parts[0]), cacheGet(this.patternCache, parts[1])];
     }, cacheSize);
 
-    this.calendarFormatterCache = new Cache((calendar: string) => {
+    this.calendarFormatterCache = createCache((calendar: string) => {
       let s: CalendarSchema | undefined;
       if (this.availableCalendars.has(calendar)) {
         switch (calendar) {
@@ -65,15 +65,15 @@ export class CalendarInternalsImpl implements CalendarInternals {
   }
 
   getCalendarFormatter(type: CalendarType): CalendarFormatter<CalendarDate> {
-    return this.calendarFormatterCache.get(type);
+    return cacheGet(this.calendarFormatterCache, type);
   }
 
   parseDatePattern(raw: string): DateTimeNode[] {
-    return this.patternCache.get(raw);
+    return cacheGet(this.patternCache, raw);
   }
 
   getHourPattern(raw: string, negative: boolean): DateTimeNode[] {
-    const patterns = this.hourPatternCache.get(raw);
+    const patterns = cacheGet(this.hourPatternCache, raw);
     return patterns[negative ? 1 : 0];
   }
 
