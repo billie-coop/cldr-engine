@@ -1,4 +1,14 @@
-import { Digits, Field, Instruction, Origin, Scope, ScopeMap, Vector } from '@phensley/cldr-core';
+import {
+  Digits,
+  Field,
+  Instruction,
+  Origin,
+  Scope,
+  ScopeMap,
+  Vector,
+  originGetIndex,
+  originGetValues,
+} from '@phensley/cldr-core';
 
 const leftPad = (s: number | string, w: number): string => {
   s = typeof s === 'number' ? String(s) : s;
@@ -64,7 +74,7 @@ export class EncoderMachine {
   }
 
   private encodeDigits(obj: any, inst: Digits): void {
-    const dim0 = this.origin.getIndex(inst.dim0);
+    const dim0 = originGetIndex(this.origin, inst.dim0);
 
     const o0 = obj[inst.name] || {};
     for (const k1 of dim0.keys) {
@@ -124,7 +134,7 @@ export class EncoderMachine {
   }
 
   private encodeScopeMap(obj: any, inst: ScopeMap): void {
-    const fields = this.origin.getValues(inst.fields);
+    const fields = originGetValues(this.origin, inst.fields);
     const curr = obj[inst.name] || {};
     for (const field of fields) {
       const child = curr[field] || {};
@@ -146,7 +156,7 @@ export class EncoderMachine {
 
   private _encodeVector(obj: any, inst: Vector, values: string[], k: number): boolean {
     const dims = inst.dims;
-    const dim = this.origin.getIndex(dims[k]);
+    const dim = originGetIndex(this.origin, dims[k]);
     const last = k === dims.length - 1;
     let exists = false;
     for (const key of dim.keys) {

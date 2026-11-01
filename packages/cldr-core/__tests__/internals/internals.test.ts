@@ -15,7 +15,7 @@ test('calendar lookup', () => {
 
 test('select calendar', () => {
   const bundle = languageBundle('und-TH');
-  console.log(bundle.languageRegion());
+  console.log(bundle.languageRegion);
   const internals = new InternalsImpl(defaultconfig, '1.0', false, true);
   const cal = internals.calendars.selectCalendar(bundle);
   expect(cal).toEqual('buddhist');

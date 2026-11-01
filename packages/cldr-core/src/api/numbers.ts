@@ -78,12 +78,12 @@ export class NumbersImpl implements Numbers {
 
   getPluralCardinal(n: DecimalArg, options?: DecimalAdjustOptions): string {
     const d = options ? this.adjustDecimal(n, options) : decimal(n);
-    return this.bundle.plurals().cardinal(d);
+    return this.bundle.plurals.cardinal(d);
   }
 
   getPluralOrdinal(n: DecimalArg, options?: DecimalAdjustOptions): string {
     const d = options ? this.adjustDecimal(n, options) : decimal(n);
-    return this.bundle.plurals().ordinal(d);
+    return this.bundle.plurals.ordinal(d);
   }
 
   formatDecimal(n: DecimalArg, options?: DecimalFormatOptions): string {

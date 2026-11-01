@@ -1,5 +1,5 @@
 import { KeyIndex, KeyIndexMap } from '@phensley/cldr-types';
-import { KeyIndexImpl, origin, Origin } from '../instructions';
+import { keyIndex, origin, Origin } from '../instructions';
 import {
   BUDDHIST,
   BUDDHIST_INDICES,
@@ -21,7 +21,7 @@ import { UNITS } from './units';
 
 import { AltIndex, DayPeriodAltIndex, EraAltIndex, PluralIndex } from '../schema';
 
-const EMPTY_INDEX = new KeyIndexImpl([]);
+const EMPTY_INDEX = /*#__PURE__*/ keyIndex([]);
 
 const emptyCalendarIndex = (name: string): KeyIndexMap => ({
   [`${name}-available-format`]: EMPTY_INDEX,
@@ -119,10 +119,13 @@ type SchemaConfigKey = keyof SchemaConfig;
 const COPY: SchemaConfigKey[] = ['currency-id', 'language-id', 'script-id', 'region-id', 'unit-id', 'timezone-id'];
 
 /**
+ * Creates the origin of the code that builds the schema accessor for a config: the schema
+ * instructions plus the key indices they refer to.
+ *
  * @public
  */
-export class CodeBuilder {
-  private indices: { [name: string]: KeyIndex<string> } = {
+export const buildOrigin = (config: SchemaConfig): Origin => {
+  const indices: { [name: string]: KeyIndex<string> } = {
     'alt-key': AltIndex,
     'day-period-alt-key': DayPeriodAltIndex,
     'era-alt-key': EraAltIndex,
@@ -138,90 +141,78 @@ export class CodeBuilder {
     ...TIMEZONE_INDICES,
   };
 
-  constructor(private config: SchemaConfig) {}
-
-  /**
-   * Creates the origin of the code that builds the schema accessor instance.
-   */
-  origin(): Origin {
-    for (const key of COPY) {
-      this.make(key, this.config[key] || []);
+  // Set the key index with the given name.
+  const make = (name: string, keys: string[]): void => {
+    indices[name] = keyIndex<string>(keys);
+  };
+  const copy = (name: SchemaConfigKey): void => {
+    indices[name] = keyIndex<string>((config[name] as string[]) || []);
+  };
+  const add = (map: KeyIndexMap): void => {
+    for (const name of Object.keys(map)) {
+      indices[name] = map[name];
     }
+  };
 
-    // Ensure 'latn' is always defined since its our fallback
-    let numberSystemNames = this.config['number-system-name'] || [];
-    if (numberSystemNames.indexOf('latn') === -1) {
-      numberSystemNames = numberSystemNames.concat(['latn']);
-    }
-    this.make('number-system-name', numberSystemNames);
-
-    const code: any[] = [
-      NAMES,
-      NUMBERS,
-      DATEFIELDS,
-      LAYOUT,
-      LIST_PATTERNS,
-      BUDDHIST,
-      GREGORIAN,
-      JAPANESE,
-      PERSIAN,
-      TIMEZONE,
-      CURRENCIES,
-      UNITS,
-      CONTEXT_TRANSFORM,
-    ];
-
-    // TODO: upgrading to CLDR 48 BETA 3 caused some tests to fail when
-    // the calendar list was empty. For now we ensure it always contains
-    // 'gregory'.
-    if (!this.config.calendars || !this.config.calendars.length) {
-      this.config.calendars = ['gregory'];
-    }
-
-    for (const name of this.config.calendars || []) {
-      switch (name) {
-        case 'buddhist':
-          this.add(BUDDHIST_INDICES);
-          this.copy('buddhist-available-format');
-          this.copy('buddhist-plural-format');
-          this.copy('buddhist-interval-format');
-          break;
-        case 'japanese':
-          this.add(JAPANESE_INDICES);
-          this.copy('japanese-available-format');
-          this.copy('japanese-plural-format');
-          this.copy('japanese-interval-format');
-          break;
-        case 'persian':
-          this.add(PERSIAN_INDICES);
-          this.copy('persian-available-format');
-          this.copy('persian-plural-format');
-          this.copy('persian-interval-format');
-          break;
-      }
-    }
-
-    this.copy('gregorian-available-format');
-    this.copy('gregorian-plural-format');
-    this.copy('gregorian-interval-format');
-    return origin(code, this.indices);
+  for (const key of COPY) {
+    make(key, config[key] || []);
   }
 
-  /**
-   * Set the key index with the given name.
-   */
-  private make(name: string, keys: string[]): void {
-    this.indices[name] = new KeyIndexImpl<string>(keys);
+  // Ensure 'latn' is always defined since its our fallback
+  let numberSystemNames = config['number-system-name'] || [];
+  if (numberSystemNames.indexOf('latn') === -1) {
+    numberSystemNames = numberSystemNames.concat(['latn']);
+  }
+  make('number-system-name', numberSystemNames);
+
+  const code: any[] = [
+    NAMES,
+    NUMBERS,
+    DATEFIELDS,
+    LAYOUT,
+    LIST_PATTERNS,
+    BUDDHIST,
+    GREGORIAN,
+    JAPANESE,
+    PERSIAN,
+    TIMEZONE,
+    CURRENCIES,
+    UNITS,
+    CONTEXT_TRANSFORM,
+  ];
+
+  // TODO: upgrading to CLDR 48 BETA 3 caused some tests to fail when
+  // the calendar list was empty. For now we ensure it always contains
+  // 'gregory'.
+  if (!config.calendars || !config.calendars.length) {
+    config.calendars = ['gregory'];
   }
 
-  private copy(name: SchemaConfigKey): void {
-    this.indices[name] = new KeyIndexImpl<string>(this.config[name] || []);
-  }
-
-  private add(indices: KeyIndexMap): void {
-    const names = Object.keys(indices);
-    for (const name of names) {
-      this.indices[name] = indices[name];
+  for (const name of config.calendars || []) {
+    switch (name) {
+      case 'buddhist':
+        add(BUDDHIST_INDICES);
+        copy('buddhist-available-format');
+        copy('buddhist-plural-format');
+        copy('buddhist-interval-format');
+        break;
+      case 'japanese':
+        add(JAPANESE_INDICES);
+        copy('japanese-available-format');
+        copy('japanese-plural-format');
+        copy('japanese-interval-format');
+        break;
+      case 'persian':
+        add(PERSIAN_INDICES);
+        copy('persian-available-format');
+        copy('persian-plural-format');
+        copy('persian-interval-format');
+        break;
     }
   }
-}
+
+  copy('gregorian-available-format');
+  copy('gregorian-plural-format');
+  copy('gregorian-interval-format');
+  return origin(code, indices);
+};

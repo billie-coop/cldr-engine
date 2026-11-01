@@ -1,4 +1,13 @@
-import { CLDRFramework, CurrencyFormatOptions, NumberSystemInfo, Quantity, SchemaConfig } from '../src';
+import {
+  CLDRFramework,
+  CurrencyFormatOptions,
+  NumberSystemInfo,
+  Quantity,
+  SchemaConfig,
+  scopeGet,
+  vectorMapping,
+  fieldGet,
+} from '../src';
 import { getCLDR } from './_helpers';
 import { tagCompact, tagExpanded } from '@phensley/language-tag';
 
@@ -11,7 +20,7 @@ test('init framework', () => {
 
   expect(() => framework.get('xx')).toThrowError();
 
-  expect(api.General.bundle().id()).toEqual('en-Latn-US');
+  expect(api.General.bundle().id).toEqual('en-Latn-US');
   expect(api.General.locale().id).toEqual('en');
   expect(tagExpanded(api.General.resolveLocale('zh').tag)).toEqual('zh-Hans-CN');
 
@@ -45,20 +54,20 @@ test('init framework', () => {
 
   // Bundle with invalid region
   api = framework.get('ar-Arab-XX');
-  expect(api.General.bundle().language()).toEqual('ar');
-  expect(api.General.bundle().languageRegion()).toEqual('ar-EG');
-  expect(api.General.bundle().languageScript()).toEqual('ar-Arab');
+  expect(api.General.bundle().language).toEqual('ar');
+  expect(api.General.bundle().languageRegion).toEqual('ar-EG');
+  expect(api.General.bundle().languageScript).toEqual('ar-Arab');
 
   // Bundle with invalid script
   api = framework.get('ar-Cyrl-SA');
-  expect(api.General.bundle().language()).toEqual('ar');
-  expect(api.General.bundle().languageRegion()).toEqual('ar-EG');
-  expect(api.General.bundle().languageScript()).toEqual('ar-Arab');
+  expect(api.General.bundle().language).toEqual('ar');
+  expect(api.General.bundle().languageRegion).toEqual('ar-EG');
+  expect(api.General.bundle().languageScript).toEqual('ar-Arab');
 
   // Load with a locale object
   const l = resolveLocale('gu');
   api = framework.get(l);
-  expect(api.General.bundle().language()).toEqual('gu');
+  expect(api.General.bundle().language).toEqual('gu');
 });
 
 test('parsing language tags', () => {
@@ -85,23 +94,23 @@ test('accessing schema', () => {
   let api = framework.get('en');
   let bundle = api.General.bundle();
 
-  let system = api.Schema.Numbers.numberSystem.get('latn') as NumberSystemInfo;
-  let symbols = system.symbols.mapping(bundle);
+  let system = scopeGet(api.Schema.Numbers.numberSystem, 'latn') as NumberSystemInfo;
+  let symbols = vectorMapping(system.symbols, bundle);
   expect(symbols.group).toEqual(',');
   expect(symbols.decimal).toEqual('.');
 
-  let pattern = system.decimalFormats.standard.get(bundle);
+  let pattern = fieldGet(system.decimalFormats.standard, bundle);
   expect(pattern).toEqual('#,##0.###');
 
   api = framework.get('de');
   bundle = api.General.bundle();
 
-  system = api.Schema.Numbers.numberSystem.get('latn') as NumberSystemInfo;
-  symbols = system.symbols.mapping(bundle);
+  system = scopeGet(api.Schema.Numbers.numberSystem, 'latn') as NumberSystemInfo;
+  symbols = vectorMapping(system.symbols, bundle);
   expect(symbols.group).toEqual('.');
   expect(symbols.decimal).toEqual(',');
 
-  pattern = system.currencyFormats.standard.get(bundle);
+  pattern = fieldGet(system.currencyFormats.standard, bundle);
   expect(pattern).toEqual('#,##0.00\u00a0\u00a4');
 });
 
@@ -130,7 +139,7 @@ test('async loader', async () => {
   const en = framework.get('en');
   const es = framework.get('es');
 
-  const path = ['bundle', '_id'];
+  const path = ['bundle', 'id'];
 
   await expect(framework.getAsync('en')).resolves.toEqual(en);
   await expect(framework.getAsync('es')).resolves.toEqual(es);
@@ -149,7 +158,7 @@ test('async loader', async () => {
 
 test('async await loader', async () => {
   const framework = getCLDR();
-  const path = ['bundle', '_id'];
+  const path = ['bundle', 'id'];
 
   const de = await framework.getAsync('de');
   expect(de).toHaveProperty(path, 'de-Latn-DE');

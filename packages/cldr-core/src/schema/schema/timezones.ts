@@ -1,18 +1,18 @@
 import { MetaZoneType } from '@phensley/cldr-types';
 import { MetaZoneValues, TimeZoneStableIds } from './autogen.timezones';
-import { KeyIndexImpl } from '../instructions';
+import { keyIndex } from '../instructions';
 
 /**
  * @public
  */
-export const MetaZoneIndex = new KeyIndexImpl<MetaZoneType>(MetaZoneValues);
+export const MetaZoneIndex = /*#__PURE__*/ keyIndex<MetaZoneType>(MetaZoneValues);
 
 /**
  * @public
  */
-export const TimeZoneTypeIndex = new KeyIndexImpl(['daylight', 'generic', 'standard']);
+export const TimeZoneTypeIndex = /*#__PURE__*/ keyIndex(['daylight', 'generic', 'standard']);
 
 /**
  * @public
  */
-export const TimeZoneStableIdIndex = new KeyIndexImpl(TimeZoneStableIds);
+export const TimeZoneStableIdIndex = /*#__PURE__*/ keyIndex(TimeZoneStableIds);

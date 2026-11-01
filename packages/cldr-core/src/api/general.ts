@@ -29,6 +29,7 @@ import { GeneralInternals, Internals } from '../internals';
 import { General } from './api';
 import { PrivateApiImpl } from './private/api';
 import { ContextTransformInfo } from '../common/private';
+import { vectorGet } from '../schema/schema/arrows';
 
 const DEFAULT_NAME_OPTIONS: DisplayNameOptions = { context: 'begin-sentence' };
 
@@ -86,12 +87,12 @@ export class GeneralImpl implements General {
   }
 
   messageFormatter(options?: MessageFormatterOptions): MessageFormatter {
-    const plurals = this._bundle.plurals();
+    const plurals = this._bundle.plurals;
     return new MessageFormatter({ ...options, plurals });
   }
 
   measurementSystem(category?: MeasurementCategory): MeasurementSystem {
-    const region = this._bundle.region();
+    const region = this._bundle.region;
     switch (category) {
       case 'temperature':
         switch (region) {
@@ -211,7 +212,10 @@ export class GeneralImpl implements General {
 
   // Check if the given alt type field exists, and fall back to alt type 'none'
   protected _getVectorAlt<T extends string>(arrow: Vector2Arrow<AltType, T>, code: string, type: AltType): string {
-    return arrow.get(this._bundle, type, code as unknown as T) || arrow.get(this._bundle, 'none', code as unknown as T);
+    return (
+      vectorGet(arrow, this._bundle, type, code as unknown as T) ||
+      vectorGet(arrow, this._bundle, 'none', code as unknown as T)
+    );
   }
 }
 

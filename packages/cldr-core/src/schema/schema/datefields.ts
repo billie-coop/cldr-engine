@@ -1,4 +1,4 @@
-import { KeyIndexImpl } from '../instructions';
+import { keyIndex } from '../instructions';
 
 import { DateFieldType, DateFieldWidthType, RelativeTimeFieldType } from '@phensley/cldr-types';
 
@@ -57,14 +57,14 @@ export const RelativeTimeFieldValues: RelativeTimeFieldType[] = [
 /**
  * @public
  */
-export const DateFieldIndex = new KeyIndexImpl(DateFieldValues);
+export const DateFieldIndex = /*#__PURE__*/ keyIndex(DateFieldValues);
 
 /**
  * @public
  */
-export const DateFieldWidthIndex = new KeyIndexImpl(DateFieldWidthValues);
+export const DateFieldWidthIndex = /*#__PURE__*/ keyIndex(DateFieldWidthValues);
 
 /**
  * @public
  */
-export const RelativeTimeFieldIndex = new KeyIndexImpl(RelativeTimeFieldValues);
+export const RelativeTimeFieldIndex = /*#__PURE__*/ keyIndex(RelativeTimeFieldValues);

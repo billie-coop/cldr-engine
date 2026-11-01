@@ -1,5 +1,5 @@
 import { KeyIndexMap, Schema } from '@phensley/cldr-types';
-import { CodeBuilder, SchemaConfig } from '../schema';
+import { buildOrigin, SchemaConfig } from '../schema';
 import {
   CalendarInternals,
   DateFieldInternals,
@@ -41,8 +41,7 @@ export class InternalsImpl implements Internals {
   ) {
     // TODO: may move this up depending on how integration evolves
     this.config = config;
-    const code = new CodeBuilder(config);
-    const origin = code.origin();
+    const origin = buildOrigin(config);
     this.indices = origin.indices;
     this.schema = buildSchema(origin, debug);
     this.checksum = skipChecksum ? '' : checksumIndices(version, origin.indices);

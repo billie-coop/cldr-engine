@@ -1,7 +1,7 @@
 import { Part } from '@phensley/decimal';
 
 import { languageBundle, unitsApi, INTERNALS } from '../../_helpers';
-import { Quantity, UnitFormatOptions } from '../../../src';
+import { Quantity, UnitFormatOptions, vectorGet, fieldGet } from '../../../src';
 
 test('available units', () => {
   const api = unitsApi('en');
@@ -98,13 +98,13 @@ test('per unit pattern schema', () => {
   const units = internals.schema.Units;
   const en = languageBundle('en');
 
-  let p = units.long.perUnitPattern.get(en, 'kilogram');
+  let p = vectorGet(units.long.perUnitPattern, en, 'kilogram');
   expect(p).toEqual('{0} per kilogram');
 
-  p = units.long.perPattern.get(en);
+  p = fieldGet(units.long.perPattern, en);
   expect(p).toEqual('{0} per {1}');
 
-  p = units.long.timesPattern.get(en);
+  p = fieldGet(units.long.timesPattern, en);
   expect(p).toEqual('{0}-{1}');
 });
 

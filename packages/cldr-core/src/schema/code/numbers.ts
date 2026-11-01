@@ -1,4 +1,5 @@
-import { digits, field, scope, scopemap, vector, KeyIndexImpl, Scope } from '../instructions';
+import { KeyIndex } from '@phensley/cldr-types';
+import { digits, field, scope, scopemap, vector, Scope } from '../instructions';
 import {
   CurrencySpacingPatternIndex,
   CurrencySpacingPosIndex,
@@ -35,7 +36,7 @@ export const NUMBERS: Scope = scope('Numbers', 'Numbers', [
   ]),
 ]);
 
-export const NUMBERS_INDICES: { [x: string]: KeyIndexImpl<string> } = {
+export const NUMBERS_INDICES: { [x: string]: KeyIndex<string> } = {
   'currency-spacing-pattern': CurrencySpacingPatternIndex,
   'currency-spacing-pos': CurrencySpacingPosIndex,
   'number-misc-pattern': NumberMiscPatternIndex,

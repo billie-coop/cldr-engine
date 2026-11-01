@@ -39,6 +39,7 @@ import { getCurrencyFractions } from './util';
 import { Bundle } from '../../resource';
 import { Internals, NumberInternals, NumberRenderer } from '../../internals/internals';
 import { PartsNumberFormatter, StringNumberFormatter } from './render';
+import { vectorGet, vectorValid, scopeGet, fieldGet, digitsGet } from '../../schema/schema/arrows';
 
 const ADJUST_PATTERN = parseNumberPattern('0')[0];
 
@@ -90,17 +91,17 @@ export class NumberInternalsImpl implements NumberInternals {
 
   private _getCurrencySymbol(bundle: Bundle, code: CurrencyType, alt: AltType): string {
     const sym = this.currencies.symbol;
-    return sym.get(bundle, [alt, 'none'], code) || (sym.valid('none', code) ? code : '');
+    return vectorGet(sym, bundle, [alt, 'none'], code) || (vectorValid(sym, 'none', code) ? code : '');
   }
 
   getCurrencyDisplayName(bundle: Bundle, code: CurrencyType): string {
-    return this.currencies.displayName.get(bundle, code);
+    return vectorGet(this.currencies.displayName, bundle, code);
   }
 
   getCurrencyPluralName(bundle: Bundle, code: string, plural: PluralType): string {
     return (
-      this.currencies.pluralName.get(bundle, plural, code as CurrencyType) ||
-      this.currencies.displayName.get(bundle, code as CurrencyType)
+      vectorGet(this.currencies.pluralName, bundle, plural, code as CurrencyType) ||
+      vectorGet(this.currencies.displayName, bundle, code as CurrencyType)
     );
   }
 
@@ -121,20 +122,20 @@ export class NumberInternalsImpl implements NumberInternals {
     let plural: PluralType = 'other';
     const round = options.round || 'half-even';
 
-    const latnInfo = this.numbers.numberSystem.get('latn') as NumberSystemInfo;
-    const info = this.numbers.numberSystem.get(params.numberSystemName) || latnInfo;
+    const latnInfo = scopeGet(this.numbers.numberSystem, 'latn') as NumberSystemInfo;
+    const info = scopeGet(this.numbers.numberSystem, params.numberSystemName) || latnInfo;
 
     const decimalFormats = info.decimalFormats;
     const latnDecimalFormats = latnInfo.decimalFormats;
-    const standardRaw = decimalFormats.standard.get(bundle) || latnDecimalFormats.standard.get(bundle);
+    const standardRaw = fieldGet(decimalFormats.standard, bundle) || fieldGet(latnDecimalFormats.standard, bundle);
 
-    const plurals = bundle.plurals();
+    const plurals = bundle.plurals;
 
     switch (style) {
       case 'long':
       case 'short': {
         const isShort = style === 'short';
-        const useLatn = decimalFormats.short.get(bundle, 'other', 4)[0] === '';
+        const useLatn = digitsGet(decimalFormats.short, bundle, 'other', 4)[0] === '';
         const patternImpl = isShort
           ? useLatn
             ? latnInfo.decimalFormats.short
@@ -163,7 +164,9 @@ export class NumberInternalsImpl implements NumberInternals {
         // Select the final pluralized compact pattern based on the integer
         // digits of n and the plural category of the rounded / shifted number q2.
         const raw =
-          patternImpl.get(bundle, plural, ndigits)[0] || patternImpl.get(bundle, 'other', ndigits)[0] || standardRaw;
+          digitsGet(patternImpl, bundle, plural, ndigits)[0] ||
+          digitsGet(patternImpl, bundle, 'other', ndigits)[0] ||
+          standardRaw;
 
         // Re-select pattern as number may have changed sign due to rounding.
         const pattern = this.getNumberPattern(raw, decimalIsNegative(q2));
@@ -177,7 +180,7 @@ export class NumberInternalsImpl implements NumberInternals {
       case 'permille':
       case 'permille-scaled': {
         // Get percent pattern.
-        const raw = info.percentFormat.get(bundle) || latnInfo.percentFormat.get(bundle);
+        const raw = fieldGet(info.percentFormat, bundle) || fieldGet(latnInfo.percentFormat, bundle);
         let pattern = this.getNumberPattern(raw, decimalIsNegative(n));
 
         // Scale the number to a percent or permille form as needed.
@@ -226,7 +229,7 @@ export class NumberInternalsImpl implements NumberInternals {
 
         const ctx = new NumberContext(options, round, false, true, -1);
         const latnSciFormat = latnInfo.scientificFormat;
-        const format = sciFormat.get(bundle) || latnSciFormat.get(bundle);
+        const format = fieldGet(sciFormat, bundle) || fieldGet(latnSciFormat, bundle);
         let pattern = this.getNumberPattern(format, decimalIsNegative(n));
 
         ctx.setPattern(pattern, true);
@@ -271,23 +274,24 @@ export class NumberInternalsImpl implements NumberInternals {
     const width = options.symbolWidth === 'narrow' ? 'narrow' : 'none';
     const style = options.style === undefined ? 'symbol' : options.style;
 
-    const latnInfo = this.numbers.numberSystem.get('latn') as NumberSystemInfo;
-    const info = this.numbers.numberSystem.get(params.numberSystemName) || latnInfo;
+    const latnInfo = scopeGet(this.numbers.numberSystem, 'latn') as NumberSystemInfo;
+    const info = scopeGet(this.numbers.numberSystem, params.numberSystemName) || latnInfo;
 
     const currencyFormats = info.currencyFormats;
     const latnDecimalFormats = latnInfo.decimalFormats;
 
-    const standardRaw = currencyFormats.standard.get(bundle) || latnDecimalFormats.standard.get(bundle);
+    const standardRaw = fieldGet(currencyFormats.standard, bundle) || fieldGet(latnDecimalFormats.standard, bundle);
 
     // Some locales have a special decimal symbol for certain currencies, e.g. pt-PT and PTE
-    const decimal = this.currencies.decimal.get(bundle, code as CurrencyType) || '';
+    const decimal = vectorGet(this.currencies.decimal, bundle, code as CurrencyType) || '';
 
-    const plurals = bundle.plurals();
+    const plurals = bundle.plurals;
 
     switch (style) {
       case 'code':
       case 'name': {
-        const raw = info.decimalFormats.standard.get(bundle) || latnInfo.decimalFormats.standard.get(bundle);
+        const raw =
+          fieldGet(info.decimalFormats.standard, bundle) || fieldGet(latnInfo.decimalFormats.standard, bundle);
         let pattern = this.getNumberPattern(raw, decimalIsNegative(n));
 
         // Adjust number using pattern and options, then render.
@@ -307,8 +311,8 @@ export class NumberInternalsImpl implements NumberInternals {
         // Wrap number and unit together.
         // TODO: implement a more concise fallback to 'other' for pluralized lookups
         const unitWrapper =
-          currencyFormats.unitPattern.get(bundle, [plural, 'other']) ||
-          latnInfo.currencyFormats.unitPattern.get(bundle, [plural, 'other']);
+          vectorGet(currencyFormats.unitPattern, bundle, [plural, 'other']) ||
+          vectorGet(latnInfo.currencyFormats.unitPattern, bundle, [plural, 'other']);
         return renderer.wrap(this.internals.general, unitWrapper, num, renderer.make('unit', unit));
       }
 
@@ -336,7 +340,9 @@ export class NumberInternalsImpl implements NumberInternals {
         // Select the final pluralized compact pattern based on the integer
         // digits of n and the plural category of the rounded / shifted number q2.
         let raw =
-          patternImpl.get(bundle, plural, ndigits)[0] || patternImpl.get(bundle, 'other', ndigits)[0] || standardRaw;
+          digitsGet(patternImpl, bundle, plural, ndigits)[0] ||
+          digitsGet(patternImpl, bundle, 'other', ndigits)[0] ||
+          standardRaw;
         if (raw === '0') {
           raw = standardRaw;
         }
@@ -349,10 +355,10 @@ export class NumberInternalsImpl implements NumberInternals {
       case 'symbol': {
         // Select standard or accounting pattern based on style.
         let styleArrow = style === 'symbol' ? currencyFormats.standard : currencyFormats.accounting;
-        let raw = styleArrow.get(bundle);
+        let raw = fieldGet(styleArrow, bundle);
         if (!raw) {
           styleArrow = style === 'symbol' ? latnInfo.currencyFormats.standard : latnInfo.currencyFormats.accounting;
-          raw = styleArrow.get(bundle);
+          raw = fieldGet(styleArrow, bundle);
         }
         let pattern = this.getNumberPattern(raw, decimalIsNegative(n));
 
@@ -395,7 +401,7 @@ export class NumberInternalsImpl implements NumberInternals {
     // The plural category doesn't matter until the final pattern is selected.
     let raw: string;
     let ndivisor = 0;
-    [raw, ndivisor] = patternImpl.get(bundle, 'other', ndigits);
+    [raw, ndivisor] = digitsGet(patternImpl, bundle, 'other', ndigits);
     let pattern = this.getCompactPattern(raw, standardRaw, negative);
 
     const fracDigits = ctx.useSignificant ? -1 : 0;
@@ -421,7 +427,7 @@ export class NumberInternalsImpl implements NumberInternals {
       ndigits++;
 
       let divisor = 0;
-      [raw, divisor] = patternImpl.get(bundle, 'other', ndigits);
+      [raw, divisor] = digitsGet(patternImpl, bundle, 'other', ndigits);
       pattern = this.getCompactPattern(raw, standardRaw, negative);
 
       // If divisor changed we need to divide and adjust again. We don't divide,
@@ -453,7 +459,7 @@ export class NumberInternalsImpl implements NumberInternals {
     const negative = decimalIsNegative(n);
     const ndigits = Math.log10(divisor) + 1;
     // Select compact patterns based on number of digits in divisor
-    const [raw, ndivisor] = patternImpl.get(bundle, 'other', ndigits);
+    const [raw, ndivisor] = digitsGet(patternImpl, bundle, 'other', ndigits);
     if (ndivisor > 0) {
       n = decimalMovePoint(n, -ndivisor);
     }

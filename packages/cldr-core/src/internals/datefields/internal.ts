@@ -13,6 +13,7 @@ import { DateFieldInternals, Internals } from '../internals';
 import { RelativeTimeFieldFormatOptions } from '../../common';
 import { Bundle } from '../../resource';
 import { ContextTransformInfo, NumberParams } from '../../common/private';
+import { vectorGet } from '../../schema/schema/arrows';
 
 // TODO: expose a method to calculate field difference with different options, e.g.
 // include weekdays
@@ -59,7 +60,7 @@ export class DateFieldInternalsImpl implements DateFieldInternals {
 
     if (iszero) {
       if (options.alwaysNow || !options.numericOnly) {
-        res = format.current.get(bundle, field);
+        res = vectorGet(format.current, bundle, field);
       }
     } else if (!options.numericOnly) {
       switch (field) {
@@ -69,13 +70,13 @@ export class DateFieldInternalsImpl implements DateFieldInternals {
           break;
         default:
           if (decimalCompare(n, DecimalConstants.TWO) === 0) {
-            const p = negative ? format.previous2.get(bundle, field) : format.next2.get(bundle, field);
+            const p = negative ? vectorGet(format.previous2, bundle, field) : vectorGet(format.next2, bundle, field);
             if (p !== '') {
               res = p;
             }
             // Fall through
           } else if (decimalCompare(n, DecimalConstants.ONE) === 0) {
-            res = negative ? format.previous.get(bundle, field) : format.next.get(bundle, field);
+            res = negative ? vectorGet(format.previous, bundle, field) : vectorGet(format.next, bundle, field);
           }
           break;
       }
@@ -90,9 +91,9 @@ export class DateFieldInternalsImpl implements DateFieldInternals {
     }
 
     // Format a pluralized future / past.
-    const plural = bundle.plurals().cardinal(n) as PluralType;
+    const plural = bundle.plurals.cardinal(n) as PluralType;
     const arrow = negative ? format.past : format.future;
-    let raw = arrow.get(bundle, plural, field);
+    let raw = vectorGet(arrow, bundle, plural, field);
     if (options.context) {
       raw = this.internals.general.contextTransform(raw, transform, options.context, 'relative');
     }

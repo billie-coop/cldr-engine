@@ -3,16 +3,9 @@ import { join } from 'path';
 import * as yargs from 'yargs';
 
 import { Schema } from '@phensley/cldr-types';
-import {
-  CodeBuilder,
-  DigitsArrowImpl,
-  FieldArrowImpl,
-  Origin,
-  ScopeArrowImpl,
-  VectorArrowImpl,
-} from '@phensley/cldr-core';
+import { buildOrigin, isDigitsArrow, isFieldArrow, isScopeArrow, isVectorArrow, Origin } from '@phensley/cldr-core';
 import { VERSION } from '@phensley/cldr-core/lib/utils/version';
-import { SchemaBuilder } from '@phensley/cldr-core/lib/internals/schema';
+import { buildSchema as buildSchemaTree } from '@phensley/cldr-core/lib/internals/schema';
 import { checksumIndices } from '@phensley/cldr-core/lib/resource/checksum';
 import * as CONFIG from './config.json';
 
@@ -21,12 +14,7 @@ export const loader = (lang: string) => {
   return fs.readFileSync(path).toString('utf-8');
 };
 
-export const buildSchema = (origin: Origin, debug: boolean = false): Schema => {
-  const builder = new SchemaBuilder(debug);
-  const schema = {} as any as Schema;
-  builder.construct(schema, origin);
-  return schema;
-};
+export const buildSchema = (origin: Origin, debug: boolean = false): Schema => buildSchemaTree(origin, debug);
 
 type Entry = [number, string, number, number] | [number, string];
 
@@ -40,16 +28,16 @@ interface Options {
  */
 const scan = (o: any, depth: number, opts: Options): Entry[] => {
   let e: Entry[] = [];
-  if (o instanceof DigitsArrowImpl) {
+  if (isDigitsArrow(o)) {
     const start = o.offset;
     e.push([depth, 'DigitsArrow', start, start + o.index.size * o.size2]);
-  } else if (o instanceof FieldArrowImpl) {
+  } else if (isFieldArrow(o)) {
     e.push([depth, 'FieldArrow', o.offset, o.offset + 1]);
-  } else if (o instanceof VectorArrowImpl) {
+  } else if (isVectorArrow(o)) {
     const start = o.offset - 1;
     const size = o.keysets.reduce((p, c) => c.size * p, 1);
     e.push([depth, 'VectorArrow', start, start + size + 1]);
-  } else if (o instanceof ScopeArrowImpl) {
+  } else if (isScopeArrow(o)) {
     e.push([depth, 'ScopeArrow']);
     for (const key of Object.keys(o.map)) {
       e.push([depth, key]);
@@ -102,13 +90,11 @@ export const runDump = (argv: yargs.ArgumentsCamelCase<DumpArgs>) => {
   raw = fs.readFileSync(argv.pack).toString('utf-8');
   const data = JSON.parse(raw);
 
-  const schema = {} as any as Schema;
-  const origin = new CodeBuilder(config).origin();
+  const origin = buildOrigin(config);
   const ck = checksumIndices(VERSION, origin.indices);
   console.log(`Checksum ${ck}`);
 
-  const builder = new SchemaBuilder(false);
-  builder.construct(schema, origin);
+  const schema = buildSchemaTree(origin, false);
 
   const opts = { verbose: false, indices: argv.indices };
   Object.keys(data.scripts).forEach((name) => {

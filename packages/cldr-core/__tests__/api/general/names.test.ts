@@ -1,6 +1,6 @@
 import { AltType } from '@phensley/cldr-types';
 import { generalApi, languageBundle, INTERNALS } from '../../_helpers';
-import { parseLanguageTag, DisplayNameOptions, LanguageTag } from '../../../src';
+import { parseLanguageTag, DisplayNameOptions, LanguageTag, vectorGet } from '../../../src';
 
 test('languages', () => {
   let tag: LanguageTag;
@@ -145,15 +145,15 @@ test('internals', () => {
 
   const { schema } = INTERNALS();
   let s: string;
-  s = schema.Names.regions.displayName.get(en, 'none', '001');
+  s = vectorGet(schema.Names.regions.displayName, en, 'none', '001');
   expect(s).toEqual('world');
 
-  s = schema.Names.scripts.displayName.get(en, 'none', 'Arab');
+  s = vectorGet(schema.Names.scripts.displayName, en, 'none', 'Arab');
   expect(s).toEqual('Arabic');
 
-  s = schema.Names.regions.displayName.get(es, 'none', '001');
+  s = vectorGet(schema.Names.regions.displayName, es, 'none', '001');
   expect(s).toEqual('Mundo');
 
-  s = schema.Names.scripts.displayName.get(es, 'none', 'Arab');
+  s = vectorGet(schema.Names.scripts.displayName, es, 'none', 'Arab');
   expect(s).toEqual('árabe');
 });

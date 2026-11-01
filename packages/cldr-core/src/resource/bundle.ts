@@ -3,121 +3,96 @@ import { pluralRules, PluralRules } from '@phensley/plurals';
 import { LanguageTag, tagExtensionSubtags, tagLanguage, tagRegion, tagScript } from '@phensley/language-tag';
 
 /**
+ * Maps a string table offset to an index in the exceptions table.
+ *
  * @internal
  */
-export type ExceptionIndex = { [y: number]: number };
+export type ExceptionIndex = { readonly [y: number]: number };
 
 /**
+ * All strings for one locale, plus a few precomputed properties of its language tag. Plain data;
+ * read strings with `bundleGet(bundle, offset)` (normally through the schema accessors).
+ *
  * @public
  */
 export interface Bundle extends PrimitiveBundle {
-  tag(): LanguageTag;
-  calendarSystem(): string;
-  numberSystem(): string;
-  languageScript(): string;
-  languageRegion(): string;
-  spellout(): any;
-  plurals(): PluralRules;
+  readonly tag: LanguageTag;
+  /** e.g. 'en-US', precomputed for fast lookups into region-keyed maps */
+  readonly languageRegion: string;
+  /** e.g. 'en-Latn' */
+  readonly languageScript: string;
+  /** Calendar system from the 'u-ca' extension, or '' to use the region's preference. */
+  readonly calendarSystem: string;
+  /** Number system from the 'u-nu' extension, or 'default'. */
+  readonly numberSystem: string;
+  /** Spellout rule sets from the resource pack. */
+  readonly spellout: any;
+  /** Cardinal and ordinal plural rules for the locale. */
+  readonly plurals: PluralRules;
 }
 
 /**
+ * Read the string at the given offset. A region-specific exception overrides the string table.
+ *
+ * @public
+ */
+export const bundleGet = (bundle: PrimitiveBundle, offset: number): string => {
+  // If there is an exception index, attempt to resolve it.
+  const index = bundle.index;
+  /* istanbul ignore else -- @preserve */
+  if (index) {
+    const i = index[offset];
+    if (i !== undefined) {
+      return bundle.exceptions[i] || '';
+    }
+  }
+
+  // Return the actual string.
+  return bundle.strings[offset] || '';
+};
+
+/**
+ * Build the bundle for a resolved language tag from the tables of a resource pack.
+ *
  * @internal
  */
-export class StringBundle implements Bundle {
-  // Properties for fast internal lookups into maps.
-  // For example, extended day periods cover all of 'es' except for 'es-CO'.
-  // Pre-computing these to avoid string creation for lookups at runtime.
-  private _languageRegion: string;
-  private _languageScript: string;
+export const stringBundle = (
+  id: string,
+  tag: LanguageTag,
+  strings: readonly string[],
+  exceptions: readonly string[],
+  index: ExceptionIndex | undefined,
+  spellout: any,
+): Bundle => {
+  const language = tagLanguage(tag);
+  const region = tagRegion(tag);
 
   // Empty string will select the preferred calendar for the region.
-  private _calendarSystem: string = '';
-  private _numberSystem: string = 'default';
+  let calendarSystem = '';
+  let numberSystem = 'default';
 
-  // Plural rules are used in many places, so provide them on the bundle
-  private _plurals: PluralRules;
-
-  constructor(
-    private _id: string,
-    private _tag: LanguageTag,
-    private strings: string[],
-    private exceptions: string[],
-    private index: ExceptionIndex,
-    private _spellout: any,
-  ) {
-    const language = tagLanguage(_tag);
-    this._languageRegion = `${language}-${tagRegion(_tag)}`;
-    this._languageScript = `${language}-${tagScript(_tag)}`;
-    this._plurals = pluralRules.get(language, tagRegion(_tag));
-
-    // When bundle is constructed, see if there are unicode extensions for
-    // number and calendar systems.
-    for (const subtag of tagExtensionSubtags(_tag, 'u')) {
-      if (subtag.startsWith('nu-')) {
-        this._numberSystem = subtag.substring(3);
-      } else if (subtag.startsWith('ca-')) {
-        this._calendarSystem = subtag.substring(3);
-      }
+  // See if there are unicode extensions for number and calendar systems.
+  for (const subtag of tagExtensionSubtags(tag, 'u')) {
+    if (subtag.startsWith('nu-')) {
+      numberSystem = subtag.substring(3);
+    } else if (subtag.startsWith('ca-')) {
+      calendarSystem = subtag.substring(3);
     }
   }
 
-  id(): string {
-    return this._id;
-  }
-
-  tag(): LanguageTag {
-    return this._tag;
-  }
-
-  language(): string {
-    return tagLanguage(this._tag);
-  }
-
-  region(): string {
-    return tagRegion(this._tag);
-  }
-
-  languageScript(): string {
-    return this._languageScript;
-  }
-
-  languageRegion(): string {
-    return this._languageRegion;
-  }
-
-  calendarSystem(): string {
-    return this._calendarSystem;
-  }
-
-  numberSystem(): string {
-    return this._numberSystem;
-  }
-
-  get(offset: number): string {
-    // If there is an exception index, attempt to resolve it.
-    /* istanbul ignore else -- @preserve */
-    if (this.index) {
-      const i = this.index[offset];
-      if (i !== undefined) {
-        return this.exceptions[i] || '';
-      }
-    }
-
-    // Return the actual string.
-    return this.strings[offset] || '';
-  }
-
-  /**
-   * Group of spellout rules inside this bundle.
-   */
-  spellout(): any {
-    return this._spellout;
-  }
-
-  /**
-   * Plural rules for cardinals and ordinals for this locale.
-   */
-  plurals(): PluralRules {
-    return this._plurals;
-  }
-}
+  return {
+    id,
+    language,
+    region,
+    strings,
+    exceptions,
+    index,
+    tag,
+    languageRegion: `${language}-${region}`,
+    languageScript: `${language}-${tagScript(tag)}`,
+    calendarSystem,
+    numberSystem,
+    spellout,
+    plurals: pluralRules.get(language, region),
+  };
+};

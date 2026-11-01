@@ -56,6 +56,7 @@ import { TimeZoneTypeIndex } from '../schema';
 import { currentMetazone, getStableTimeZoneId, substituteZoneAlias } from '../systems/calendars/timezone';
 import { Calendars } from './api';
 import { PrivateApiImpl } from './private';
+import { vectorGet, vectorMapping } from '../schema/schema/arrows';
 
 const DOW_FIELDS: RelativeTimeFieldType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -74,7 +75,7 @@ export class CalendarsImpl implements Calendars {
     private readonly privateApi: PrivateApiImpl,
   ) {
     this.manager = new CalendarManager(bundle, internals);
-    const region = bundle.region();
+    const region = bundle.region;
     this._firstDay = internals.calendars.weekFirstDay(region);
     this._minDays = internals.calendars.weekMinDays(region);
   }
@@ -89,7 +90,7 @@ export class CalendarsImpl implements Calendars {
 
   dateField(type: DateFieldType, opt?: DateFieldFormatOptions): string {
     opt = opt || {};
-    const field = this.internals.schema.DateFields.displayName.get(this.bundle, type, opt.width || 'wide');
+    const field = vectorGet(this.internals.schema.DateFields.displayName, this.bundle, type, opt.width || 'wide');
     return this._transformField(field, 'calendar-field', opt.context);
   }
 
@@ -403,7 +404,7 @@ export class CalendarsImpl implements Calendars {
   timeZoneInfo(zoneid: string): TimeZoneInfo {
     const tz = this.internals.schema.TimeZones;
     if (!this.exemplarCities) {
-      this.exemplarCities = tz.exemplarCity.mapping(this.bundle);
+      this.exemplarCities = vectorMapping(tz.exemplarCity, this.bundle);
     }
     const id = this.resolveTimeZoneId(zoneid) || 'Factory';
     const stableid = getStableTimeZoneId(id);
@@ -414,8 +415,8 @@ export class CalendarsImpl implements Calendars {
       short: { generic: '', standard: '', daylight: '' },
     };
     for (const key of TimeZoneTypeIndex.keys) {
-      names.long[key] = tz.metaZones.long.get(this.bundle, key, metazone);
-      names.short[key] = tz.metaZones.short.get(this.bundle, key, metazone);
+      names.long[key] = vectorGet(tz.metaZones.long, this.bundle, key, metazone);
+      names.short[key] = vectorGet(tz.metaZones.short, this.bundle, key, metazone);
     }
     const { countries, latitude, longitude, stdoffset } = tzZoneMeta(id)!; // Factory fallback will return a record
     return {

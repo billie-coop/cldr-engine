@@ -4,7 +4,7 @@ import { join } from 'path';
 import * as yargs from 'yargs';
 import * as zlib from 'zlib';
 
-import { checksumIndices, CodeBuilder, tagRegion } from '@phensley/cldr-core';
+import { buildOrigin, checksumIndices, tagRegion } from '@phensley/cldr-core';
 import { getMain } from '../../cldr';
 import { Encoder, EncoderMachine } from '../../resource/machine';
 import { ResourcePack } from '../../resource/pack';
@@ -144,8 +144,7 @@ const runPackImpl = (argv: yargs.Arguments<PackArgs>, pkg: ProjectInfo) => {
   }
 
   // Configure the schema accessor builder
-  const builder = new CodeBuilder(config);
-  const origin = builder.origin();
+  const origin = buildOrigin(config);
   const checksum = checksumIndices(pkg.version, origin.indices);
 
   const rbnf = new RBNFCollector();

@@ -4,9 +4,9 @@ import { tagCompact, tagExpanded } from '@phensley/language-tag';
 const api = generalApi;
 
 test('locales', () => {
-  expect(api('en').bundle().id()).toEqual('en-Latn-US');
-  expect(api('en_US').bundle().id()).toEqual('en-Latn-US');
-  expect(api('zh_Hans').bundle().id()).toEqual('zh-Hans-CN');
+  expect(api('en').bundle().id).toEqual('en-Latn-US');
+  expect(api('en_US').bundle().id).toEqual('en-Latn-US');
+  expect(api('zh_Hans').bundle().id).toEqual('zh-Hans-CN');
 
   expect(api('en').locale().id).toEqual('en');
   expect(api('en_US').locale().id).toEqual('en_US');

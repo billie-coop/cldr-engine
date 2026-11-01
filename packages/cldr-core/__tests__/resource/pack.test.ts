@@ -1,15 +1,15 @@
 import { loadPack } from '../_helpers';
-import { Pack } from '../../src/resource/pack';
 import { languageTag } from '@phensley/language-tag';
+import { loadPack as parsePack, packGet } from '../../src';
 
 test('error bad format', () => {
-  expect(() => new Pack({})).toThrowError('Severe error');
-  expect(() => new Pack('')).toThrowError('JSON input');
-  expect(() => new Pack('{}')).toThrowError('Severe error');
+  expect(() => parsePack({})).toThrowError('Severe error');
+  expect(() => parsePack('')).toThrowError('JSON input');
+  expect(() => parsePack('{}')).toThrowError('Severe error');
 });
 
 test('resolve tag', () => {
   const pack = loadPack('en');
-  const b = pack.get(languageTag(undefined));
-  expect(b.id()).toEqual('en-Latn-US');
+  const b = packGet(pack, languageTag(undefined));
+  expect(b.id).toEqual('en-Latn-US');
 });

@@ -8,6 +8,7 @@ import { AbstractValue } from '../../utils/render';
 import { Internals } from '../internals';
 import { CalendarContext, CalendarFormatter } from './formatter';
 import { getTZC } from './zoneutil';
+import { vectorGet, fieldGet } from '../../schema/schema/arrows';
 
 const min = Math.min;
 
@@ -57,7 +58,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
           type = 'era';
           const era = `${ctx.date.era()}`;
           const width = w === 5 ? 'narrow' : w === 4 ? 'names' : 'abbr';
-          value = this.cal.eras.get(ctx.bundle, width, era, [ctx.alt.era!, 'none']);
+          value = vectorGet(this.cal.eras, ctx.bundle, width, era, [ctx.alt.era!, 'none']);
           if (w !== 5) {
             field = w === 4 ? 'era-name' : 'era-abbr';
           }
@@ -194,7 +195,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
           const ampm = ctx.date.hourOfDay() < 12 ? 'am' : 'pm';
           const width = widthKey1(w);
           type = 'dayperiod';
-          value = this.cal.format.dayPeriods.get(ctx.bundle, width, ampm, [ctx.alt.dayPeriod!, 'none']);
+          value = vectorGet(this.cal.format.dayPeriods, ctx.bundle, width, ampm, [ctx.alt.dayPeriod!, 'none']);
           break;
         }
 
@@ -304,7 +305,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
     value: number,
     width: number,
   ): string {
-    return width >= 3 ? format.get(ctx.bundle, widthKey1(width), String(value)) : _num(ctx, value, width);
+    return width >= 3 ? vectorGet(format, ctx.bundle, widthKey1(width), String(value)) : _num(ctx, value, width);
   }
 
   private quarter(ctx: CalendarContext<T>, node: [string, number]): string {
@@ -334,7 +335,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
         key1 = 'wide';
         break;
     }
-    return format.get(bundle, key1, key2);
+    return vectorGet(format, bundle, key1, key2);
   }
 
   private _weekdayLocal(ctx: CalendarContext<T>, node: [string, number], standAlone: boolean): string {
@@ -362,7 +363,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
     }
     const format = this.cal.format.dayPeriods;
     // Try extended and if it doesn't exist fall back to am/pm
-    return format.get(bundle, key1, [key2ext, key2], [ctx.alt.dayPeriod!, 'none']);
+    return vectorGet(format, bundle, key1, [key2ext, key2], [ctx.alt.dayPeriod!, 'none']);
   }
 
   private dayPeriodFlex(ctx: CalendarContext<T>, node: [string, number]): string {
@@ -373,7 +374,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
     if (key2) {
       const width = widthKey1(node[1]);
       // TODO: more compact fallbacks for alternatives
-      res = this.cal.format.dayPeriods.get(bundle, width, key2, [ctx.alt.dayPeriod!, 'none']);
+      res = vectorGet(this.cal.format.dayPeriods, bundle, width, key2, [ctx.alt.dayPeriod!, 'none']);
     }
     return res ? res : this.dayPeriodExt(ctx, node);
   }
@@ -423,7 +424,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
     if (key2) {
       const { long, short } = this.tz.metaZones;
       const format = node[1] === 4 ? long : short;
-      const name = format.get(ctx.bundle, ctx.date.isDaylightSavings() ? 'daylight' : 'standard', key2);
+      const name = vectorGet(format, ctx.bundle, ctx.date.isDaylightSavings() ? 'daylight' : 'standard', key2);
       if (name) {
         return name;
       }
@@ -474,7 +475,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
     const key = ctx.date.metaZoneId();
     const { long, short } = this.tz.metaZones;
     const format = width === 1 ? short : long;
-    name = format.get(ctx.bundle, 'generic', key);
+    name = vectorGet(format, ctx.bundle, 'generic', key);
     return name ? name : this.timezone_O(ctx, ['O', width]);
   }
 
@@ -489,17 +490,17 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
     let city = '';
     switch (node[1]) {
       case 4:
-        city = exemplarCity.get(bundle, stableId);
+        city = vectorGet(exemplarCity, bundle, stableId);
         if (!city) {
           return this.timezone_O(ctx, ['O', 4]);
         }
-        const pattern = this.tz.regionFormat.get(bundle);
+        const pattern = fieldGet(this.tz.regionFormat, bundle);
         return this.general.formatWrapper(pattern, [city]);
 
       case 3:
         // Exemplar city for the timezone.
-        city = exemplarCity.get(bundle, stableId);
-        return city ? city : exemplarCity.get(bundle, 'Etc/Unknown');
+        city = vectorGet(exemplarCity, bundle, stableId);
+        return city ? city : vectorGet(exemplarCity, bundle, 'Etc/Unknown');
 
       case 2:
         const zoneId = ctx.date.timeZoneId();
@@ -542,7 +543,7 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
     const { bundle, date } = ctx;
     const _offset = date.timeZoneOffset();
     if (_offset === 0) {
-      return this.tz.gmtZeroFormat.get(bundle);
+      return fieldGet(this.tz.gmtZeroFormat, bundle);
     }
     const [, negative, hours, minutes] = getTZC(_offset);
 
@@ -565,12 +566,12 @@ export class CalendarFormatterImpl<T extends CalendarDate> implements CalendarFo
       }
     }
 
-    const wrap = this.tz.gmtFormat.get(bundle);
+    const wrap = fieldGet(this.tz.gmtFormat, bundle);
     return this.general.formatWrapper(wrap, [fmt]);
   }
 
   private _hourPattern(bundle: Bundle, negative: boolean): DateTimeNode[] {
-    const raw = this.tz.hourFormat.get(bundle);
+    const raw = fieldGet(this.tz.hourFormat, bundle);
     return this.internals.calendars.getHourPattern(raw, negative);
   }
 }

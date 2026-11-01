@@ -26,7 +26,7 @@ export class DayPeriodRules {
   }
 
   get(bundle: Bundle, minutes: number): DayPeriodType | undefined {
-    const raw = dayPeriodRules[bundle.languageRegion()] || dayPeriodRules[bundle.language()];
+    const raw = dayPeriodRules[bundle.languageRegion] || dayPeriodRules[bundle.language];
     if (raw === undefined) {
       return undefined;
     }

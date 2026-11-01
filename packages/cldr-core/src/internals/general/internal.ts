@@ -16,6 +16,7 @@ import { ListPatternType } from '../../common';
 import { ContextTransformInfo } from '../../common/private';
 import { AbstractValue, PartsValue, StringValue } from '../../utils/render';
 import { parseWrapperPattern, WrapperNode } from '../../parsing/wrapper';
+import { fieldGet, vectorMapping } from '../../schema/schema/arrows';
 
 /**
  * @internal
@@ -37,11 +38,11 @@ export class GeneralInternalsImpl implements GeneralInternals {
   }
 
   characterOrder(bundle: Bundle): string {
-    return this.layout.characterOrder.get(bundle);
+    return fieldGet(this.layout.characterOrder, bundle);
   }
 
   lineOrder(bundle: Bundle): string {
-    return this.layout.lineOrder.get(bundle);
+    return fieldGet(this.layout.lineOrder, bundle);
   }
 
   /**
@@ -86,7 +87,7 @@ export class GeneralInternalsImpl implements GeneralInternals {
   }
 
   formatListImpl<R>(bundle: Bundle, value: AbstractValue<R>, items: R[], type: ListPatternType): R {
-    const pattern = this.selectListPattern(type).mapping(bundle);
+    const pattern = vectorMapping(this.selectListPattern(type), bundle);
     let len = items.length;
     if (len < 2) {
       return len === 1 ? items[0] : value.empty();

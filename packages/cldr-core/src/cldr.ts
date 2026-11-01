@@ -26,6 +26,7 @@ import { Locale, resolveLanguageTag } from '@phensley/locale';
 import { Bundle, Pack } from './resource';
 
 import { VERSION } from './utils/version';
+import { loadPack, packGet } from './resource/pack';
 
 const enum Messages {
   CHECKSUM = 'Checksum mismatch on resource pack! The schema config used to ' +
@@ -307,7 +308,7 @@ export class CLDRFramework {
     let pack = this.packCache.get(language);
     if (pack === undefined) {
       const data = this.loader!(language);
-      pack = new Pack(data);
+      pack = loadPack(data);
       this.check(pack);
       this.packCache.set(language, pack);
     }
@@ -334,7 +335,7 @@ export class CLDRFramework {
       // Resolve via the promise loader
       this.asyncLoader!(language)
         .then((raw) => {
-          const _pack = new Pack(raw);
+          const _pack = loadPack(raw);
           this.check(_pack);
           this.packCache.set(language, _pack);
           resolve(this.build(resolved, _pack));
@@ -349,7 +350,7 @@ export class CLDRFramework {
    * Builds an API instance.
    */
   protected build(locale: Locale, pack: Pack): CLDR {
-    const bundle = pack.get(locale.tag);
+    const bundle = packGet(pack, locale.tag);
     return new CLDRImpl(locale, bundle, this.internals);
   }
 

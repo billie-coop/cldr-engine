@@ -1,22 +1,22 @@
 import { PluralType } from '@phensley/cldr-types';
-import { KeyIndexImpl } from '../instructions';
+import { keyIndex } from '../instructions';
 
 /**
  * @public
  */
-export const PluralIndex = new KeyIndexImpl<PluralType>(['other', 'zero', 'one', 'two', 'few', 'many']);
+export const PluralIndex = /*#__PURE__*/ keyIndex<PluralType>(['other', 'zero', 'one', 'two', 'few', 'many']);
 
 /**
  * @public
  */
-export const AltIndex = new KeyIndexImpl(['none', 'short', 'narrow', 'variant', 'stand-alone', 'long', 'menu']);
+export const AltIndex = /*#__PURE__*/ keyIndex(['none', 'short', 'narrow', 'variant', 'stand-alone', 'long', 'menu']);
 
 /**
  * @public
  */
-export const EraAltIndex = new KeyIndexImpl(['none', 'sensitive']);
+export const EraAltIndex = /*#__PURE__*/ keyIndex(['none', 'sensitive']);
 
 /**
  * @public
  */
-export const DayPeriodAltIndex = new KeyIndexImpl(['none', 'casing']);
+export const DayPeriodAltIndex = /*#__PURE__*/ keyIndex(['none', 'casing']);

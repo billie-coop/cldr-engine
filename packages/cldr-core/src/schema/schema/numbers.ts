@@ -6,7 +6,7 @@ import {
   NumberSystemCategory,
 } from '@phensley/cldr-types';
 
-import { KeyIndexImpl } from '../instructions';
+import { keyIndex } from '../instructions';
 
 /**
  * @public
@@ -16,12 +16,12 @@ export const PluralDigitValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
 /**
  * @public
  */
-export const CurrencySpacingPosIndex = new KeyIndexImpl<CurrencySpacingPos>(['before', 'after']);
+export const CurrencySpacingPosIndex = /*#__PURE__*/ keyIndex<CurrencySpacingPos>(['before', 'after']);
 
 /**
  * @public
  */
-export const CurrencySpacingPatternIndex = new KeyIndexImpl<CurrencySpacingPattern>([
+export const CurrencySpacingPatternIndex = /*#__PURE__*/ keyIndex<CurrencySpacingPattern>([
   'currencyMatch',
   'surroundingMatch',
   'insertBetween',
@@ -61,14 +61,14 @@ export const NumberMiscPatternValues: NumberMiscPatternType[] = ['at-least', 'at
 /**
  * @public
  */
-export const NumberMiscPatternIndex = new KeyIndexImpl(NumberMiscPatternValues);
+export const NumberMiscPatternIndex = /*#__PURE__*/ keyIndex(NumberMiscPatternValues);
 
 /**
  * @public
  */
-export const NumberSystemsIndex = new KeyIndexImpl(NumberSystemCategoryValues);
+export const NumberSystemsIndex = /*#__PURE__*/ keyIndex(NumberSystemCategoryValues);
 
 /**
  * @public
  */
-export const NumberSymbolIndex = new KeyIndexImpl(NumberSymbolValues);
+export const NumberSymbolIndex = /*#__PURE__*/ keyIndex(NumberSymbolValues);

@@ -1,5 +1,3 @@
-import { PrimitiveBundle } from './bundle';
-
 /**
  * Maps a name to a key index.
  *
@@ -15,123 +13,84 @@ export interface KeyIndexMap {
  * @public
  */
 export interface KeyIndex<T extends string> {
-  readonly index: { [P in T]: number };
+  readonly index: { readonly [P in T]: number };
   readonly keys: T[];
   readonly size: number;
   readonly last: number;
-  get(key: T): number;
 }
 
 /**
- * Function for fetching a single field.
+ * Accessor for a single field.
  *
  * @public
  */
 export interface FieldArrow {
+  readonly kind: 'field';
   readonly offset: number;
-  get(bundle: PrimitiveBundle): string;
 }
 
 /**
- * Function for entering a new scope.
+ * Accessor for a map of scopes.
  *
  * @public
  */
 export interface ScopeArrow<T extends string, R> {
-  readonly map: { [P in T]: R };
-  get(key: T): R | undefined;
+  readonly kind: 'scope';
+  readonly map: { readonly [P in T]: R };
 }
 
 /**
- * Function for fetching a field based on plural category and
- * number of digits.
+ * Accessor for a pluralized number pattern and its divisor, stored together.
  *
  * @public
  */
 export interface DigitsArrow<T extends string> {
+  readonly kind: 'digits';
   readonly offset: number;
   readonly index: KeyIndex<T>;
   readonly values: number[];
   readonly size2: number;
-
-  /**
-   * Gets the field for the given plural category and number of integer digits.
-   */
-  get(bundle: PrimitiveBundle, key: T, digits: number): [string, number];
 }
 
 /**
- * Function representing a 1-dimensional vector.
+ * Fields shared by all multi-dimensional vector accessors.
  *
  * @public
  */
-export interface Vector1Arrow<T extends string> {
-  /**
-   * Indicates this vector exists in the bundle.
-   */
-  exists(bundle: PrimitiveBundle): boolean;
-
-  /**
-   * Fast way to check if a key is valid, even if it has no value.
-   */
-  valid(key: T): boolean;
-
-  /**
-   * Gets the field at the corresponding offset of the given key.
-   */
-  get(bundle: PrimitiveBundle, key: T | T[]): string;
-
-  /**
-   * Full mapping of all keys to the corresponding fields.
-   */
-  mapping(bundle: PrimitiveBundle): { [P in T]: string };
+export interface VectorArrowBase {
+  readonly kind: 'vector';
+  /** Offset of the first value (the header that marks the vector as present is at offset - 1). */
+  readonly offset: number;
+  readonly len: number;
+  readonly last: number;
+  /** Address factor for each dimension. */
+  readonly factors: readonly number[];
+  readonly keysets: readonly KeyIndex<string>[];
 }
 
 /**
- * Function representing a 2-dimensional vector.
+ * Accessor for a 1-dimensional vector of fields.
  *
  * @public
  */
-export interface Vector2Arrow<T extends string, S extends string> {
-  /**
-   * Indicates this vector exists in the bundle.
-   */
-  exists(bundle: PrimitiveBundle): boolean;
-
-  /**
-   * Fast way to check if a key is valid, even if it has no value.
-   */
-  valid(key1: T | T[], key2: S | S[]): boolean;
-
-  /**
-   * Gets the field at the corresponding offset [key1, key2]
-   */
-  get(bundle: PrimitiveBundle, key1: T | T[], key2: S | S[]): string;
-
-  /**
-   * Full mapping of all keys to the corresponding fields.
-   */
-  mapping(bundle: PrimitiveBundle): { [P in T]: { [Q in S]: string } };
+export interface Vector1Arrow<T extends string> extends VectorArrowBase {
+  readonly keysets: readonly [KeyIndex<T>];
 }
 
 /**
- * Function representing a 3-dimensional vector.
+ * Accessor for a 2-dimensional vector of fields.
  *
  * @public
  */
-export interface Vector3Arrow<T extends string, S extends string, U extends string> {
-  /**
-   * Indicates this vector exists in the bundle.
-   */
-  exists(bundle: PrimitiveBundle): boolean;
+export interface Vector2Arrow<T extends string, S extends string> extends VectorArrowBase {
+  readonly keysets: readonly [KeyIndex<T>, KeyIndex<S>];
+}
 
-  /**
-   * Gets the field at the corresponding offset [key1, key2, key3]
-   */
-  get(bundle: PrimitiveBundle, key1: T | T[], key2: S | S[], key3: U | U[]): string;
-
-  /**
-   * Full mapping of all keys to the corresponding fields.
-   */
-  mapping(bundle: PrimitiveBundle): { [P in T]: { [Q in S]: { [R in U]: string } } };
+/**
+ * Accessor for a 3-dimensional vector of fields.
+ *
+ * @public
+ */
+export interface Vector3Arrow<T extends string, S extends string, U extends string> extends VectorArrowBase {
+  readonly keysets: readonly [KeyIndex<T>, KeyIndex<S>, KeyIndex<U>];
 }

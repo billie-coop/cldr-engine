@@ -1,4 +1,5 @@
-import { scope, vector, Instruction, KeyIndexImpl, Scope } from '../instructions';
+import { KeyIndex } from '@phensley/cldr-types';
+import { scope, vector, Instruction, Scope } from '../instructions';
 import { DateFieldIndex, DateFieldWidthIndex, RelativeTimeFieldIndex } from '../schema';
 
 const prevNext: Instruction[] = ['previous2', 'previous', 'current', 'next', 'next2'].map((k) =>
@@ -17,7 +18,7 @@ export const DATEFIELDS: Scope = scope('DateFields', 'DateFields', [
   vector('displayName', ['date-field', 'date-field-width']),
 ]);
 
-export const DATEFIELDS_INDICES: { [x: string]: KeyIndexImpl<string> } = {
+export const DATEFIELDS_INDICES: { [x: string]: KeyIndex<string> } = {
   'date-field': DateFieldIndex,
   'date-field-width': DateFieldWidthIndex,
   'relative-time-field': RelativeTimeFieldIndex,

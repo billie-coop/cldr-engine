@@ -1,7 +1,7 @@
 import { languageBundle, INTERNALS } from '../../_helpers';
 import { NumberParams } from '../../../src/common/private';
 import { NumberParamsCache } from '../../../src/api/private';
-import { NumberSystemType } from '../../../src';
+import { NumberSystemType, vectorMapping } from '../../../src';
 
 const LATN_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -10,7 +10,7 @@ const getCache = (tag: string) => new NumberParamsCache(languageBundle(tag), int
 
 test('number systems', () => {
   const bundle = languageBundle('zh');
-  const res = internals.schema.Numbers.numberSystems.mapping(bundle);
+  const res = vectorMapping(internals.schema.Numbers.numberSystems, bundle);
   expect(res.finance).toEqual('hansfin');
 });
 
@@ -25,7 +25,7 @@ test('invalid system', () => {
   let cache: NumberParamsCache;
 
   const bundle = languageBundle('zh-u-nu-invalid');
-  expect(bundle.numberSystem()).toEqual('invalid');
+  expect(bundle.numberSystem).toEqual('invalid');
 
   cache = getCache('zh-u-nu-unknown');
   params = cache.getNumberParams('invalid' as NumberSystemType);

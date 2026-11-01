@@ -8,6 +8,7 @@ import { NumberingSystem, NumberParams } from '../../common/private';
 import { DecimalNumberingSystem } from '../../systems';
 import { decimalNumberingDigits } from '../../systems/numbering/autogen.names';
 import { Bundle } from '../../resource';
+import { scopeGet, vectorExists, vectorGet, vectorMapping, fieldGet } from '../../schema/schema/arrows';
 
 /**
  * @internal
@@ -24,7 +25,7 @@ export class NumberParamsCache {
   ) {
     this.numberParamsCache = new Cache((s: string) => this.build(s as NumberSystemName), 20);
     this.numbers = internals.schema.Numbers;
-    this.latnSystemInfo = this.numbers.numberSystem.get('latn') as NumberSystemInfo;
+    this.latnSystemInfo = scopeGet(this.numbers.numberSystem, 'latn') as NumberSystemInfo;
     this.latnSystem = this.buildNumberSystem('latn');
   }
 
@@ -35,7 +36,7 @@ export class NumberParamsCache {
       defaultSystem = 'default';
     }
     if (!numberSystem) {
-      numberSystem = this.bundle.numberSystem() as NumberSystemType;
+      numberSystem = this.bundle.numberSystem as NumberSystemType;
     }
 
     let realName: NumberSystemName = this.select(numberSystem);
@@ -63,7 +64,7 @@ export class NumberParamsCache {
       case 'finance':
       case 'traditional':
         // Dereference to find real name of number system
-        return this.numbers.numberSystems.get(this.bundle, numberSystem) as NumberSystemName;
+        return vectorGet(this.numbers.numberSystems, this.bundle, numberSystem) as NumberSystemName;
 
       default:
         return numberSystem;
@@ -75,11 +76,11 @@ export class NumberParamsCache {
 
     const system = name === 'latn' ? latnSystem : this.buildNumberSystem(name);
 
-    const info = this.numbers.numberSystem.get(name) || this.latnSystemInfo;
+    const info = scopeGet(this.numbers.numberSystem, name) || this.latnSystemInfo;
 
-    const currencySpacing = info.currencyFormats.spacing.exists(this.bundle)
-      ? info.currencyFormats.spacing.mapping(this.bundle)
-      : this.latnSystemInfo.currencyFormats.spacing.mapping(this.bundle);
+    const currencySpacing = vectorExists(info.currencyFormats.spacing, this.bundle)
+      ? vectorMapping(info.currencyFormats.spacing, this.bundle)
+      : vectorMapping(this.latnSystemInfo.currencyFormats.spacing, this.bundle);
 
     const { minimumGroupingDigits, primaryGroupingSize, secondaryGroupingSize, symbols } = system;
 
@@ -100,17 +101,17 @@ export class NumberParamsCache {
   protected buildNumberSystem(name: NumberSystemName): NumberingSystem {
     const { bundle } = this;
     const system = this.numbers.numberSystem;
-    const info = system.get(name) || this.latnSystemInfo;
-    const symbols = info.symbols.exists(bundle)
-      ? info.symbols.mapping(bundle)
-      : this.latnSystemInfo.symbols.mapping(bundle);
+    const info = scopeGet(system, name) || this.latnSystemInfo;
+    const symbols = vectorExists(info.symbols, bundle)
+      ? vectorMapping(info.symbols, bundle)
+      : vectorMapping(this.latnSystemInfo.symbols, bundle);
 
     const standardRaw =
-      info.decimalFormats.standard.get(bundle) || this.latnSystemInfo.decimalFormats.standard.get(bundle);
+      fieldGet(info.decimalFormats.standard, bundle) || fieldGet(this.latnSystemInfo.decimalFormats.standard, bundle);
 
     // Fetch standard pattern to determine grouping digits
     const standard = this.internals.numbers.getNumberPattern(standardRaw, false);
-    const minimumGroupingDigits = Number(this.numbers.minimumGroupingDigits.get(this.bundle));
+    const minimumGroupingDigits = Number(fieldGet(this.numbers.minimumGroupingDigits, this.bundle));
     return new DecimalNumberingSystem(
       name,
       decimalNumberingDigits[name],

@@ -6,7 +6,7 @@ import { join } from 'path';
 import { LRU } from '@phensley/cldr-utils';
 import { resolveLanguageTag } from '@phensley/locale';
 
-import { CLDRFramework, SchemaConfig } from '../../src';
+import { loadPack as parsePack, CLDRFramework, SchemaConfig, packGet } from '../../src';
 import { Bundle, Pack } from '../../src/resource';
 import { VERSION } from '../../src/utils/version';
 import { tagLanguage } from '@phensley/language-tag';
@@ -94,7 +94,7 @@ export const loadPack = (language: string, spec?: PackSpec): Pack => {
     path = buildPack(language, spec);
   }
   const raw = fs.readFileSync(path).toString('utf-8');
-  return new Pack(raw);
+  return parsePack(raw);
 };
 
 /**
@@ -116,7 +116,7 @@ export const languageBundle = (tag: string, config?: SchemaConfig): Bundle => {
   let bundle = bundleCache.get(key);
   if (bundle === undefined) {
     const pack = loadPack(language, spec);
-    bundle = pack.get(locale);
+    bundle = packGet(pack, locale);
     bundleCache.set(key, bundle);
   }
   return bundle;

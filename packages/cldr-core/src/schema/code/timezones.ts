@@ -1,4 +1,5 @@
-import { field, scope, vector, KeyIndexImpl, Scope } from '../instructions';
+import { KeyIndex } from '@phensley/cldr-types';
+import { field, scope, vector, Scope } from '../instructions';
 import { MetaZoneIndex, TimeZoneTypeIndex } from '../schema/timezones';
 
 export const TIMEZONE: Scope = scope('TimeZoneNames', 'TimeZones', [
@@ -13,7 +14,7 @@ export const TIMEZONE: Scope = scope('TimeZoneNames', 'TimeZones', [
   field('regionFormat'),
 ]);
 
-export const TIMEZONE_INDICES: { [x: string]: KeyIndexImpl<string> } = {
+export const TIMEZONE_INDICES: { [x: string]: KeyIndex<string> } = {
   metazone: MetaZoneIndex,
   'timezone-type': TimeZoneTypeIndex,
 };

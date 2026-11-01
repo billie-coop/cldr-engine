@@ -1,4 +1,5 @@
-import { field, scope, vector, KeyIndexImpl, Scope } from '../instructions';
+import { KeyIndex } from '@phensley/cldr-types';
+import { field, scope, vector, Scope } from '../instructions';
 import { ContextTransformFieldIndex, ListPatternPositionIndex } from '../schema/general';
 
 export const LAYOUT: Scope = scope('Layout', 'Layout', [field('characterOrder'), field('lineOrder')]);
@@ -14,7 +15,7 @@ export const LIST_PATTERNS: Scope = scope('ListPatterns', 'ListPatterns', [
   listPattern('unitShort'),
 ]);
 
-export const GENERAL_INDICES: { [x: string]: KeyIndexImpl<string> } = {
+export const GENERAL_INDICES: { [x: string]: KeyIndex<string> } = {
   'context-transform-field': ContextTransformFieldIndex,
   'list-pattern-position': ListPatternPositionIndex,
 };

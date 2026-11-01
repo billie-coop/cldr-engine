@@ -1,29 +1,27 @@
 import { KeyIndex } from '@phensley/cldr-types';
 
 /**
- * Inverse mapping of a key to its index in an array.
+ * Build the inverse mapping of keys to their index in the array.
  *
  * @public
  */
-export class KeyIndexImpl<T extends string> implements KeyIndex<T> {
-  /* tslint:disable-next-line */
-  readonly index: { [P in T]: number } = Object.create(null);
-  readonly size: number;
-  readonly last: number;
-  constructor(readonly keys: T[]) {
-    this.size = keys.length;
-    this.last = this.size - 1;
-    let i = 0;
-    while (i < keys.length) {
-      this.index[keys[i]] = i;
-      i++;
-    }
+export const keyIndex = <T extends string>(keys: T[]): KeyIndex<T> => {
+  const index = Object.create(null) as { [P in T]: number };
+  for (let i = 0; i < keys.length; i++) {
+    index[keys[i]] = i;
   }
-  get(key: T): number {
-    const i = this.index[key];
-    return i === undefined ? -1 : i;
-  }
-}
+  return { index, keys, size: keys.length, last: keys.length - 1 };
+};
+
+/**
+ * Index of a key, or -1 if not present.
+ *
+ * @public
+ */
+export const keyIndexGet = <T extends string>(ki: KeyIndex<T>, key: T): number => {
+  const i = ki.index[key];
+  return i === undefined ? -1 : i;
+};
 
 /**
  * @public
@@ -50,43 +48,36 @@ export interface Origin {
   readonly type: 'origin';
   readonly block: Scope[];
   readonly indices: { [x: string]: KeyIndex<any> };
-
-  getIndex(name: string): KeyIndex<any>;
-  getValues(name: string): string[];
 }
 
-const NULL_KEYINDEX = new KeyIndexImpl<string>([]);
+const NULL_KEYINDEX = /*#__PURE__*/ keyIndex<string>([]);
 const WARNED: { [x: string]: boolean } = {};
 
 /**
+ * Look up a key index by name.
+ *
  * @public
  */
-export class OriginImpl implements Origin {
-  readonly type = 'origin';
-
-  constructor(
-    readonly block: Scope[],
-    readonly indices: { [x: string]: KeyIndex<string> },
-  ) {}
-
-  getIndex(name: string): KeyIndex<string> {
-    const r = this.indices[name];
-    if (r === undefined) {
-      /* istanbul ignore next -- @preserve */
-      if (!WARNED[name]) {
-        // NOTE: Unless something went horribly wrong, this should only occur during development.
-        console.log(`Error: failed to locate index/value set named "${name}"`);
-        WARNED[name] = true;
-      }
-      return NULL_KEYINDEX;
+export const originGetIndex = (o: Origin, name: string): KeyIndex<string> => {
+  const r = o.indices[name];
+  if (r === undefined) {
+    /* istanbul ignore next -- @preserve */
+    if (!WARNED[name]) {
+      // NOTE: Unless something went horribly wrong, this should only occur during development.
+      console.log(`Error: failed to locate index/value set named "${name}"`);
+      WARNED[name] = true;
     }
-    return r;
+    return NULL_KEYINDEX;
   }
+  return r;
+};
 
-  getValues(name: string): string[] {
-    return this.getIndex(name).keys;
-  }
-}
+/**
+ * Keys of a key index by name.
+ *
+ * @public
+ */
+export const originGetValues = (o: Origin, name: string): string[] => originGetIndex(o, name).keys;
 
 /**
  * @public
@@ -140,8 +131,11 @@ export const field = (name: string): Field => ({ type: 'field', name });
 /**
  * @internal
  */
-export const origin = (block: Scope[], indices: { [x: string]: KeyIndex<any> }): Origin =>
-  new OriginImpl(block, indices);
+export const origin = (block: Scope[], indices: { [x: string]: KeyIndex<any> }): Origin => ({
+  type: 'origin',
+  block,
+  indices,
+});
 
 /**
  * @internal

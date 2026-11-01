@@ -5,10 +5,10 @@ import {
   scope,
   scopemap,
   vector,
-  KeyIndexImpl,
   Origin,
   Scope,
   resolveLanguageTag,
+  keyIndex,
 } from '@phensley/cldr-core';
 
 import { Encoder, EncoderMachine } from '../../src/resource/machine';
@@ -21,11 +21,11 @@ const EN_DE = parseLocale('en-DE');
 const EN_CA = parseLocale('en-CA');
 
 const NumberSymbolValues = ['decimal', 'group'];
-const NumberSymbolIndex = new KeyIndexImpl(NumberSymbolValues);
+const NumberSymbolIndex = keyIndex(NumberSymbolValues);
 
-const PluralIndex = new KeyIndexImpl(['other', 'one']);
+const PluralIndex = keyIndex(['other', 'one']);
 const DigitValues = [4, 5, 6];
-const FooIndex = new KeyIndexImpl(['foo', 'bar']);
+const FooIndex = keyIndex(['foo', 'bar']);
 
 const INDICES = {
   foo: FooIndex,

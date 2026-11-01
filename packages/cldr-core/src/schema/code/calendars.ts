@@ -1,5 +1,5 @@
 import { KeyIndexMap } from '@phensley/cldr-types';
-import { field, scope, vector, KeyIndexImpl } from '../instructions';
+import { field, scope, vector, keyIndex } from '../instructions';
 
 import {
   BuddhistEraIndex,
@@ -41,13 +41,13 @@ const calendarScope = (name: string, scopeName: string) =>
     field('intervalFormatFallback'),
   ]);
 
-export const DateTimePatternFieldIndex = new KeyIndexImpl(DateTimePatternFieldValues);
-export const DayPeriodIndex = new KeyIndexImpl(DayPeriodValues);
-export const EraTypeIndex = new KeyIndexImpl(EraWidthValues);
-export const FieldWidthIndex = new KeyIndexImpl(FieldWidthValues);
-export const FormatWidthIndex = new KeyIndexImpl(FormatWidthValues);
-export const QuartersIndex = new KeyIndexImpl(QuarterValues);
-export const WeekdaysIndex = new KeyIndexImpl(WeekdayValues);
+export const DateTimePatternFieldIndex = /*#__PURE__*/ keyIndex(DateTimePatternFieldValues);
+export const DayPeriodIndex = /*#__PURE__*/ keyIndex(DayPeriodValues);
+export const EraTypeIndex = /*#__PURE__*/ keyIndex(EraWidthValues);
+export const FieldWidthIndex = /*#__PURE__*/ keyIndex(FieldWidthValues);
+export const FormatWidthIndex = /*#__PURE__*/ keyIndex(FormatWidthValues);
+export const QuartersIndex = /*#__PURE__*/ keyIndex(QuarterValues);
+export const WeekdaysIndex = /*#__PURE__*/ keyIndex(WeekdayValues);
 
 export const CALENDAR_INDICES: KeyIndexMap = {
   'date-time-pattern-field': DateTimePatternFieldIndex,

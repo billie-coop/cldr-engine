@@ -8,7 +8,7 @@ import {
   QuarterType,
   WeekdayType,
 } from '@phensley/cldr-types';
-import { KeyIndexImpl } from '../instructions';
+import { keyIndex } from '../instructions';
 
 /**
  * Generate a key index containing numeric keys from start to end
@@ -19,7 +19,7 @@ const rangeindex = (start: number, end: number): KeyIndex<string> => {
   for (let i = start; i <= end; i++) {
     r.push(String(i));
   }
-  return new KeyIndexImpl(r);
+  return /*#__PURE__*/ keyIndex(r);
 };
 
 /**

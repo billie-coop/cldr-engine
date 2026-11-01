@@ -114,7 +114,7 @@ export class CalendarManager {
     // cache key (claude-review.md bugs 1-2).
     let pluralKey = '';
     if (!req.date && /[wW]/.test(skelKey)) {
-      const p = this.bundle.plurals();
+      const p = this.bundle.plurals;
       const wkM = p.cardinal(decimal(date.weekOfMonth()));
       const wkY = p.cardinal(decimal(date.weekOfYear()));
       pluralKey = `${wkM}\u0001${wkY}`;

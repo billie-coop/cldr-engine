@@ -1,42 +1,21 @@
-import { KeyIndex, Schema } from '@phensley/cldr-types';
+import { Schema } from '@phensley/cldr-types';
 import { Decimal, decimal, decimalAdd, decimalMovePoint, decimalSubtract, decimalToString } from '@phensley/decimal';
 import {
+  digitsArrow,
+  fieldArrow,
+  originGetIndex,
+  originGetValues,
+  scopeArrow,
+  vectorArrow,
   Digits,
-  DigitsArrowImpl,
   Field,
-  FieldArrowImpl,
   Instruction,
   Origin,
   Scope,
-  ScopeArrowImpl,
   ScopeMap,
   Vector,
-  VectorArrowImpl,
 } from '../schema';
 import { leftPad } from '../utils/string';
-
-/**
- * Generates field offsets for the schema builder.
- */
-class Generator {
-  private offset: number = 0;
-
-  field(): number {
-    return this.offset++;
-  }
-
-  vector(dims: KeyIndex<string>[]): number {
-    const off = this.offset;
-    this.offset += dims.reduce((p, c) => c.size * p, 1);
-    return off;
-  }
-
-  digits(dim1: number, dim2: number): number {
-    const off = this.offset;
-    this.offset += dim1 * dim2;
-    return off;
-  }
-}
 
 const time = (n: [number, number]): Decimal => decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));
 
@@ -44,106 +23,98 @@ const elapsed = (start: [number, number], end: [number, number]): string =>
   decimalToString(decimalMovePoint(decimalSubtract(time(end), time(start)), 6));
 
 /**
- * Builds the schema accessor singleton.
+ * Builds the schema accessor tree from the schema instructions. Every field, vector and
+ * digits block is assigned the next offset(s) into a bundle's string table, in instruction
+ * order, so the layout matches the resource packs built from the same config.
  *
  * @internal
  */
-export class SchemaBuilder {
-  private generator: Generator = new Generator();
-  private _times: [string, string][] = [];
-  private origin!: Origin;
+export const buildSchema = (origin: Origin, debug: boolean = false): Schema => {
+  // Next free offset in the string table.
+  let offset = 0;
+  const times: [string, string][] = [];
 
-  constructor(private debug: boolean) {}
-
-  construct(obj: Schema, inst: Instruction): void {
+  const construct = (obj: any, inst: Instruction): void => {
     switch (inst.type) {
       case 'digits':
-        this.constructDigits(obj, inst);
+        constructDigits(obj, inst);
         break;
       case 'field':
-        this.constructField(obj, inst);
+        constructField(obj, inst);
         break;
       case 'origin':
-        this.constructOrigin(obj, inst);
+        constructOrigin(obj, inst);
         break;
       case 'scope':
-        this.constructScope(obj, inst);
+        constructScope(obj, inst);
         break;
       case 'scopemap':
-        this.constructScopeMap(obj, inst);
+        constructScopeMap(obj, inst);
         break;
       case 'vector':
-        this.constructVector(obj, inst);
+        constructVector(obj, inst);
         break;
     }
-  }
+  };
 
-  private constructDigits(obj: any, inst: Digits): void {
-    const dim0 = this.origin.getIndex(inst.dim0);
-    const offset = this.generator.digits(dim0.size, inst.values.length * 2);
-    obj[inst.name] = new DigitsArrowImpl(offset, dim0, inst.values);
-  }
+  const constructDigits = (obj: any, inst: Digits): void => {
+    const dim0 = originGetIndex(origin, inst.dim0);
+    const start = offset;
+    offset += dim0.size * inst.values.length * 2;
+    obj[inst.name] = digitsArrow(start, dim0, inst.values);
+  };
 
-  private constructField(obj: any, inst: Field): void {
-    const offset = this.generator.field();
-    obj[inst.name] = new FieldArrowImpl(offset);
-  }
+  const constructField = (obj: any, inst: Field): void => {
+    obj[inst.name] = fieldArrow(offset++);
+  };
 
-  private constructOrigin(obj: any, inst: Origin): void {
-    this.origin = inst;
-
-    const emit = this.debug && typeof process !== 'undefined';
+  const constructOrigin = (obj: any, inst: Origin): void => {
+    const emit = debug && typeof process !== 'undefined';
     for (const i of inst.block) {
       const start: [number, number] = emit ? process.hrtime() : [0, 0];
-      this.construct(obj, i);
+      construct(obj, i);
       const end: [number, number] = emit ? process.hrtime() : [0, 0];
-      if (this.debug) {
-        this._times.push([i.identifier, elapsed(start, end)]);
+      if (debug) {
+        times.push([i.identifier, elapsed(start, end)]);
       }
     }
-    if (this.debug) {
+    if (debug) {
       console.log('Scope construct times (microseconds):');
-      for (const t of this._times) {
+      for (const t of times) {
         console.log(leftPad(t[0], 20), t[1]);
       }
     }
-  }
+  };
 
-  private constructScope(obj: any, inst: Scope): void {
+  const constructScope = (obj: any, inst: Scope): void => {
     const curr: any = {};
     obj[inst.identifier] = curr;
     for (const i of inst.block) {
-      this.construct(curr, i);
+      construct(curr, i);
     }
-  }
+  };
 
-  private constructScopeMap(obj: any, inst: ScopeMap): void {
-    const fields = this.origin.getValues(inst.fields);
+  const constructScopeMap = (obj: any, inst: ScopeMap): void => {
+    const fields = originGetValues(origin, inst.fields);
     const map: any = {};
     for (const field of fields) {
       const child: any = {};
       for (const i of inst.block) {
-        this.construct(child, i);
+        construct(child, i);
       }
       map[field] = child;
     }
-    obj[inst.name] = new ScopeArrowImpl(map);
-  }
+    obj[inst.name] = scopeArrow(map);
+  };
 
-  private constructVector(obj: any, inst: Vector): void {
-    const dims = inst.dims.map((k) => this.origin.getIndex(k));
-    const offset = this.generator.field(); // header
-    this.generator.vector(dims);
-    obj[inst.name] = new VectorArrowImpl(offset, dims);
-  }
-}
+  const constructVector = (obj: any, inst: Vector): void => {
+    const dims = inst.dims.map((k) => originGetIndex(origin, k));
+    const header = offset++;
+    offset += dims.reduce((p, c) => c.size * p, 1);
+    obj[inst.name] = vectorArrow(header, dims);
+  };
 
-/**
- * @internal
- */
-export const buildSchema = (origin: Origin, debug: boolean): Schema => {
-  const builder = new SchemaBuilder(debug);
   const schema = {} as any as Schema;
-  builder.construct(schema, origin);
+  construct(schema, origin);
   return schema;
 };

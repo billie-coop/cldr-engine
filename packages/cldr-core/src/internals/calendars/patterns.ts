@@ -8,6 +8,7 @@ import { Bundle } from '../../resource';
 import { CalendarDate } from '../../systems/calendars';
 import { timeData, timeStrings } from './autogen.timedata';
 import { DatePatternMatcher, DatePatternMatcherEntry, DateSkeleton, DateSkeletonParser } from './skeleton';
+import { vectorMapping, fieldGet } from '../../schema/schema/arrows';
 
 export interface CachedSkeletonRequest {
   dateSkel?: DateSkeleton;
@@ -59,47 +60,47 @@ export class CalendarPatterns {
     private readonly schema: CalendarSchema,
     readonly cacheSize: number = 50,
   ) {
-    this.language = bundle.language();
-    this.region = bundle.region();
+    this.language = bundle.language;
+    this.region = bundle.region;
     this.skeletonParser = this.buildSkeletonParser();
 
     // Fetch this locale's main formats
-    this.dateFormats = schema.dateFormats.mapping(bundle);
-    this.dateSkeletons = schema.dateSkeletons.mapping(bundle);
-    this.timeFormats = schema.timeFormats.mapping(bundle);
-    this.timeSkeletons = schema.timeSkeletons.mapping(bundle);
-    this.wrapperFormats = schema.dateTimeFormats.mapping(bundle);
-    this.wrapperFormatsAt = schema.dateTimeFormatsAt.mapping(bundle);
+    this.dateFormats = vectorMapping(schema.dateFormats, bundle);
+    this.dateSkeletons = vectorMapping(schema.dateSkeletons, bundle);
+    this.timeFormats = vectorMapping(schema.timeFormats, bundle);
+    this.timeSkeletons = vectorMapping(schema.timeSkeletons, bundle);
+    this.wrapperFormats = vectorMapping(schema.dateTimeFormats, bundle);
+    this.wrapperFormatsAt = vectorMapping(schema.dateTimeFormatsAt, bundle);
 
     // Fetch skeletons and build best-fit matchers
-    this.rawAvailableFormats = this.schema.availableFormats.mapping(bundle);
-    this.rawPluralFormats = this.schema.pluralFormats.mapping(bundle);
-    this.rawIntervalFormats = this.schema.intervalFormats.mapping(bundle);
+    this.rawAvailableFormats = vectorMapping(this.schema.availableFormats, bundle);
+    this.rawPluralFormats = vectorMapping(this.schema.pluralFormats, bundle);
+    this.rawIntervalFormats = vectorMapping(this.schema.intervalFormats, bundle);
     this.buildAvailableMatcher();
     this.buildIntervalMatcher();
 
-    this.intervalFallback = this.schema.intervalFormatFallback.get(bundle);
+    this.intervalFallback = fieldGet(this.schema.intervalFormatFallback, bundle);
     this.skeletonRequestCache = new LRU<CachedSkeletonRequest>(cacheSize);
   }
 
   dayPeriods(): ThreeLevelMap {
-    return this.schema.standAlone.dayPeriods.mapping(this.bundle);
+    return vectorMapping(this.schema.standAlone.dayPeriods, this.bundle);
   }
 
   eras(): ThreeLevelMap {
-    return this.schema.eras.mapping(this.bundle);
+    return vectorMapping(this.schema.eras, this.bundle);
   }
 
   months(): TwoLevelMap {
-    return this.schema.standAlone.months.mapping(this.bundle);
+    return vectorMapping(this.schema.standAlone.months, this.bundle);
   }
 
   weekdays(): TwoLevelMap {
-    return this.schema.standAlone.weekdays.mapping(this.bundle);
+    return vectorMapping(this.schema.standAlone.weekdays, this.bundle);
   }
 
   quarters(): TwoLevelMap {
-    return this.schema.standAlone.quarters.mapping(this.bundle);
+    return vectorMapping(this.schema.standAlone.quarters, this.bundle);
   }
 
   parseSkeleton(raw: string): DateSkeleton {
@@ -231,7 +232,7 @@ export class GregorianPatterns extends CalendarPatterns {
         case 'MMMMW':
         case 'yw': {
           const week = decimal(s.skeleton === 'yw' ? d.weekOfYear() : d.weekOfMonth());
-          plural = this.bundle.plurals().cardinal(week) as PluralType;
+          plural = this.bundle.plurals.cardinal(week) as PluralType;
           pattern = this.rawPluralFormats[plural][s.skeleton];
           break;
         }

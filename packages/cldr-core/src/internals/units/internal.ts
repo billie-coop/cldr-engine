@@ -6,6 +6,7 @@ import { Internals, NumberRenderer, UnitInternals } from '../internals';
 import { Quantity, UnitFormatOptions } from '../../common';
 import { NumberParams } from '../../common/private';
 import { Bundle } from '../../resource';
+import { vectorGet, fieldGet } from '../../schema/schema/arrows';
 
 /**
  * @internal
@@ -19,7 +20,7 @@ export class UnitsInternalImpl implements UnitInternals {
   }
 
   getDisplayName(bundle: Bundle, name: UnitType, length: string): string {
-    return this.getUnitInfo(length).displayName.get(bundle, name);
+    return vectorGet(this.getUnitInfo(length).displayName, bundle, name);
   }
 
   format<T>(
@@ -36,7 +37,7 @@ export class UnitsInternalImpl implements UnitInternals {
     }
 
     // Compute plural category for the value '1'
-    const singular = bundle.plurals().cardinal(DecimalConstants.ONE);
+    const singular = bundle.plurals.cardinal(DecimalConstants.ONE);
 
     // For default and "per" compound pattern, the {0} will use
     // the plural category and {1} will be singular. Examples:
@@ -53,11 +54,11 @@ export class UnitsInternalImpl implements UnitInternals {
 
     const { general } = this.internals;
     const info = this.getUnitInfo(options.length || '');
-    let pattern = info.unitPattern.get(bundle, plural0 as PluralType, q.unit);
+    let pattern = vectorGet(info.unitPattern, bundle, plural0 as PluralType, q.unit);
     if (!pattern) {
       // Fallback to other. Some locales don't break out a pattern per category
       // when the patterns are identical
-      pattern = info.unitPattern.get(bundle, 'other', q.unit);
+      pattern = vectorGet(info.unitPattern, bundle, 'other', q.unit);
     }
 
     // Format argument '{0}' here. If no 'per' unit is defined, we
@@ -65,7 +66,7 @@ export class UnitsInternalImpl implements UnitInternals {
     const zero = renderer.wrap(general, pattern, num);
     if (q.per) {
       // Check if the 'per' unit has a perUnitPattern defined and use it.
-      const perPattern = info.perUnitPattern.get(bundle, q.per);
+      const perPattern = vectorGet(info.perUnitPattern, bundle, q.per);
       if (perPattern) {
         return renderer.wrap(general, perPattern, zero);
       }
@@ -74,13 +75,13 @@ export class UnitsInternalImpl implements UnitInternals {
     // If per or times are specified, use use the corresponding compound pattern.
     // See notes here:
     // https://www.unicode.org/reports/tr35/tr35-general.html#perUnitPatterns
-    const compound = q.per ? info.perPattern.get(bundle) : q.times ? info.timesPattern.get(bundle) : '';
+    const compound = q.per ? fieldGet(info.perPattern, bundle) : q.times ? fieldGet(info.timesPattern, bundle) : '';
 
     const perunit = q.per || q.times;
     if (perunit) {
       // Fetch the denominator's unit pattern, strip off the '{0}'
       // and any surrounding whitespace.
-      let denom = info.unitPattern.get(bundle, plural1 as PluralType, perunit);
+      let denom = vectorGet(info.unitPattern, bundle, plural1 as PluralType, perunit);
       denom = denom.replace(/\s*\{0\}\s*/, '');
       const one = renderer.make('per', denom);
 

@@ -5,6 +5,7 @@ import { tzFromUTC, tzResolveId, tzUtcZone, tzZoneIds } from '@phensley/timezone
 import { zoneAliasRaw } from './autogen.aliases';
 import { metazoneData } from './autogen.zonedata';
 import { numarray, stringToObject } from '../../utils/string';
+import { keyIndexGet } from '../../schema/instructions';
 
 export interface ZoneInfo {
   zoneid: string;
@@ -30,7 +31,7 @@ export const zoneInfoFromUTC = (zoneid: string, utc: number): ZoneInfo => {
 
   // For the purposes of CLDR stable timezone ids, check if the passed-in
   // id is an alias to a current/valid tzdb id.
-  const isstable = TimeZoneStableIdIndex.get(zoneid) !== -1;
+  const isstable = keyIndexGet(TimeZoneStableIdIndex, zoneid) !== -1;
 
   // Use the passed-in id as the stable id if it is an alias,
   // otherwise lookup the id in the stable map.
@@ -55,7 +56,7 @@ export const currentMetazone = (id: string): string | undefined => metazones!.ge
 export const getStableTimeZoneId = (zoneid: string): string => {
   init();
   // Check if this is already a CLDR stable timezone id.
-  const isstable = TimeZoneStableIdIndex.get(zoneid) !== -1;
+  const isstable = keyIndexGet(TimeZoneStableIdIndex, zoneid) !== -1;
   if (isstable) {
     return zoneid;
   }

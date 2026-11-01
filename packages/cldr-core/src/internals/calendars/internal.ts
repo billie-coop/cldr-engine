@@ -129,9 +129,9 @@ export class CalendarInternalsImpl implements CalendarInternals {
   }
 
   selectCalendar(bundle: Bundle, ca?: CalendarType): CalendarType {
-    let calendar = this.supportedCalendar(ca) || this.supportedCalendar(bundle.calendarSystem());
+    let calendar = this.supportedCalendar(ca) || this.supportedCalendar(bundle.calendarSystem);
     if (!calendar) {
-      const prefs = calendarPrefData[bundle.region()] || [];
+      const prefs = calendarPrefData[bundle.region] || [];
       for (const id of prefs) {
         // The calendar preference data current as of CLDR 48) will always choose
         // a calendar that is supported, so the else will never fire.
