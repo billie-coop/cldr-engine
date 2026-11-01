@@ -6,6 +6,11 @@ import { zoneAliasRaw } from './autogen.aliases';
 import { metazoneData } from './autogen.zonedata';
 import { numarray, stringToObject } from '../../utils/string';
 
+/**
+ * Time zone information carried by a calendar date.
+ *
+ * @public
+ */
 export interface DateZoneInfo {
   zoneid: string;
   stableid: string;

@@ -44,6 +44,9 @@ let numberPatternCache: Cache<NumberPattern[]> | undefined;
 const negzero = (n: Decimal, show?: boolean): Decimal =>
   !show && decimalIsZero(n) && decimalIsNegative(n) ? decimalAbs(n) : n;
 
+/**
+ * @internal
+ */
 export const adjustNumber = (num: Decimal, options: DecimalAdjustOptions = {}): Decimal => {
   options = Object.assign({}, { minInt: 0 }, options);
   const ctx = numberContext(options, options.round || 'half-even', false, false);
@@ -61,10 +64,16 @@ export const currencySymbol = (data: LocaleData, code: CurrencyType, alt: AltTyp
   return vectorGet(sym, data, [alt, 'none'], code) || (vectorValid(sym, 'none', code) ? code : '');
 };
 
+/**
+ * @internal
+ */
 export const currencyDisplayName = (data: LocaleData, code: CurrencyType): string => {
   return vectorGet(data.schema.Currencies.displayName, data, code);
 };
 
+/**
+ * @internal
+ */
 export const currencyPluralName = (data: LocaleData, code: string, plural: PluralType): string => {
   return (
     vectorGet(data.schema.Currencies.pluralName, data, plural, code as CurrencyType) ||
@@ -72,6 +81,9 @@ export const currencyPluralName = (data: LocaleData, code: string, plural: Plura
   );
 };
 
+/**
+ * @internal
+ */
 export const getNumberPattern = (raw: string, negative: boolean): NumberPattern => {
   return cacheGet(
     numberPatternCache || (numberPatternCache = createCache(parseNumberPattern, PATTERN_CACHE_SIZE)),
@@ -79,6 +91,9 @@ export const getNumberPattern = (raw: string, negative: boolean): NumberPattern 
   )[negative ? 1 : 0];
 };
 
+/**
+ * @internal
+ */
 export const renderDecimal = <T>(
   data: LocaleData,
   renderer: NumberRenderer<T>,
@@ -222,6 +237,9 @@ export const renderDecimal = <T>(
   return [result, plural];
 };
 
+/**
+ * @internal
+ */
 export const renderCurrency = <T>(
   data: LocaleData,
   renderer: NumberRenderer<T>,

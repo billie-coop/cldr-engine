@@ -136,12 +136,15 @@ type Key = string | string[];
  * @public
  */
 export function vectorValid<T extends string>(arrow: Vector1Arrow<T>, key: T | T[]): boolean;
+/** @public */
 export function vectorValid<T extends string, S extends string>(
   arrow: Vector2Arrow<T, S>,
   key1: T | T[],
   key2: S | S[],
 ): boolean;
+/** @public */
 export function vectorValid(arrow: VectorArrowBase, ...keys: Key[]): boolean;
+/** @public */
 export function vectorValid(arrow: VectorArrowBase, ...keys: Key[]): boolean {
   return vectorIndex(arrow, keys, 0, arrow.offset) !== -1;
 }
@@ -160,12 +163,14 @@ export const vectorExists = (arrow: VectorArrowBase, bundle: PrimitiveBundle): b
  * @public
  */
 export function vectorGet<T extends string>(arrow: Vector1Arrow<T>, bundle: PrimitiveBundle, key: T | T[]): string;
+/** @public */
 export function vectorGet<T extends string, S extends string>(
   arrow: Vector2Arrow<T, S>,
   bundle: PrimitiveBundle,
   key1: T | T[],
   key2: S | S[],
 ): string;
+/** @public */
 export function vectorGet<T extends string, S extends string, U extends string>(
   arrow: Vector3Arrow<T, S, U>,
   bundle: PrimitiveBundle,
@@ -173,7 +178,9 @@ export function vectorGet<T extends string, S extends string, U extends string>(
   key2: S | S[],
   key3: U | U[],
 ): string;
+/** @public */
 export function vectorGet(arrow: VectorArrowBase, bundle: PrimitiveBundle, ...keys: Key[]): string;
+/** @public */
 export function vectorGet(arrow: VectorArrowBase, bundle: PrimitiveBundle, ...keys: Key[]): string {
   if (keys.length !== arrow.len) {
     // Impossible lookup, will never reach a valid field
@@ -191,15 +198,19 @@ export function vectorGet(arrow: VectorArrowBase, bundle: PrimitiveBundle, ...ke
  * @public
  */
 export function vectorMapping<T extends string>(arrow: Vector1Arrow<T>, bundle: PrimitiveBundle): { [P in T]: string };
+/** @public */
 export function vectorMapping<T extends string, S extends string>(
   arrow: Vector2Arrow<T, S>,
   bundle: PrimitiveBundle,
 ): { [P in T]: { [Q in S]: string } };
+/** @public */
 export function vectorMapping<T extends string, S extends string, U extends string>(
   arrow: Vector3Arrow<T, S, U>,
   bundle: PrimitiveBundle,
 ): { [P in T]: { [Q in S]: { [R in U]: string } } };
+/** @public */
 export function vectorMapping(arrow: VectorArrowBase, bundle: PrimitiveBundle): any;
+/** @public */
 export function vectorMapping(arrow: VectorArrowBase, bundle: PrimitiveBundle): any {
   return vectorExists(arrow, bundle) ? mapping(arrow, bundle, 0, 0) : {};
 }

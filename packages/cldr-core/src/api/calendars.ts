@@ -104,26 +104,51 @@ const DOW_FIELDS: RelativeTimeFieldType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 
 // Exemplar city names, per locale data, read on first use.
 const EXEMPLAR_CITIES = /*#__PURE__*/ new WeakMap<LocaleData, { [x: string]: string }>();
 
+/**
+ * First day of the week for this locale, e.g. 1=SUN, 2=MON, etc.
+ *
+ * @public
+ */
 export const firstDayOfWeek = (data: LocaleData): number => {
   return weekFirstDay(data.region);
 };
 
+/**
+ * Minimum number of days to count as a new week in a month or year in this locale.
+ *
+ * @public
+ */
 export const minDaysInFirstWeek = (data: LocaleData): number => {
   return weekMinDays(data.region);
 };
 
+/**
+ * Date field's string representation for this locale.
+ *
+ * @public
+ */
 export const dateField = (data: LocaleData, type: DateFieldType, opt?: DateFieldFormatOptions): string => {
   opt = opt || {};
   const field = vectorGet(data.schema.DateFields.displayName, data, type, opt.width || 'wide');
   return _transformField(data, field, 'calendar-field', opt.context);
 };
 
+/**
+ * Mapping of all day periods for this locale.
+ *
+ * @public
+ */
 export const dayPeriods = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
   opt = opt || {};
   const fields = patternsDayPeriods(_getPatterns(data, opt.ca))[opt.width || 'wide'];
   return _transformFields(data, fields, undefined, opt.context);
 };
 
+/**
+ * Mapping of all eras for this locale.
+ *
+ * @public
+ */
 export const eras = (data: LocaleData, opt?: EraFieldOptions): any => {
   opt = opt || {};
   const w = opt.width || 'names';
@@ -132,6 +157,11 @@ export const eras = (data: LocaleData, opt?: EraFieldOptions): any => {
   return _transformFields(data, fields, tx, opt.context);
 };
 
+/**
+ * Mapping of all months for this locale.
+ *
+ * @public
+ */
 export const months = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
   opt = opt || {};
   const w = opt.width === 'short' ? 'narrow' : opt.width || 'wide';
@@ -140,12 +170,22 @@ export const months = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
   return _transformFields(data, fields, tx, opt.context);
 };
 
+/**
+ * Mapping of all quarters for this locale.
+ *
+ * @public
+ */
 export const quarters = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
   opt = opt || {};
   const fields = patternsQuarters(_getPatterns(data, opt.ca))[opt.width || 'wide'];
   return _transformFields(data, fields, undefined, opt.context);
 };
 
+/**
+ * Mapping of all weekdays for this locale.
+ *
+ * @public
+ */
 export const weekdays = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
   opt = opt || {};
   const w = opt.width || 'wide';
@@ -156,6 +196,8 @@ export const weekdays = (data: LocaleData, opt?: CalendarFieldsOptions): any => 
 
 /**
  * Alias for nowGregorian()
+ *
+ * @public
  */
 export const now = (data: LocaleData, zoneId?: string): GregorianDate => {
   return nowGregorian(data, zoneId);
@@ -163,6 +205,8 @@ export const now = (data: LocaleData, zoneId?: string): GregorianDate => {
 
 /**
  * Convert the given date to the Buddhist calendar.
+ *
+ * @public
  */
 export const toBuddhistDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): BuddhistDate => {
   return convertDate(data, buddhistDateFromUnixEpoch, date);
@@ -170,6 +214,8 @@ export const toBuddhistDate = (data: LocaleData, date: CalendarDate | ZonedDateT
 
 /**
  * Construct a new date in the Buddhist calendar with the given fields.
+ *
+ * @public
  */
 export const newBuddhistDate = (data: LocaleData, fields: Partial<CalendarDateFields>): BuddhistDate => {
   return buddhistDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
@@ -177,6 +223,8 @@ export const newBuddhistDate = (data: LocaleData, fields: Partial<CalendarDateFi
 
 /**
  * Construct a new date in the Buddhist calendar representing the current date and time.
+ *
+ * @public
  */
 export const nowBuddhist = (data: LocaleData, zoneId?: string): BuddhistDate => {
   return buddhistDateFromUnixEpoch(
@@ -189,6 +237,8 @@ export const nowBuddhist = (data: LocaleData, zoneId?: string): BuddhistDate => 
 
 /**
  * Convert the given date to the Gregorian calendar.
+ *
+ * @public
  */
 export const toGregorianDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): GregorianDate => {
   return convertDate(data, gregorianDateFromUnixEpoch, date);
@@ -196,6 +246,8 @@ export const toGregorianDate = (data: LocaleData, date: CalendarDate | ZonedDate
 
 /**
  * Construct a new date in the Gregorian calendar with the given fields.
+ *
+ * @public
  */
 export const newGregorianDate = (data: LocaleData, fields: Partial<CalendarDateFields>): GregorianDate => {
   return gregorianDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
@@ -203,6 +255,8 @@ export const newGregorianDate = (data: LocaleData, fields: Partial<CalendarDateF
 
 /**
  * Construct a new date in the Gregorian calendar representing the current date and time.
+ *
+ * @public
  */
 export const nowGregorian = (data: LocaleData, zoneId?: string): GregorianDate => {
   return gregorianDateFromUnixEpoch(
@@ -215,6 +269,8 @@ export const nowGregorian = (data: LocaleData, zoneId?: string): GregorianDate =
 
 /**
  * Convert the given date to the ISO-8601 calendar.
+ *
+ * @public
  */
 export const toISO8601Date = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): ISO8601Date => {
   return convertDate(data, iso8601DateFromUnixEpoch, date);
@@ -222,6 +278,8 @@ export const toISO8601Date = (data: LocaleData, date: CalendarDate | ZonedDateTi
 
 /**
  * Construct a new date in the ISO-8601 calendar with the given fields.
+ *
+ * @public
  */
 export const newISO8601Date = (data: LocaleData, fields: Partial<CalendarDateFields>): ISO8601Date => {
   return iso8601DateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
@@ -229,6 +287,8 @@ export const newISO8601Date = (data: LocaleData, fields: Partial<CalendarDateFie
 
 /**
  * Construct a new date in the ISO8601 calendar representing the current date and time.
+ *
+ * @public
  */
 export const nowISO8601 = (data: LocaleData, zoneId?: string): ISO8601Date => {
   return iso8601DateFromUnixEpoch(
@@ -241,6 +301,8 @@ export const nowISO8601 = (data: LocaleData, zoneId?: string): ISO8601Date => {
 
 /**
  * Convert the given date to the Japanese calendar.
+ *
+ * @public
  */
 export const toJapaneseDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): JapaneseDate => {
   return convertDate(data, japaneseDateFromUnixEpoch, date);
@@ -248,6 +310,8 @@ export const toJapaneseDate = (data: LocaleData, date: CalendarDate | ZonedDateT
 
 /**
  * Construct a new date in the Japanese calendar with the given fields.
+ *
+ * @public
  */
 export const newJapaneseDate = (data: LocaleData, fields: Partial<CalendarDateFields>): JapaneseDate => {
   return japaneseDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
@@ -255,6 +319,8 @@ export const newJapaneseDate = (data: LocaleData, fields: Partial<CalendarDateFi
 
 /**
  * Construct a new date in the Japanese calendar representing the current date and time.
+ *
+ * @public
  */
 export const nowJapanese = (data: LocaleData, zoneId?: string): JapaneseDate => {
   return japaneseDateFromUnixEpoch(
@@ -267,6 +333,8 @@ export const nowJapanese = (data: LocaleData, zoneId?: string): JapaneseDate => 
 
 /**
  * Convert the given date to the Persian calendar.
+ *
+ * @public
  */
 export const toPersianDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): PersianDate => {
   return convertDate(data, persianDateFromUnixEpoch, date);
@@ -274,6 +342,8 @@ export const toPersianDate = (data: LocaleData, date: CalendarDate | ZonedDateTi
 
 /**
  * Construct a new date in the Persian calendar with the given fields.
+ *
+ * @public
  */
 export const newPersianDate = (data: LocaleData, fields: Partial<CalendarDateFields>): PersianDate => {
   return persianDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
@@ -281,6 +351,8 @@ export const newPersianDate = (data: LocaleData, fields: Partial<CalendarDateFie
 
 /**
  * Construct a new date in the Persian calendar representing the current date and time.
+ *
+ * @public
  */
 export const nowPersian = (data: LocaleData, zoneId?: string): PersianDate => {
   return persianDateFromUnixEpoch(
@@ -298,6 +370,8 @@ export const nowPersian = (data: LocaleData, zoneId?: string): PersianDate => {
  *
  * This can be used by applications to select an appropriate skeleton for date
  * interval formatting, e.g. to format "March 31 - April 01, 2019"
+ *
+ * @public
  */
 export const fieldOfVisualDifference = (
   data: LocaleData,
@@ -328,6 +402,8 @@ export const fieldOfVisualDifference = (
 
 /**
  * Format a calendar date to string using the given options.
+ *
+ * @public
  */
 export const formatDate = (
   data: LocaleData,
@@ -339,6 +415,8 @@ export const formatDate = (
 
 /**
  * Format a calendar date to a parts array using the given options.
+ *
+ * @public
  */
 export const formatDateToParts = (
   data: LocaleData,
@@ -348,6 +426,11 @@ export const formatDateToParts = (
   return _formatDate(data, partsValue(), date, options);
 };
 
+/**
+ * Formats a date-time interval for the given skeleton to string.
+ *
+ * @public
+ */
 export const formatDateInterval = (
   data: LocaleData,
   start: CalendarDate | ZonedDateTime | Date,
@@ -357,6 +440,11 @@ export const formatDateInterval = (
   return _formatInterval(data, stringValue(), start, end, options);
 };
 
+/**
+ * Formats a date-time interval for the given skeleton to an array of parts.
+ *
+ * @public
+ */
 export const formatDateIntervalToParts = (
   data: LocaleData,
   start: CalendarDate | ZonedDateTime | Date,
@@ -378,6 +466,11 @@ export const formatDateIntervalToParts = (
 //     data, start, end, options, params);
 // }
 
+/**
+ * Formats a relative time field to string.
+ *
+ * @public
+ */
 export const formatRelativeTimeField = (
   data: LocaleData,
   value: DecimalArg,
@@ -390,6 +483,11 @@ export const formatRelativeTimeField = (
   return renderRelativeTimeField(data, value, field, options, params, transform);
 };
 
+/**
+ * Formats the relative time from a start to end date.
+ *
+ * @public
+ */
 export const formatRelativeTime = (
   data: LocaleData,
   start: CalendarDate | ZonedDateTime | Date,
@@ -424,6 +522,8 @@ export const formatRelativeTime = (
 /**
  * Format a raw date pattern. Note: This should not be used, but is available for debugging or
  * extreme cases where an application must implement a custom format.
+ *
+ * @public
  */
 export const formatDateRaw = (
   data: LocaleData,
@@ -433,6 +533,13 @@ export const formatDateRaw = (
   return _formatDateRaw(data, stringValue(), date, options || {});
 };
 
+/**
+ * Formats a date-time value to an array of parts using a raw date-time pattern.
+ *
+ * Warning: You should not use this for general formatting.
+ *
+ * @public
+ */
 export const formatDateRawToParts = (
   data: LocaleData,
   date: CalendarDate | ZonedDateTime | Date,
@@ -441,6 +548,12 @@ export const formatDateRawToParts = (
   return _formatDateRaw(data, partsValue(), date, options || {});
 };
 
+/**
+ * Formats a date and time string together using a wrapper format of the given width. This can be
+ * used when you need to format a date and time string separately and join them together.
+ *
+ * @public
+ */
 export const formatDateWrapper = (
   data: LocaleData,
   date: string,
@@ -450,6 +563,12 @@ export const formatDateWrapper = (
   return _formatDateWrapper(data, stringValue(), date, time, options || {});
 };
 
+/**
+ * Formats  date and time `Part[]` together using a wrapper format of the given width. This can be
+ * used when you need to format a date and time string separately and join them together.
+ *
+ * @public
+ */
 export const formatDateWrapperToParts = (
   data: LocaleData,
   date: Part[],
@@ -459,6 +578,11 @@ export const formatDateWrapperToParts = (
   return _formatDateWrapper(data, partsValue(), date, time, options || {});
 };
 
+/**
+ * Return information about the locale's preferred and allowed time cycles.
+ *
+ * @public
+ */
 export const timeData = (data: LocaleData): TimeData => {
   const patterns = _getPatterns(data, 'gregory');
   const [allowed, preferred] = patternsTimeData(patterns);
@@ -468,10 +592,26 @@ export const timeData = (data: LocaleData): TimeData => {
   };
 };
 
+/**
+ * Return an array containing the official TZDB timezone identifiers.
+ *
+ * @public
+ */
 export const timeZoneIds = (): string[] => tzZoneIds();
 
+/**
+ * Resolve a timezone id / alias to the official TZDB identifier.
+ *
+ * @public
+ */
 export const resolveTimeZoneId = (zoneid: string): string | undefined => tzResolveId(substituteZoneAlias(zoneid));
 
+/**
+ * Return additional information for a timezone id, including the
+ * localized exemplar city, e.g. `{ id: "America/New_York", city: { name: "New York" } }`
+ *
+ * @public
+ */
 export const timeZoneInfo = (data: LocaleData, zoneid: string): TimeZoneInfo => {
   const tz = data.schema.TimeZones;
   let exemplarCities = EXEMPLAR_CITIES.get(data);
@@ -506,11 +646,30 @@ export const timeZoneInfo = (data: LocaleData, zoneid: string): TimeZoneInfo => 
   };
 };
 
+/**
+ * Lookup the time zone info for the given UTC timestamp (in milliseconds).
+ * Info includes the abbreviation, offset, daylight savings flag. Returns undefined if the
+ * zoneid doesn't exist.
+ *
+ * @public
+ */
 export const timeZoneFromUTC = (utc: number, zoneid: string): ZoneInfo | undefined => tzFromUTC(zoneid, utc);
 
+/**
+ * Lookup the time zone info for the given local "wall clock" timestamp (in milliseconds).
+ * It also returns the corresponding UTC timestamp. Info includes the abbreviation, offset,
+ * daylight savings flag. Returns undefined if the zoneid doesn't exist.
+ *
+ * @public
+ */
 export const timeZoneFromWall = (wall: number, zoneid: string): [number, ZoneInfo] | undefined =>
   tzFromWall(zoneid, wall);
 
+/**
+ * Convert a time period into a quantiy sequence, for unit formatting, e.g. "1 year, 2 months".
+ *
+ * @public
+ */
 export const timePeriodToQuantity = (period: Partial<TimePeriod>): Quantity[] => {
   const q: Quantity[] = [];
   for (const f of TIME_PERIOD_FIELDS) {

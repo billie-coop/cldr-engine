@@ -8,21 +8,33 @@
 export const binarySearch: (elems: number[], lessThan: boolean, n: number) => number;
 
 // @public
-class Cache_2<T> {
-    constructor(builder: (s: string) => T, capacity: number);
-    get(raw: string): T;
-    size(): number;
+interface Cache_2<T> {
+    // (undocumented)
+    readonly builder: (s: string) => T;
+    // (undocumented)
+    readonly storage: LRU<T>;
 }
 export { Cache_2 as Cache }
 
 // @public
-export class Checksum {
-    constructor();
-    get(): number;
-    update(s: string): this;
-}
+export const cacheGet: <T>(cache: Cache_2<T>, raw: string) => T;
+
+// @public (undocumented)
+export const cacheSize: <T>(cache: Cache_2<T>) => number;
 
 // @public
+export interface Checksum {
+    // (undocumented)
+    v: number;
+}
+
+// @public (undocumented)
+export const checksumGet: (c: Checksum) => number;
+
+// @public
+export const checksumUpdate: (c: Checksum, s: string) => Checksum;
+
+// @public (undocumented)
 export type Comparator<T> = (a: T, b: T) => number;
 
 // @public
@@ -31,28 +43,64 @@ export const enum Constants {
     FNV1A_BASIS = 2166136261
 }
 
+// @public (undocumented)
+export const createCache: <T>(builder: (s: string) => T, capacity: number) => Cache_2<T>;
+
+// @public (undocumented)
+export const createChecksum: () => Checksum;
+
+// @public
+export const createHeap: <T>(cmp: Comparator<T>, data: T[]) => Heap<T>;
+
+// @public
+export const createLRU: <V>(capacity?: number) => LRU<V>;
+
 // @public
 export const FNV: (r: number, s: string) => number;
 
 // @public
-export class Heap<T> {
-    constructor(cmp: Comparator<T>, data: T[]);
-    empty(): boolean;
-    pop(): T | undefined;
-    push(item: T): void;
+export interface Heap<T> {
+    // (undocumented)
+    readonly cmp: Comparator<T>;
+    // (undocumented)
+    readonly items: T[];
 }
 
+// @public (undocumented)
+export const heapEmpty: <T>(h: Heap<T>) => boolean;
+
 // @public
+export const heapPop: <T>(h: Heap<T>) => T | undefined;
+
+// @public (undocumented)
+export const heapPush: <T>(h: Heap<T>, item: T) => void;
+
+// @public (undocumented)
 export type Key = string | number;
 
 // @public
-export class LRU<V> {
-    constructor(capacity?: number);
-    get(key: Key): V | undefined;
-    set(key: Key, val: V): void;
-    size(): number;
-    toString(): string;
+export interface LRU<V> {
+    // (undocumented)
+    readonly capacity: number;
+    // (undocumented)
+    readonly root: Node_2<V>;
+    // Warning: (ae-forgotten-export) The symbol "Node_2" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly storage: Map<Key, Node_2<V>>;
 }
+
+// @public
+export const lruGet: <V>(lru: LRU<V>, key: Key) => V | undefined;
+
+// @public
+export const lruSet: <V>(lru: LRU<V>, key: Key, val: V) => void;
+
+// @public
+export const lruSize: <V>(lru: LRU<V>) => number;
+
+// @public
+export const lruToString: <V>(lru: LRU<V>) => string;
 
 // (No @packageDocumentation comment for this package)
 

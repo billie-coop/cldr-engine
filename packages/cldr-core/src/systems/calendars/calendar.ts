@@ -10,6 +10,9 @@ import { CalendarDate, CalendarDateFields, CalendarType } from './types';
 
 const zeropad = (n: number, w: number): string => numberingFormatString(INTERNAL_NUMBERING, n, false, w);
 
+/**
+ * @public
+ */
 export type CalendarDateModFields = keyof Pick<
   CalendarDateFields,
   'year' | 'month' | 'day' | 'hour' | 'minute' | 'second'
@@ -35,6 +38,9 @@ export interface TimeStringOptions {
   optionalMilliseconds?: boolean;
 }
 
+/**
+ * @public
+ */
 export interface DateDiffOptions {
   /**
    * Calculate weeks.
@@ -588,6 +594,8 @@ export const dateEndOf = (d: CalendarDate, field: CalendarDateModFields): Calend
 
 /**
  * Negate every field of a time period, filling in missing fields with zero.
+ *
+ * @public
  */
 export const negatePeriod = (fields: Partial<TimePeriod>): TimePeriod => {
   const r: Partial<TimePeriod> = {};

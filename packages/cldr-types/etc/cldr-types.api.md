@@ -251,9 +251,10 @@ export interface DecimalFormats {
 
 // @public
 export interface DigitsArrow<T extends string> {
-    get(bundle: PrimitiveBundle, key: T, digits: number): [string, number];
     // (undocumented)
     readonly index: KeyIndex<T>;
+    // (undocumented)
+    readonly kind: 'digits';
     // (undocumented)
     readonly offset: number;
     // (undocumented)
@@ -287,7 +288,7 @@ export interface Extension {
 // @public
 export interface FieldArrow {
     // (undocumented)
-    get(bundle: PrimitiveBundle): string;
+    readonly kind: 'field';
     // (undocumented)
     readonly offset: number;
 }
@@ -333,10 +334,8 @@ export interface JapaneseSchema extends CalendarSchema {
 // @public
 export interface KeyIndex<T extends string> {
     // (undocumented)
-    get(key: T): number;
-    // (undocumented)
     readonly index: {
-        [P in T]: number;
+        readonly [P in T]: number;
     };
     // (undocumented)
     readonly keys: T[];
@@ -460,13 +459,19 @@ export type PluralType = 'other' | 'zero' | 'one' | 'two' | 'few' | 'many';
 // @public
 export interface PrimitiveBundle {
     // (undocumented)
-    get(offset: number): string;
+    readonly exceptions: readonly string[];
     // (undocumented)
-    id(): string;
+    readonly id: string;
     // (undocumented)
-    language(): string;
+    readonly index?: {
+        readonly [offset: number]: number;
+    };
     // (undocumented)
-    region(): string;
+    readonly language: string;
+    // (undocumented)
+    readonly region: string;
+    // (undocumented)
+    readonly strings: readonly string[];
 }
 
 // @public (undocumented)
@@ -591,10 +596,10 @@ export interface Schema {
 // @public
 export interface ScopeArrow<T extends string, R> {
     // (undocumented)
-    get(key: T): R | undefined;
+    readonly kind: 'scope';
     // (undocumented)
     readonly map: {
-        [P in T]: R;
+        readonly [P in T]: R;
     };
 }
 
@@ -657,38 +662,35 @@ export interface UnitsSchema {
 export type UnitType = 'g-force' | 'meter-per-square-second' | 'arc-minute' | 'arc-second' | 'degree' | 'radian' | 'revolution' | 'steradian' | 'acre' | 'bu-jp' | 'cho' | 'dunam' | 'hectare' | 'se-jp' | 'square-centimeter' | 'square-foot' | 'square-inch' | 'square-kilometer' | 'square-meter' | 'square-mile' | 'square-yard' | 'item' | 'karat' | 'katal' | 'milligram-ofglucose-per-deciliter' | 'millimole-per-liter' | 'mole' | 'ofglucose' | 'part' | 'part-per-1e6' | 'part-per-1e9' | 'percent' | 'permille' | 'permyriad' | 'liter-per-100-kilometer' | 'liter-per-kilometer' | 'mile-per-gallon' | 'mile-per-gallon-imperial' | 'bit' | 'byte' | 'gigabit' | 'gigabyte' | 'kilobit' | 'kilobyte' | 'megabit' | 'megabyte' | 'petabyte' | 'terabit' | 'terabyte' | 'century' | 'day' | 'day-person' | 'decade' | 'fortnight' | 'hour' | 'microsecond' | 'millisecond' | 'minute' | 'month' | 'month-person' | 'nanosecond' | 'night' | 'quarter' | 'second' | 'week' | 'week-person' | 'year' | 'year-person' | 'ampere' | 'coulomb' | 'farad' | 'henry' | 'milliampere' | 'ohm' | 'siemens' | 'volt' | 'becquerel' | 'british-thermal-unit' | 'british-thermal-unit-it' | 'calorie' | 'calorie-it' | 'electronvolt' | 'foodcalorie' | 'gray' | 'joule' | 'kilocalorie' | 'kilojoule' | 'kilowatt-hour' | 'sievert' | 'therm-us' | 'kilogram-force' | 'kilowatt-hour-per-100-kilometer' | 'newton' | 'pound-force' | 'gigahertz' | 'hertz' | 'kilohertz' | 'megahertz' | 'dot' | 'dot-per-centimeter' | 'dot-per-inch' | 'em' | 'megapixel' | 'pixel' | 'pixel-per-centimeter' | 'pixel-per-inch' | 'astronomical-unit' | 'centimeter' | 'chain' | 'decimeter' | 'earth-radius' | 'fathom' | 'foot' | 'furlong' | 'inch' | 'jo-jp' | 'ken' | 'kilometer' | 'light-year' | 'meter' | 'micrometer' | 'mile' | 'mile-scandinavian' | 'millimeter' | 'nanometer' | 'nautical-mile' | 'parsec' | 'picometer' | 'point' | 'ri-jp' | 'rin' | 'rod' | 'shaku-cloth' | 'shaku-length' | 'solar-radius' | 'sun' | 'yard' | 'candela' | 'lumen' | 'lux' | 'solar-luminosity' | 'tesla' | 'weber' | 'carat' | 'dalton' | 'earth-mass' | 'fun' | 'grain' | 'gram' | 'kilogram' | 'microgram' | 'milligram' | 'ounce' | 'ounce-troy' | 'pound' | 'slug' | 'solar-mass' | 'stone' | 'ton' | 'tonne' | 'gigawatt' | 'horsepower' | 'kilowatt' | 'megawatt' | 'milliwatt' | 'watt' | 'atmosphere' | 'bar' | 'gasoline-energy-density' | 'hectopascal' | 'inch-ofhg' | 'kilopascal' | 'megapascal' | 'millibar' | 'millimeter-ofhg' | 'ofhg' | 'pascal' | 'pound-force-per-square-inch' | 'beaufort' | 'kilometer-per-hour' | 'knot' | 'light-speed' | 'meter-per-second' | 'mile-per-hour' | 'celsius' | 'fahrenheit' | 'temperature' | 'kelvin' | 'rankine' | 'newton-meter' | 'pound-force-foot' | 'acre-foot' | 'barrel' | 'bushel' | 'centiliter' | 'cubic-centimeter' | 'cubic-foot' | 'cubic-inch' | 'cubic-kilometer' | 'cubic-meter' | 'cubic-mile' | 'cubic-yard' | 'cup' | 'cup-imperial' | 'cup-jp' | 'cup-metric' | 'deciliter' | 'dessert-spoon' | 'dessert-spoon-imperial' | 'dram' | 'drop' | 'fluid-ounce' | 'fluid-ounce-imperial' | 'fluid-ounce-metric' | 'gallon' | 'gallon-imperial' | 'hectoliter' | 'jigger' | 'koku' | 'kosaji' | 'liter' | 'megaliter' | 'milliliter' | 'osaji' | 'pinch' | 'pint' | 'pint-imperial' | 'pint-metric' | 'quart' | 'quart-imperial' | 'sai' | 'shaku' | 'tablespoon' | 'teaspoon' | 'to-jp';
 
 // @public
-export interface Vector1Arrow<T extends string> {
-    exists(bundle: PrimitiveBundle): boolean;
-    get(bundle: PrimitiveBundle, key: T | T[]): string;
-    mapping(bundle: PrimitiveBundle): {
-        [P in T]: string;
-    };
-    valid(key: T): boolean;
+export interface Vector1Arrow<T extends string> extends VectorArrowBase {
+    // (undocumented)
+    readonly keysets: readonly [KeyIndex<T>];
 }
 
 // @public
-export interface Vector2Arrow<T extends string, S extends string> {
-    exists(bundle: PrimitiveBundle): boolean;
-    get(bundle: PrimitiveBundle, key1: T | T[], key2: S | S[]): string;
-    mapping(bundle: PrimitiveBundle): {
-        [P in T]: {
-            [Q in S]: string;
-        };
-    };
-    valid(key1: T | T[], key2: S | S[]): boolean;
+export interface Vector2Arrow<T extends string, S extends string> extends VectorArrowBase {
+    // (undocumented)
+    readonly keysets: readonly [KeyIndex<T>, KeyIndex<S>];
 }
 
 // @public
-export interface Vector3Arrow<T extends string, S extends string, U extends string> {
-    exists(bundle: PrimitiveBundle): boolean;
-    get(bundle: PrimitiveBundle, key1: T | T[], key2: S | S[], key3: U | U[]): string;
-    mapping(bundle: PrimitiveBundle): {
-        [P in T]: {
-            [Q in S]: {
-                [R in U]: string;
-            };
-        };
-    };
+export interface Vector3Arrow<T extends string, S extends string, U extends string> extends VectorArrowBase {
+    // (undocumented)
+    readonly keysets: readonly [KeyIndex<T>, KeyIndex<S>, KeyIndex<U>];
+}
+
+// @public
+export interface VectorArrowBase {
+    readonly factors: readonly number[];
+    // (undocumented)
+    readonly keysets: readonly KeyIndex<string>[];
+    // (undocumented)
+    readonly kind: 'vector';
+    // (undocumented)
+    readonly last: number;
+    // (undocumented)
+    readonly len: number;
+    readonly offset: number;
 }
 
 // @public (undocumented)

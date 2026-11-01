@@ -5,6 +5,11 @@
 /* eslint-disable max-len */
 import { SchemaConfig } from '@phensley/cldr-core';
 
+/**
+ * Schema config used to build the resource packs shipped with this package.
+ *
+ * @public
+ */
 export const config: SchemaConfig = {
   'calendars': [
     'gregory', 'buddhist', 'japanese', 'persian'

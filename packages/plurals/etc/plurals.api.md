@@ -70,9 +70,7 @@ export type RangeMap = number | {
     readonly [x: number]: number;
 };
 
-// Warning: (ae-missing-release-tag) "Rule" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export interface Rule {
     // (undocumented)
     [0]: number;

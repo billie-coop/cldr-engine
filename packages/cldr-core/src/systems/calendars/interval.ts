@@ -31,6 +31,9 @@ export interface TimePeriod {
   millis: number;
 }
 
+/**
+ * @public
+ */
 export const timePeriod = (): TimePeriod => ({
   year: 0,
   month: 0,

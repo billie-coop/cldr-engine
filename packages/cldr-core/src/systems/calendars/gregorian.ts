@@ -13,12 +13,16 @@ export type GregorianDate = CalendarDate;
 
 /**
  * Days in a year of the Gregorian calendar (Julian calendar before the 1582 cutover).
+ *
+ * @internal
  */
 export const gregorianDaysInYear = (y: number): number => (leapGregorian(y) ? 366 : 365);
 
 /**
  * Resolve wall-clock fields to a UTC epoch in the requested time zone (falling back to the
  * date's own zone), using the Gregorian calendar. Shared by the Gregorian-based calendars.
+ *
+ * @internal
  */
 export const gregorianResolveFields = (
   f: Partial<CalendarDateFields>,

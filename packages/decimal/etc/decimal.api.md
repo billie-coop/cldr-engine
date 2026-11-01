@@ -39,99 +39,37 @@ export const enum Chars {
 }
 
 // @public
-export const coerceDecimal: (n: DecimalArg) => Decimal;
+export const coerceRational: (n: RationalArg) => Rational;
 
 // @public
-export class Decimal {
-    constructor(num: DecimalArg);
-    abs(): Decimal;
-    add(v: DecimalArg): Decimal;
-    protected addsub(u: Decimal, v: Decimal, vsign: number): Decimal;
-    alignexp(): number;
-    compare(v: DecimalArg, abs?: boolean): number;
-    // (undocumented)
-    protected data: number[];
-    decrement(): Decimal;
-    divide(v: DecimalArg, context?: MathContext): Decimal;
-    divmod(v: DecimalArg): [Decimal, Decimal];
-    exp(): number;
-    // (undocumented)
-    protected _exp: number;
+export interface Decimal {
+    readonly data: readonly number[];
+    readonly exp: number;
     // Warning: (ae-forgotten-export) The symbol "DecimalFlag" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    protected flag: DecimalFlag;
-    format<R>(formatter: DecimalFormatter<R>, decimal: string, group: string, minInt: number, minGroup: number, priGroup: number, secGroup: number, zeroScale: boolean, digits?: string[]): void;
-    // (undocumented)
-    protected formatFlags(): string;
-    // (undocumented)
-    protected formatFlagsParts(): Part[];
-    // (undocumented)
-    protected formatParts(d: Decimal, minInt: number): Part[];
-    // (undocumented)
-    protected formatString(d: Decimal, minInt: number): string;
-    // (undocumented)
-    protected static fromRaw(sign: number, _exp: number, data: number[], flag: DecimalFlag): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "Op" needs to be exported by the entry point index.d.ts
-    protected handleFlags(op: Op, v: Decimal): Decimal | undefined;
-    increment(): Decimal;
-    protected _increment(): void;
-    integerDigits(): number;
-    isFinite(): boolean;
-    isInfinity(): boolean;
-    isInteger(): boolean;
-    isNaN(): boolean;
-    isNegative(): boolean;
-    protected isodd(): boolean;
-    isZero(): boolean;
-    mod(v: DecimalArg): Decimal;
-    movePoint(n: number): Decimal;
-    multiply(v: DecimalArg, context?: MathContext): Decimal;
-    negate(): Decimal;
-    protected parse(arg: string | number): void;
-    protected _parse(str: string): string | undefined;
-    precision(): number;
-    properties(): [number[], number, number, number];
-    protected round(rnd: number, rest: number, mode: RoundingModeType): number;
-    scale(): number;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    scientific(minIntDigits?: number): [Decimal, number];
-    setScale(scale: number, roundingMode?: RoundingModeType): Decimal;
-    // (undocumented)
-    protected _setScale(scale: number, roundingMode?: RoundingModeType): void;
-    shiftleft(shift: number): Decimal;
-    protected _shiftleft(shift: number): void;
-    shiftright(shift: number, mode?: RoundingModeType): Decimal;
-    protected _shiftright(shift: number, mode: RoundingModeType): void;
-    // (undocumented)
-    protected sign: number;
-    signum(): number;
-    stripTrailingZeros(): Decimal;
-    // (undocumented)
-    protected _stripTrailingZeros(): void;
-    subtract(v: DecimalArg): Decimal;
-    toInteger(): Decimal;
-    toParts(): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificParts(minIntegers?: number): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificString(minIntegers?: number): string;
-    toString(): string;
-    trailingZeros(): number;
-    protected trim(): Decimal;
+    readonly flag: DecimalFlag;
+    readonly sign: number;
 }
+
+// @public
+export const decimal: (n: DecimalArg) => Decimal;
 
 // @public
 export const DECIMAL_DIGITS: string[];
 
 // @public
+export const decimalAbs: (n: DecimalArg) => Decimal;
+
+// @public
+export const decimalAdd: (un: DecimalArg, vn: DecimalArg) => Decimal;
+
+// @public
+export const decimalAlignexp: (n: DecimalArg) => number;
+
+// @public
 export type DecimalArg = number | string | Decimal;
+
+// @public
+export const decimalCompare: (un: DecimalArg, vn: DecimalArg, abs?: boolean) => number;
 
 // @public
 export const DecimalConstants: {
@@ -146,10 +84,124 @@ export const DecimalConstants: {
 };
 
 // @public
+export const decimalDecrement: (n: DecimalArg) => Decimal;
+
+// @public
+export const decimalDivide: (un: DecimalArg, vn: DecimalArg, context?: MathContext) => Decimal;
+
+// @public
+export const decimalDivmod: (un: DecimalArg, vn: DecimalArg) => [Decimal, Decimal];
+
+// @public
+export const decimalFormat: <R>(n: DecimalArg, formatter: DecimalFormatter<R>, decimalSep: string, group: string, minInt: number, minGroup: number, priGroup: number, secGroup: number, zeroScale: boolean, digits?: string[]) => void;
+
+// @public
 export interface DecimalFormatter<T> {
     add(c: string): void;
     render(): T;
 }
+
+// @public
+export const decimalIncrement: (n: DecimalArg) => Decimal;
+
+// @public
+export const decimalIntegerDigits: (n: DecimalArg) => number;
+
+// @public
+export const decimalIsFinite: (n: DecimalArg) => boolean;
+
+// @public
+export const decimalIsInfinity: (n: DecimalArg) => boolean;
+
+// @public
+export const decimalIsInteger: (n: DecimalArg) => boolean;
+
+// @public
+export const decimalIsNaN: (n: DecimalArg) => boolean;
+
+// @public
+export const decimalIsNegative: (n: DecimalArg) => boolean;
+
+// @public
+export const decimalIsZero: (n: DecimalArg) => boolean;
+
+// @public
+export const decimalMod: (un: DecimalArg, vn: DecimalArg) => Decimal;
+
+// @public
+export const decimalMovePoint: (n: DecimalArg, places: number) => Decimal;
+
+// @public
+export const decimalMultiply: (un: DecimalArg, vn: DecimalArg, context?: MathContext) => Decimal;
+
+// @public
+export const decimalNegate: (n: DecimalArg) => Decimal;
+
+// @public
+export const decimalPrecision: (n: DecimalArg) => number;
+
+// @public
+export const decimalProperties: (n: DecimalArg) => [number[], number, number, number];
+
+// @public
+export const decimalScale: (n: DecimalArg) => number;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+// Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
+//
+// @public
+export const decimalScientific: (n: DecimalArg, minIntDigits?: number) => [Decimal, number];
+
+// @public
+export const decimalSetScale: (n: DecimalArg, scale: number, roundingMode?: RoundingModeType) => Decimal;
+
+// @public
+export const decimalShiftleft: (n: DecimalArg, shift: number) => Decimal;
+
+// @public
+export const decimalShiftright: (n: DecimalArg, shift: number, mode?: RoundingModeType) => Decimal;
+
+// @public
+export const decimalSignum: (n: DecimalArg) => number;
+
+// @public
+export const decimalStripTrailingZeros: (n: DecimalArg) => Decimal;
+
+// @public
+export const decimalSubtract: (un: DecimalArg, vn: DecimalArg) => Decimal;
+
+// @public
+export const decimalToInteger: (n: DecimalArg) => Decimal;
+
+// @public
+export const decimalToParts: (n: DecimalArg) => Part[];
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+// Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
+//
+// @public
+export const decimalToScientificParts: (n: DecimalArg, minIntegers?: number) => Part[];
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+// Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
+//
+// @public
+export const decimalToScientificString: (n: DecimalArg, minIntegers?: number) => string;
+
+// @public
+export const decimalToString: (n: DecimalArg) => string;
+
+// @public
+export const decimalTrailingZeros: (n: DecimalArg) => number;
+
+// @public
+export const isDecimal: (x: any) => x is Decimal;
+
+// @public
+export const isRational: (x: any) => x is Rational;
 
 // @public
 export interface MathContext {
@@ -170,55 +222,27 @@ export interface Part {
 }
 
 // @public
-export class PartsDecimalFormatter implements DecimalFormatter<Part[]> {
-    constructor(decimal: string, group: string);
+export const partsDecimalFormatter: (decimal: string, group: string) => DecimalFormatter<Part[]>;
+
+// @public
+export interface Rational {
     // (undocumented)
-    add(c: string): void;
+    readonly denominator: Decimal;
     // (undocumented)
-    protected curr: string[];
-    // (undocumented)
-    protected decimal: string;
-    // (undocumented)
-    protected group: string;
-    // (undocumented)
-    protected parts: Part[];
-    // (undocumented)
-    render(): Part[];
+    readonly numerator: Decimal;
 }
 
 // @public
-export class Rational {
-    constructor(numerator: DecimalArg, denominator?: DecimalArg);
-    // (undocumented)
-    add(num: RationalArg, context?: MathContext): Rational;
-    // (undocumented)
-    compare(num: RationalArg, context?: MathContext): number;
-    // (undocumented)
-    protected denom: Decimal;
-    // (undocumented)
-    denominator(): Decimal;
-    // (undocumented)
-    divide(num: RationalArg, context?: MathContext): Rational;
-    // (undocumented)
-    inverse(): Rational;
-    // (undocumented)
-    multiply(num: RationalArg, context?: MathContext): Rational;
-    // (undocumented)
-    negate(): Rational;
-    // (undocumented)
-    protected numer: Decimal;
-    // (undocumented)
-    numerator(): Decimal;
-    // (undocumented)
-    subtract(num: RationalArg, context?: MathContext): Rational;
-    // (undocumented)
-    toDecimal(context?: MathContext): Decimal;
-    // (undocumented)
-    toString(): string;
-}
+export const rational: (numerator: DecimalArg, denominator?: DecimalArg) => Rational;
+
+// @public
+export const rationalAdd: (un: RationalArg, vn: RationalArg, context?: MathContext) => Rational;
 
 // @public
 export type RationalArg = Rational | Decimal | number | string;
+
+// @public
+export const rationalCompare: (un: RationalArg, vn: RationalArg, context?: MathContext) => number;
 
 // @public
 export const RationalConstants: {
@@ -227,17 +251,31 @@ export const RationalConstants: {
 };
 
 // @public
+export const rationalDivide: (un: RationalArg, vn: RationalArg, context?: MathContext) => Rational;
+
+// @public
+export const rationalInverse: (un: RationalArg) => Rational;
+
+// @public
+export const rationalMultiply: (un: RationalArg, vn: RationalArg, context?: MathContext) => Rational;
+
+// @public
+export const rationalNegate: (un: RationalArg) => Rational;
+
+// @public
+export const rationalSubtract: (un: RationalArg, vn: RationalArg, context?: MathContext) => Rational;
+
+// @public
+export const rationalToDecimal: (un: RationalArg, context?: MathContext) => Decimal;
+
+// @public
+export const rationalToString: (un: RationalArg) => string;
+
+// @public
 export type RoundingModeType = 'up' | 'down' | 'ceiling' | 'floor' | 'half-up' | 'half-down' | 'half-even';
 
 // @public
-export class StringDecimalFormatter implements DecimalFormatter<string> {
-    // (undocumented)
-    add(c: string): void;
-    // (undocumented)
-    protected parts: string[];
-    // (undocumented)
-    render(): string;
-}
+export const stringDecimalFormatter: () => DecimalFormatter<string>;
 
 // (No @packageDocumentation comment for this package)
 
