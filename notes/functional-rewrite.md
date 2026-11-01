@@ -29,8 +29,8 @@ The whole library is ported to plain data + exported functions. No classes remai
 - **Differential checks against the 1.x build** (beyond the test suite): decimal and number
   rendering via the suite; timezone ~714k lookups, language-tag/locale/matcher ~325k comparisons,
   plurals/messageformat ~507k cases, unit-converter + rbnf ~830k output lines, calendar dates 620k
-  output lines — all identical. Whole locale API across all locales: see "Differential check
-  (locale API)" below.
+  output lines — all identical. Whole locale API: **2.2 million calls across all 429 locales (+40
+  extra ids), zero differences** — see "Differential check (locale API)".
 - **Performance:** micro-benchmark (en, node 24): formatDecimal / formatCurrency at parity with
   1.x, compact numbers −7%, formatDate −5…10% (likely the date week fields, now computed per call
   instead of memoized on a mutable object). Not tuned further.
@@ -296,7 +296,29 @@ were then applied to the rest of the repo in this branch.
 
 ## Differential check (locale API)
 
-(pending — see below once it finishes)
+The 1.x reference build and this branch were run side by side (separate node processes, same
+seeded inputs, one JSON line per call, diffed line by line): **2,197,323 calls, zero
+differences**, both through the 2.x functions directly and through the convenience layer. Errors
+(20,704 calls, e.g. currency formatting of NaN) have identical messages on both sides.
+
+- Locales: all 429 available, plus 40 extra ids (unicode extensions `-u-nu-arab`, `-u-ca-japanese`,
+  `-u-hc-h23`, …; unknown regions/scripts like `ar-Arab-XX`, `en-Cyrl`; aliases; `und`; private use).
+- Numbers: formatDecimal(+ToParts) ~409k, formatCurrency(+ToParts) ~332k (every style, digit
+  option, rounding mode, 12 numbering systems, cash, narrow symbols), symbols/names/plurals/adjust.
+- Units: formatQuantity(+ToParts, Sequence) ~130k+, display names, availableUnits.
+- Calendars: formatDate(+ToParts) ~348k (37 epochs incl. DST edges, era changes, years 1–9999 and
+  negative × 28 zones incl. invalid/alias × ~130 skeletons/widths × ca/nu/context/alt);
+  intervals ~130k; relative time ~103k; raw/wrapper formats; field names for every calendar
+  ~190k; timeZoneInfo, timeData, week data, fieldOfVisualDifference, to*/new*Date in all five
+  calendars (compared through 35 date fields).
+- General: lists, ~114k display names, measurement system, layout, ~19.5k message formats.
+- Locale-independent: tag parsing/resolution, time zone lookups, time periods, currency data.
+
+The only flagged line is the deliberately unknown locale `xx`, which fails to load on both sides
+with an error that contains each checkout's own pack path.
+
+Shared oddity seen there (kept from 1.x): `newJapaneseDate` / `newISO8601Date` throw "Cannot read
+properties of undefined" for some field sets (no defaults are applied; listed under 1.x bugs).
 
 ## What's left / rough edges
 
