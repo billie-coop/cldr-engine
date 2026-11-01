@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project uses a **modified semantic versioning** scheme. See [README](README.md#versioning) for more details.
 
+## [Unreleased]
+
+## Fixed/Changed
+
+- Upgrade to [tzdb 2026f](https://www.iana.org/time-zones). Includes British Columbia moving to permanent -07 (`America/Vancouver`), Alberta to permanent -06 (`America/Edmonton`), and Manitoba to permanent -05 (`America/Winnipeg`), all effective 2026-11-01 in tzdb.
+- `CST6CDT`, `EST5EDT`, `MST7MDT` and `PST8PDT` are zones again in tzdb (no longer links), so they now format with GMT-offset names rather than the US metazone names.
+
 ## [1.14.0]
 
 ## Fixed/Changed
