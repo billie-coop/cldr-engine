@@ -1,9 +1,10 @@
 import { numbersApi } from '../../_helpers';
 import { Decimal, DecimalAdjustOptions } from '../../../src';
+import { decimalToString } from '@phensley/decimal';
 
 const API = numbersApi('en');
 
-const adjust = (s: string, opts?: DecimalAdjustOptions): string => API.adjustDecimal(s, opts).toString();
+const adjust = (s: string, opts?: DecimalAdjustOptions): string => decimalToString(API.adjustDecimal(s, opts));
 
 const parse = (n: number | string): Decimal => API.parseDecimal(n);
 
@@ -11,10 +12,10 @@ test('parse decimal', () => {
   let d: Decimal;
 
   d = parse('1.0');
-  expect(d.toString()).toEqual('1.0');
+  expect(decimalToString(d)).toEqual('1.0');
 
   d = parse(3.14159);
-  expect(d.toString()).toEqual('3.14159');
+  expect(decimalToString(d)).toEqual('3.14159');
 });
 
 test('adjust fractions', () => {

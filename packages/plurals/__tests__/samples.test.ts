@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as filepath from 'path';
-import { Decimal } from '@phensley/decimal';
+import { Decimal, decimal, decimalShiftleft } from '@phensley/decimal';
 import { pluralRules } from '../src';
 
 const PATH = filepath.join(__dirname, 'samples.txt');
@@ -37,11 +37,11 @@ expect.extend({
     // Split off compact exponent syntax
     const parts = sample.split('c');
     if (parts.length == 1) {
-      n = new Decimal(sample);
+      n = decimal(sample);
     } else {
-      n = new Decimal(parts[0]);
+      n = decimal(parts[0]);
       c = parseInt(parts[1], 10);
-      n = n.shiftleft(c);
+      n = decimalShiftleft(n, c);
     }
 
     const [language, region] = lang.split('-');

@@ -1,6 +1,6 @@
-import { Decimal } from '../src';
+import { decimal, decimalAdd, decimalMovePoint, decimalSubtract, decimalToString } from '../src';
 
-const time = (n: [number, number]) => new Decimal(n[0]).add(new Decimal(n[1]).movePoint(-9));
+const time = (n: [number, number]) => decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));
 
 export class Timer {
   protected _start: [number, number] = process.hrtime();
@@ -11,7 +11,7 @@ export class Timer {
 
   micros(): string {
     const _end = process.hrtime();
-    return time(_end).subtract(time(this._start)).movePoint(6).toString();
+    return decimalToString(decimalMovePoint(decimalSubtract(time(_end), time(this._start)), 6));
   }
 
   // private asDecimal(hrtime: [number, number]): Decimal {

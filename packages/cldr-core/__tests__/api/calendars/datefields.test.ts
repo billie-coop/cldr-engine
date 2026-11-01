@@ -1,5 +1,5 @@
 import { DateFieldWidthType, RelativeTimeFieldType } from '@phensley/cldr-types';
-import { Decimal } from '@phensley/decimal';
+import { decimal } from '@phensley/decimal';
 
 import { calendarsApi } from '../../_helpers';
 
@@ -164,13 +164,13 @@ test('relative time options', () => {
   const api = calendarsApi('en');
   let s: string;
 
-  s = api.formatRelativeTimeField(new Decimal('-3.2'), 'week');
+  s = api.formatRelativeTimeField(decimal('-3.2'), 'week');
   expect(s).toEqual('3 weeks ago');
 
-  s = api.formatRelativeTimeField(new Decimal('-1.2'), 'week');
+  s = api.formatRelativeTimeField(decimal('-1.2'), 'week');
   expect(s).toEqual('last week');
 
-  s = api.formatRelativeTimeField(new Decimal('-1.2'), 'week', { maximumFractionDigits: 1 });
+  s = api.formatRelativeTimeField(decimal('-1.2'), 'week', { maximumFractionDigits: 1 });
   expect(s).toEqual('1.2 weeks ago');
 
   s = api.formatRelativeTimeField(1, 'week', {});

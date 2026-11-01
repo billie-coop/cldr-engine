@@ -44,21 +44,7 @@ export {
   VectorArrowImpl,
 } from './schema';
 
-export {
-  coerceDecimal,
-  Chars,
-  Decimal,
-  DecimalArg,
-  DecimalConstants,
-  DecimalFormatter,
-  MathContext,
-  Part,
-  PartsDecimalFormatter,
-  Rational,
-  RationalArg,
-  RoundingModeType,
-  StringDecimalFormatter,
-} from '@phensley/decimal';
+export * from '@phensley/decimal';
 
 export { parseLanguageTag, LanguageTag } from '@phensley/language-tag';
 

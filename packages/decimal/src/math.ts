@@ -5,7 +5,7 @@ import { Constants, POWERS10 } from './types';
  * Addition of nonnegative n-place integers u and v, returning the sum w.
  * Numbers must already be aligned and length u >= length v.
  */
-export const add = (u: number[], v: number[]): number[] => {
+export const add = (u: readonly number[], v: readonly number[]): number[] => {
   const vlen = v.length;
   const n = u.length;
   const w: number[] = new Array(n);
@@ -38,7 +38,7 @@ export const add = (u: number[], v: number[]): number[] => {
  * Subtraction of nonnegative n-place integers u >= v, returning the sum w.
  * Numbers must already be aligned and length u >= length v.
  */
-export const subtract = (u: number[], v: number[]): number[] => {
+export const subtract = (u: readonly number[], v: readonly number[]): number[] => {
   const m = u.length;
   const n = v.length;
   const w: number[] = new Array(m);
@@ -78,7 +78,7 @@ export const subtract = (u: number[], v: number[]): number[] => {
  * Knuth TAoCP 4.3.1 Algorithm M
  * Multiplication of nonnegative integers u and v, returning the product w.
  */
-export const multiply = (u: number[], v: number[]): number[] => {
+export const multiply = (u: readonly number[], v: readonly number[]): number[] => {
   const m = u.length;
   const n = v.length;
 
@@ -118,7 +118,7 @@ export const multiply = (u: number[], v: number[]): number[] => {
  * Multiplication of a nonnegative integer u by a single word v, returning the product w.
  * See TAoCP 4.3.1 exercise 13.
  */
-export const multiplyword = (w: number[], u: number[], n: number, v: number): void => {
+export const multiplyword = (w: number[], u: readonly number[], n: number, v: number): void => {
   let i = 0;
   let k = 0;
   for (i = 0; i < n; i++) {
@@ -157,7 +157,7 @@ export const multiplyword = (w: number[], u: number[], n: number, v: number): vo
  * the vulnerability, so any change to RADIX must be re-validated (port the
  * divide() logic with the base parametrized and fuzz against odd bases).
  */
-export const divide = (uc: number[], vc: number[]): [number[], number[]] => {
+export const divide = (uc: readonly number[], vc: readonly number[]): [number[], number[]] => {
   const n = vc.length;
   const m = uc.length - n;
   if (n === 1) {
@@ -266,7 +266,7 @@ export const divide = (uc: number[], vc: number[]): [number[], number[]] => {
  * Division of a nonnegative integer u by a single word v, returning the quotient q
  * and remainder r.
  */
-const divideword = (u: number[], v: number): [number[], number[]] => {
+const divideword = (u: readonly number[], v: number): [number[], number[]] => {
   const n = u.length;
   const q = new Array(n);
   q.fill(0);
@@ -317,38 +317,18 @@ export const trimLeadingZeros = (data: number[]): void => {
 };
 
 /**
- * Reusable quotient and remainder for repeated divmod operations.
+ * Divide and modulus n by 10^exp, returning [quotient, remainder].
  */
-export class DivMod {
-  // [quotient, remainder]
-  private s: number[] = [0, 0];
-
-  pow10(n: number, exp: number): number[] {
-    return divpow10(this.s, n, exp);
-  }
-
-  /**
-   * Divide and modulus n by w. Result is [quotient, remainder].
-   */
-  word(n: number, w: number): number[] {
-    return divword(this.s, n, w);
-  }
-}
-
-/**
- * Divide and modulus n by 10^exp. Store result in d = [quotient, remainder].
- */
-export const divpow10 = (d: number[], n: number, exp: number): number[] => {
+export const divpow10 = (n: number, exp: number): [number, number] => {
   const p = POWERS10[exp];
-  d[0] = (n / p) | 0;
-  d[1] = n - d[0] * p;
-  return d;
+  const q = (n / p) | 0;
+  return [q, n - q * p];
 };
 
 /**
- * Divide and modulus by w. Store result in d = [quotient, remainder].
+ * Divide and modulus n by div, returning [quotient, remainder].
  */
-export const divword = (_d: number[], n: number, div: number): number[] => {
+export const divword = (n: number, div: number): [number, number] => {
   const q = (n / div) | 0;
   const r = n - q * div;
   return [q, r];

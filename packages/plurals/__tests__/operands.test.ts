@@ -1,8 +1,8 @@
-import { Decimal } from '@phensley/decimal';
+import { decimal } from '@phensley/decimal';
 import { NumberOperands } from '../src';
 import { digitCount } from '../src/operands';
 
-const operands = (n: string, c: number = 0) => new NumberOperands(new Decimal(n), c).toString();
+const operands = (n: string, c: number = 0) => new NumberOperands(decimal(n), c).toString();
 
 test('foo', () => {
   let ops: string;

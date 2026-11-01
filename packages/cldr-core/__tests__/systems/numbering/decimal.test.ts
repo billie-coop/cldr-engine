@@ -1,4 +1,4 @@
-import { Decimal } from '@phensley/decimal';
+import { decimal } from '@phensley/decimal';
 import { DecimalNumberingSystem } from '../../../src/systems/numbering';
 import { NumberingSystem, NumberSymbols } from '../../../src/common/private';
 
@@ -31,7 +31,7 @@ test('decimal numbering', () => {
   s = d.formatString(1234, true, 10);
   expect(s).toEqual('0,000,001,234');
 
-  s = d.formatString(new Decimal('1234.56'), true, 1);
+  s = d.formatString(decimal('1234.56'), true, 1);
   expect(s).toEqual('1,234.56');
 
   // Missing symbols

@@ -1,4 +1,4 @@
-import { coerceDecimal, DecimalArg, DecimalFormatter, StringDecimalFormatter } from '@phensley/decimal';
+import { DecimalArg, DecimalFormatter, stringDecimalFormatter, decimal, decimalFormat } from '@phensley/decimal';
 import { NumberingSystem, NumberSymbols } from '../../common/private';
 
 const isInteger = (n: any): boolean => typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
@@ -29,15 +29,16 @@ export class DecimalNumberingSystem extends NumberingSystem {
     if (!groupDigits && isInteger(n)) {
       return fastFormatDecimal(String(n), this.digits, minInt);
     }
-    return this._formatDecimal(new StringDecimalFormatter(), n, groupDigits, minInt);
+    return this._formatDecimal(stringDecimalFormatter(), n, groupDigits, minInt);
   }
 
   // TODO: future merging of internal number formatting code into this module
 
   protected _formatDecimal<R>(f: DecimalFormatter<R>, n: DecimalArg, groupDigits: boolean, minInt: number): R {
-    const d = coerceDecimal(n);
+    const d = decimal(n);
     const group = groupDigits ? this.symbols.group : '';
-    d.format(
+    decimalFormat(
+      d,
       f,
       this.symbols.decimal || '.',
       group,
@@ -45,7 +46,7 @@ export class DecimalNumberingSystem extends NumberingSystem {
       this.minimumGroupingDigits,
       this.primaryGroupingSize,
       this.secondaryGroupingSize,
-      true, // zeroScale
+      true,
       this.digits,
     );
     return f.render();

@@ -1,7 +1,7 @@
-import { Decimal } from '../src';
+import { decimal, decimalCompare } from '../src';
 
-const parse = (s: string) => new Decimal(s);
-const cmp = (u: string, v: string, abs: boolean = false) => parse(u).compare(parse(v), abs);
+const parse = (s: string) => decimal(s);
+const cmp = (u: string, v: string, abs: boolean = false) => decimalCompare(parse(u), parse(v), abs);
 
 test('compare', () => {
   expect(cmp('0', '0')).toEqual(0);

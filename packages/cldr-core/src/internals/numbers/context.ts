@@ -1,4 +1,12 @@
-import { Decimal, RoundingModeType } from '@phensley/decimal';
+import {
+  Decimal,
+  RoundingModeType,
+  decimalIsInteger,
+  decimalPrecision,
+  decimalScale,
+  decimalSetScale,
+  decimalStripTrailingZeros,
+} from '@phensley/decimal';
 import { NumberFormatOptions } from '../../common';
 import { NumberPattern } from '../../parsing/number';
 
@@ -77,35 +85,35 @@ export class NumberContext {
       // By default we assume maximum significant digits will equal the
       // number's default precision. So if the option's maxSig == -1
       // we ignore reducing the precision.
-      if (this.maxSig !== -1 && n.precision() > this.maxSig) {
+      if (this.maxSig !== -1 && decimalPrecision(n) > this.maxSig) {
         // Scale the number to have at most the maximum significant digits.
-        const scale = this.maxSig - n.precision() + n.scale();
-        n = n.setScale(scale, this.roundingMode);
+        const scale = this.maxSig - decimalPrecision(n) + decimalScale(n);
+        n = decimalSetScale(n, scale, this.roundingMode);
       }
-      n = n.stripTrailingZeros();
+      n = decimalStripTrailingZeros(n);
 
       // scale the number to have at least the minimum significant digits
-      const precision = n.precision();
+      const precision = decimalPrecision(n);
       if (precision < this.minSig) {
-        const scale = this.minSig - precision + n.scale();
-        n = n.setScale(scale, this.roundingMode);
+        const scale = this.minSig - precision + decimalScale(n);
+        n = decimalSetScale(n, scale, this.roundingMode);
       }
     } else {
       // Precise control over number of integer and decimal digits to include, e.g. when
       // formatting exact currency values.
-      const scale = Math.max(this.minFrac, Math.min(n.scale(), this.maxFrac));
+      const scale = Math.max(this.minFrac, Math.min(decimalScale(n), this.maxFrac));
 
-      n = n.setScale(scale, this.roundingMode);
-      n = n.stripTrailingZeros();
+      n = decimalSetScale(n, scale, this.roundingMode);
+      n = decimalStripTrailingZeros(n);
 
       // If user hasn't requested minimum fraction digits, and requested to trim zero fractions,
       // and the number is an integer, force it to render as a whole number.
-      if (this.options.trimZeroFractions && !this.options.minimumFractionDigits && n.isInteger()) {
+      if (this.options.trimZeroFractions && !this.options.minimumFractionDigits && decimalIsInteger(n)) {
         // Trim zeros when whole number display is possible
-        n = n.setScale(0, this.roundingMode);
-      } else if (n.scale() < this.minFrac) {
+        n = decimalSetScale(n, 0, this.roundingMode);
+      } else if (decimalScale(n) < this.minFrac) {
         // Ensure minimum fraction digits is met.
-        n = n.setScale(this.minFrac, this.roundingMode);
+        n = decimalSetScale(n, this.minFrac, this.roundingMode);
       }
     }
 

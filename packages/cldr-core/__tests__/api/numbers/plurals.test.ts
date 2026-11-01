@@ -1,4 +1,4 @@
-import { Decimal } from '@phensley/decimal';
+import { decimal } from '@phensley/decimal';
 import { numbersApi } from '../../_helpers';
 
 test('cardinals', () => {
@@ -13,8 +13,8 @@ test('cardinals', () => {
   expect(api.getPluralCardinal('1.0')).toEqual('other');
   expect(api.getPluralCardinal('1.5')).toEqual('other');
 
-  expect(api.getPluralCardinal(new Decimal('1.0'))).toEqual('other');
-  expect(api.getPluralCardinal(new Decimal('1.5'))).toEqual('other');
+  expect(api.getPluralCardinal(decimal('1.0'))).toEqual('other');
+  expect(api.getPluralCardinal(decimal('1.5'))).toEqual('other');
 
   api = numbersApi('fr');
   expect(api.getPluralCardinal('0')).toEqual('one');

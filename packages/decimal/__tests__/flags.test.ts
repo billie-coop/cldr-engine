@@ -1,554 +1,591 @@
-import { Decimal, DecimalConstants } from '../src';
+import {
+  Decimal,
+  DecimalConstants,
+  decimal,
+  decimalAbs,
+  decimalAdd,
+  decimalAlignexp,
+  decimalCompare,
+  decimalDecrement,
+  decimalDivide,
+  decimalIncrement,
+  decimalIntegerDigits,
+  decimalIsFinite,
+  decimalIsInfinity,
+  decimalIsInteger,
+  decimalIsNaN,
+  decimalIsNegative,
+  decimalIsZero,
+  decimalMod,
+  decimalMovePoint,
+  decimalMultiply,
+  decimalNegate,
+  decimalPrecision,
+  decimalScale,
+  decimalScientific,
+  decimalSetScale,
+  decimalShiftleft,
+  decimalShiftright,
+  decimalSignum,
+  decimalStripTrailingZeros,
+  decimalSubtract,
+  decimalToInteger,
+  decimalToParts,
+  decimalToScientificParts,
+  decimalToScientificString,
+  decimalToString,
+  decimalTrailingZeros,
+} from '../src';
 
-const INF_POS = new Decimal('Infinity');
-const INF_NEG = new Decimal('-Infinity');
-const NAN = new Decimal('NaN');
+const INF_POS = decimal('Infinity');
+const INF_NEG = decimal('-Infinity');
+const NAN = decimal('NaN');
 
-const POS = new Decimal('10');
-const NEG = new Decimal('-10');
-const ZERO = new Decimal('0');
-const NEG_ZERO = new Decimal('-0');
+const POS = decimal('10');
+const NEG = decimal('-10');
+const ZERO = decimal('0');
+const NEG_ZERO = decimal('-0');
 
 test('construction', () => {
   let d: Decimal;
 
-  d = new Decimal('NaN');
-  expect(d.isNaN()).toBe(true);
-  expect(d.isFinite()).toBe(false);
-  expect(d.isInfinity()).toBe(false);
+  d = decimal('NaN');
+  expect(decimalIsNaN(d)).toBe(true);
+  expect(decimalIsFinite(d)).toBe(false);
+  expect(decimalIsInfinity(d)).toBe(false);
 
-  d = new Decimal('nan');
-  expect(d.isNaN()).toBe(true);
-  expect(d.isFinite()).toBe(false);
-  expect(d.isInfinity()).toBe(false);
+  d = decimal('nan');
+  expect(decimalIsNaN(d)).toBe(true);
+  expect(decimalIsFinite(d)).toBe(false);
+  expect(decimalIsInfinity(d)).toBe(false);
 
-  d = new Decimal('infinity');
-  expect(d.isNaN()).toBe(false);
-  expect(d.isFinite()).toBe(false);
-  expect(d.isInfinity()).toBe(true);
+  d = decimal('infinity');
+  expect(decimalIsNaN(d)).toBe(false);
+  expect(decimalIsFinite(d)).toBe(false);
+  expect(decimalIsInfinity(d)).toBe(true);
 
-  d = new Decimal('Infinity');
-  expect(d.isNaN()).toBe(false);
-  expect(d.isFinite()).toBe(false);
-  expect(d.isInfinity()).toBe(true);
+  d = decimal('Infinity');
+  expect(decimalIsNaN(d)).toBe(false);
+  expect(decimalIsFinite(d)).toBe(false);
+  expect(decimalIsInfinity(d)).toBe(true);
 });
 
 test('absolute value', () => {
-  expect(NAN.abs()).toEqual(new Decimal('NaN'));
+  expect(decimalAbs(NAN)).toEqual(decimal('NaN'));
 
-  expect(INF_POS.abs()).toEqual(INF_POS);
-  expect(INF_NEG.abs()).toEqual(INF_POS);
+  expect(decimalAbs(INF_POS)).toEqual(INF_POS);
+  expect(decimalAbs(INF_NEG)).toEqual(INF_POS);
 });
 
 test('negate', () => {
-  expect(NAN.negate()).toEqual(new Decimal('nan'));
-  expect(INF_POS.negate()).toEqual(INF_NEG);
-  expect(INF_NEG.negate()).toEqual(INF_POS);
+  expect(decimalNegate(NAN)).toEqual(decimal('nan'));
+  expect(decimalNegate(INF_POS)).toEqual(INF_NEG);
+  expect(decimalNegate(INF_NEG)).toEqual(INF_POS);
 });
 
 test('compare', () => {
   // nan
-  expect(NAN.compare(POS)).toBe(-1);
-  expect(NAN.compare(NEG)).toBe(-1);
-  expect(POS.compare(NAN)).toBe(-1);
-  expect(NEG.compare(NAN)).toBe(-1);
+  expect(decimalCompare(NAN, POS)).toBe(-1);
+  expect(decimalCompare(NAN, NEG)).toBe(-1);
+  expect(decimalCompare(POS, NAN)).toBe(-1);
+  expect(decimalCompare(NEG, NAN)).toBe(-1);
 
   // infinity
-  expect(INF_NEG.compare(INF_NEG)).toBe(0);
-  expect(INF_POS.compare(INF_POS)).toBe(0);
-  expect(INF_NEG.compare(INF_POS)).toBe(-1);
-  expect(INF_POS.compare(INF_NEG)).toBe(1);
+  expect(decimalCompare(INF_NEG, INF_NEG)).toBe(0);
+  expect(decimalCompare(INF_POS, INF_POS)).toBe(0);
+  expect(decimalCompare(INF_NEG, INF_POS)).toBe(-1);
+  expect(decimalCompare(INF_POS, INF_NEG)).toBe(1);
 
-  expect(INF_POS.compare(POS)).toBe(1);
-  expect(INF_POS.compare(POS)).toBe(1);
-  expect(INF_NEG.compare(NEG)).toBe(-1);
-  expect(INF_NEG.compare(NEG)).toBe(-1);
+  expect(decimalCompare(INF_POS, POS)).toBe(1);
+  expect(decimalCompare(INF_POS, POS)).toBe(1);
+  expect(decimalCompare(INF_NEG, NEG)).toBe(-1);
+  expect(decimalCompare(INF_NEG, NEG)).toBe(-1);
 
-  expect(POS.compare(INF_POS)).toBe(-1);
-  expect(POS.compare(INF_NEG)).toBe(1);
-  expect(NEG.compare(INF_POS)).toBe(-1);
-  expect(NEG.compare(INF_NEG)).toBe(1);
+  expect(decimalCompare(POS, INF_POS)).toBe(-1);
+  expect(decimalCompare(POS, INF_NEG)).toBe(1);
+  expect(decimalCompare(NEG, INF_POS)).toBe(-1);
+  expect(decimalCompare(NEG, INF_NEG)).toBe(1);
 
-  expect(INF_POS.compare(NAN)).toBe(-1);
-  expect(INF_NEG.compare(NAN)).toBe(-1);
-  expect(NAN.compare(INF_POS)).toBe(-1);
-  expect(NAN.compare(INF_NEG)).toBe(-1);
+  expect(decimalCompare(INF_POS, NAN)).toBe(-1);
+  expect(decimalCompare(INF_NEG, NAN)).toBe(-1);
+  expect(decimalCompare(NAN, INF_POS)).toBe(-1);
+  expect(decimalCompare(NAN, INF_NEG)).toBe(-1);
 });
 
 test('is negative', () => {
-  expect(NAN.isNegative()).toBe(false);
-  expect(INF_POS.isNegative()).toBe(false);
-  expect(INF_NEG.isNegative()).toBe(true);
+  expect(decimalIsNegative(NAN)).toBe(false);
+  expect(decimalIsNegative(INF_POS)).toBe(false);
+  expect(decimalIsNegative(INF_NEG)).toBe(true);
 });
 
 test('is integer', () => {
-  expect(NAN.isInteger()).toBe(false);
-  expect(INF_POS.isInteger()).toBe(false);
-  expect(INF_NEG.isInteger()).toBe(false);
+  expect(decimalIsInteger(NAN)).toBe(false);
+  expect(decimalIsInteger(INF_POS)).toBe(false);
+  expect(decimalIsInteger(INF_NEG)).toBe(false);
 });
 
 test('addition', () => {
   // Any NaN returns NaN
-  expect(NAN.add(NAN)).toEqual(NAN);
-  expect(NAN.add(POS)).toEqual(NAN);
-  expect(POS.add(NAN)).toEqual(NAN);
-  expect(NAN.add(INF_POS)).toEqual(NAN);
-  expect(NAN.add(INF_NEG)).toEqual(NAN);
+  expect(decimalAdd(NAN, NAN)).toEqual(NAN);
+  expect(decimalAdd(NAN, POS)).toEqual(NAN);
+  expect(decimalAdd(POS, NAN)).toEqual(NAN);
+  expect(decimalAdd(NAN, INF_POS)).toEqual(NAN);
+  expect(decimalAdd(NAN, INF_NEG)).toEqual(NAN);
 
   // Infinity + Infinity = Infinity
-  expect(INF_POS.add(INF_POS)).toEqual(INF_POS);
+  expect(decimalAdd(INF_POS, INF_POS)).toEqual(INF_POS);
 
   // Infinity + -Infinity = NaN
-  expect(INF_POS.add(INF_NEG)).toEqual(NAN);
+  expect(decimalAdd(INF_POS, INF_NEG)).toEqual(NAN);
 
   // Infinity + 0 = Infinity
-  expect(INF_POS.add(ZERO)).toEqual(INF_POS);
+  expect(decimalAdd(INF_POS, ZERO)).toEqual(INF_POS);
 
   // Infinity + 10 = Infinity
-  expect(INF_POS.add(POS)).toEqual(INF_POS);
+  expect(decimalAdd(INF_POS, POS)).toEqual(INF_POS);
 
   // Infinity + -10 = Infinity
-  expect(INF_POS.add(NEG)).toEqual(INF_POS);
+  expect(decimalAdd(INF_POS, NEG)).toEqual(INF_POS);
 
   // -----
 
   // -Infinity + Infinity = NaN
-  expect(INF_NEG.add(INF_POS)).toEqual(NAN);
+  expect(decimalAdd(INF_NEG, INF_POS)).toEqual(NAN);
 
   // -Infinity + -Infinity = -Infinity
-  expect(INF_NEG.add(INF_NEG)).toEqual(INF_NEG);
+  expect(decimalAdd(INF_NEG, INF_NEG)).toEqual(INF_NEG);
 
   // -Infinity + 0 = -Infinity
-  expect(INF_NEG.add(ZERO)).toEqual(INF_NEG);
+  expect(decimalAdd(INF_NEG, ZERO)).toEqual(INF_NEG);
 
   // -Infinity + 10 = -Infinity
-  expect(INF_NEG.add(POS)).toEqual(INF_NEG);
+  expect(decimalAdd(INF_NEG, POS)).toEqual(INF_NEG);
 
   // -Infinity + -10 = -Infinity
-  expect(INF_NEG.add(NEG)).toEqual(INF_NEG);
+  expect(decimalAdd(INF_NEG, NEG)).toEqual(INF_NEG);
 
   // -----
 
   // 0 + Infinity = Infinity
-  expect(ZERO.add(INF_POS)).toEqual(INF_POS);
+  expect(decimalAdd(ZERO, INF_POS)).toEqual(INF_POS);
 
   // 0 + -Infinity = -Infinity
-  expect(ZERO.add(INF_NEG)).toEqual(INF_NEG);
+  expect(decimalAdd(ZERO, INF_NEG)).toEqual(INF_NEG);
 
   // 10 + Infinity = Infinity
-  expect(POS.add(INF_POS)).toEqual(INF_POS);
+  expect(decimalAdd(POS, INF_POS)).toEqual(INF_POS);
 
   // 10 + -Infinity = -Infinity
-  expect(POS.add(INF_NEG)).toEqual(INF_NEG);
+  expect(decimalAdd(POS, INF_NEG)).toEqual(INF_NEG);
 
   // -10 + Infinity = Infinity
-  expect(NEG.add(INF_POS)).toEqual(INF_POS);
+  expect(decimalAdd(NEG, INF_POS)).toEqual(INF_POS);
 
   // -10 + -Infinity = -Infinity
-  expect(NEG.add(INF_NEG)).toEqual(INF_NEG);
+  expect(decimalAdd(NEG, INF_NEG)).toEqual(INF_NEG);
 });
 
 test('subtraction', () => {
   // Any NaN returns NaN
-  expect(NAN.subtract(NAN)).toEqual(NAN);
-  expect(NAN.subtract(POS)).toEqual(NAN);
-  expect(POS.subtract(NAN)).toEqual(NAN);
-  expect(NAN.subtract(INF_POS)).toEqual(NAN);
-  expect(NAN.subtract(INF_NEG)).toEqual(NAN);
+  expect(decimalSubtract(NAN, NAN)).toEqual(NAN);
+  expect(decimalSubtract(NAN, POS)).toEqual(NAN);
+  expect(decimalSubtract(POS, NAN)).toEqual(NAN);
+  expect(decimalSubtract(NAN, INF_POS)).toEqual(NAN);
+  expect(decimalSubtract(NAN, INF_NEG)).toEqual(NAN);
 
   // -----
 
   // Infinity - Infinity = NaN
-  expect(INF_POS.subtract(INF_POS)).toEqual(NAN);
+  expect(decimalSubtract(INF_POS, INF_POS)).toEqual(NAN);
 
   // Infinity - -Infinity = Infinity
-  expect(INF_POS.subtract(INF_NEG)).toEqual(INF_POS);
+  expect(decimalSubtract(INF_POS, INF_NEG)).toEqual(INF_POS);
 
   // Infinity - 0 = Infinity
-  expect(INF_POS.subtract(ZERO)).toEqual(INF_POS);
+  expect(decimalSubtract(INF_POS, ZERO)).toEqual(INF_POS);
 
   // Infinity - 10 = Infinity
-  expect(INF_POS.subtract(POS)).toEqual(INF_POS);
+  expect(decimalSubtract(INF_POS, POS)).toEqual(INF_POS);
 
   // Infinity - -10 = Infinity
-  expect(INF_POS.subtract(NEG)).toEqual(INF_POS);
+  expect(decimalSubtract(INF_POS, NEG)).toEqual(INF_POS);
 
   // -----
 
   // -Infinity - Infinity = -Infinity
-  expect(INF_NEG.subtract(INF_POS)).toEqual(INF_NEG);
+  expect(decimalSubtract(INF_NEG, INF_POS)).toEqual(INF_NEG);
 
   // -Infinity - -Infinity = NaN
-  expect(INF_NEG.subtract(INF_NEG)).toEqual(NAN);
+  expect(decimalSubtract(INF_NEG, INF_NEG)).toEqual(NAN);
 
   // -Infinity - 0 = -Infinity
-  expect(INF_NEG.subtract(ZERO)).toEqual(INF_NEG);
+  expect(decimalSubtract(INF_NEG, ZERO)).toEqual(INF_NEG);
 
   // -Infinity - 10 = -Infinity
-  expect(INF_NEG.subtract(POS)).toEqual(INF_NEG);
+  expect(decimalSubtract(INF_NEG, POS)).toEqual(INF_NEG);
 
   // -Infinity - -10 = -Infinity
-  expect(INF_NEG.subtract(NEG)).toEqual(INF_NEG);
+  expect(decimalSubtract(INF_NEG, NEG)).toEqual(INF_NEG);
 
   // -----
 
   // 0 - Infinity = -Infinity
-  expect(ZERO.subtract(INF_POS)).toEqual(INF_NEG);
+  expect(decimalSubtract(ZERO, INF_POS)).toEqual(INF_NEG);
 
   // 0 - -Infinity = Infinity
-  expect(ZERO.subtract(INF_NEG)).toEqual(INF_POS);
+  expect(decimalSubtract(ZERO, INF_NEG)).toEqual(INF_POS);
 
   // 10 - Infinity = -Infinity
-  expect(POS.subtract(INF_POS)).toEqual(INF_NEG);
+  expect(decimalSubtract(POS, INF_POS)).toEqual(INF_NEG);
 
   // 10 - -Infinity = Infinity
-  expect(POS.subtract(INF_NEG)).toEqual(INF_POS);
+  expect(decimalSubtract(POS, INF_NEG)).toEqual(INF_POS);
 
   // -10 - Infinity = -Infinity
-  expect(NEG.subtract(INF_POS)).toEqual(INF_NEG);
+  expect(decimalSubtract(NEG, INF_POS)).toEqual(INF_NEG);
 
   // -10 - -Infinity = Infinity
-  expect(NEG.subtract(INF_NEG)).toEqual(INF_POS);
+  expect(decimalSubtract(NEG, INF_NEG)).toEqual(INF_POS);
 });
 
 test('multiplication', () => {
   // Any NaN returns NaN
-  expect(NAN.multiply(NAN)).toEqual(NAN);
-  expect(NAN.multiply(POS)).toEqual(NAN);
-  expect(POS.multiply(NAN)).toEqual(NAN);
-  expect(NAN.multiply(INF_POS)).toEqual(NAN);
-  expect(NAN.multiply(INF_NEG)).toEqual(NAN);
+  expect(decimalMultiply(NAN, NAN)).toEqual(NAN);
+  expect(decimalMultiply(NAN, POS)).toEqual(NAN);
+  expect(decimalMultiply(POS, NAN)).toEqual(NAN);
+  expect(decimalMultiply(NAN, INF_POS)).toEqual(NAN);
+  expect(decimalMultiply(NAN, INF_NEG)).toEqual(NAN);
 
   // Infinity * Infinity = Infinity
-  expect(INF_POS.multiply(INF_POS)).toEqual(INF_POS);
+  expect(decimalMultiply(INF_POS, INF_POS)).toEqual(INF_POS);
 
   // Infinity * -Infinity = -Infinity
-  expect(INF_POS.multiply(INF_NEG)).toEqual(INF_NEG);
+  expect(decimalMultiply(INF_POS, INF_NEG)).toEqual(INF_NEG);
 
   // Infinity * 0 = NaN
-  expect(INF_POS.multiply(ZERO)).toEqual(NAN);
+  expect(decimalMultiply(INF_POS, ZERO)).toEqual(NAN);
 
   // Infinity * 10 = Infinity
-  expect(INF_POS.multiply(POS)).toEqual(INF_POS);
+  expect(decimalMultiply(INF_POS, POS)).toEqual(INF_POS);
 
   // Infinity * -10 = -Infinity
-  expect(INF_POS.multiply(NEG)).toEqual(INF_NEG);
+  expect(decimalMultiply(INF_POS, NEG)).toEqual(INF_NEG);
 
   // -----
 
   // -Infinity * Infinity = -Infinity
-  expect(INF_NEG.multiply(INF_POS)).toEqual(INF_NEG);
+  expect(decimalMultiply(INF_NEG, INF_POS)).toEqual(INF_NEG);
 
   // -Infinity * -Infinity = Infinity
-  expect(INF_NEG.multiply(INF_NEG)).toEqual(INF_POS);
+  expect(decimalMultiply(INF_NEG, INF_NEG)).toEqual(INF_POS);
 
   // -Infinity * 0 = NaN
-  expect(INF_NEG.multiply(ZERO)).toEqual(NAN);
+  expect(decimalMultiply(INF_NEG, ZERO)).toEqual(NAN);
 
   // -Infinity * 10 = -Infinity
-  expect(INF_NEG.multiply(POS)).toEqual(INF_NEG);
+  expect(decimalMultiply(INF_NEG, POS)).toEqual(INF_NEG);
 
   // -Infinity * -10 = Infinity
-  expect(INF_NEG.multiply(NEG)).toEqual(INF_POS);
+  expect(decimalMultiply(INF_NEG, NEG)).toEqual(INF_POS);
 
   // -----
 
   // 0 * Infinity = NaN
-  expect(ZERO.multiply(INF_POS)).toEqual(NAN);
+  expect(decimalMultiply(ZERO, INF_POS)).toEqual(NAN);
 
   // 0 * -Infinity = NaN
-  expect(ZERO.multiply(INF_NEG)).toEqual(NAN);
+  expect(decimalMultiply(ZERO, INF_NEG)).toEqual(NAN);
 
   // 10 * Infinity = Infinity
-  expect(POS.multiply(INF_POS)).toEqual(INF_POS);
+  expect(decimalMultiply(POS, INF_POS)).toEqual(INF_POS);
 
   // 10 * -Infinity = -Infinity
-  expect(POS.multiply(INF_NEG)).toEqual(INF_NEG);
+  expect(decimalMultiply(POS, INF_NEG)).toEqual(INF_NEG);
 
   // -10 * Infinity = -Infinity
-  expect(NEG.multiply(INF_POS)).toEqual(INF_NEG);
+  expect(decimalMultiply(NEG, INF_POS)).toEqual(INF_NEG);
 
   // -10 * -Infinity = Infinity
-  expect(NEG.multiply(INF_NEG)).toEqual(INF_POS);
+  expect(decimalMultiply(NEG, INF_NEG)).toEqual(INF_POS);
 });
 
 test('division', () => {
   // Any NaN returns NaN
-  expect(NAN.divide(NAN)).toEqual(NAN);
-  expect(NAN.divide(POS)).toEqual(NAN);
-  expect(POS.divide(NAN)).toEqual(NAN);
-  expect(NAN.divide(INF_POS)).toEqual(NAN);
-  expect(NAN.divide(INF_NEG)).toEqual(NAN);
+  expect(decimalDivide(NAN, NAN)).toEqual(NAN);
+  expect(decimalDivide(NAN, POS)).toEqual(NAN);
+  expect(decimalDivide(POS, NAN)).toEqual(NAN);
+  expect(decimalDivide(NAN, INF_POS)).toEqual(NAN);
+  expect(decimalDivide(NAN, INF_NEG)).toEqual(NAN);
 
   // Infinity / Infinity = NaN
-  expect(INF_POS.divide(INF_POS)).toEqual(NAN);
+  expect(decimalDivide(INF_POS, INF_POS)).toEqual(NAN);
 
   // Infinity / -Infinity = NaN
-  expect(INF_POS.divide(INF_NEG)).toEqual(NAN);
+  expect(decimalDivide(INF_POS, INF_NEG)).toEqual(NAN);
 
   // Infinity / 0 = Infinity
-  expect(INF_POS.divide(ZERO)).toEqual(INF_POS);
+  expect(decimalDivide(INF_POS, ZERO)).toEqual(INF_POS);
 
   // Infinity / 10 = Infinity
-  expect(INF_POS.divide(POS)).toEqual(INF_POS);
+  expect(decimalDivide(INF_POS, POS)).toEqual(INF_POS);
 
   // Infinity / -10 = -Infinity
-  expect(INF_POS.divide(NEG)).toEqual(INF_NEG);
+  expect(decimalDivide(INF_POS, NEG)).toEqual(INF_NEG);
 
   // -----
 
   // -Infinity / Infinity = NaN
-  expect(INF_NEG.divide(INF_POS)).toEqual(NAN);
+  expect(decimalDivide(INF_NEG, INF_POS)).toEqual(NAN);
 
   // -Infinity / -Infinity = NaN
-  expect(INF_NEG.divide(INF_NEG)).toEqual(NAN);
+  expect(decimalDivide(INF_NEG, INF_NEG)).toEqual(NAN);
 
   // -Infinity / 0 = -Infinity
-  expect(INF_NEG.divide(ZERO)).toEqual(INF_NEG);
+  expect(decimalDivide(INF_NEG, ZERO)).toEqual(INF_NEG);
 
   // -Infinity / 10 = -Infinity
-  expect(INF_NEG.divide(POS)).toEqual(INF_NEG);
+  expect(decimalDivide(INF_NEG, POS)).toEqual(INF_NEG);
 
   // -Infinity / -10 = Infinity
-  expect(INF_NEG.divide(NEG)).toEqual(INF_POS);
+  expect(decimalDivide(INF_NEG, NEG)).toEqual(INF_POS);
 
   // -----
 
   // 0 / Infinity = +0
-  expect(ZERO.divide(INF_POS)).toEqual(ZERO);
+  expect(decimalDivide(ZERO, INF_POS)).toEqual(ZERO);
 
   // 0 / -Infinity = -0
-  expect(ZERO.divide(INF_NEG)).toEqual(NEG_ZERO);
+  expect(decimalDivide(ZERO, INF_NEG)).toEqual(NEG_ZERO);
 
   // 10 / Infinity = +0
-  expect(POS.divide(INF_POS)).toEqual(ZERO);
+  expect(decimalDivide(POS, INF_POS)).toEqual(ZERO);
 
   // 10 / -Infinity = -0
-  expect(POS.divide(INF_NEG)).toEqual(NEG_ZERO);
+  expect(decimalDivide(POS, INF_NEG)).toEqual(NEG_ZERO);
 
   // -10 / Infinity = -0
-  expect(NEG.divide(INF_POS)).toEqual(NEG_ZERO);
+  expect(decimalDivide(NEG, INF_POS)).toEqual(NEG_ZERO);
 
   // -10 / -Infinity = +0
-  expect(NEG.divide(INF_NEG)).toEqual(ZERO);
+  expect(decimalDivide(NEG, INF_NEG)).toEqual(ZERO);
 
   // -----
 
   // 10 / 0 = Infinity
-  expect(POS.divide(ZERO)).toEqual(INF_POS);
+  expect(decimalDivide(POS, ZERO)).toEqual(INF_POS);
 
   // -10 / 0 = -Infinity
-  expect(NEG.divide(ZERO)).toEqual(INF_NEG);
+  expect(decimalDivide(NEG, ZERO)).toEqual(INF_NEG);
 });
 
 test('division by infinity yields signed zero and does not alias the shared ZERO', () => {
   // Result sign matches the ECMAScript div operator, e.g. Object.is(-10 / Infinity, -0)
-  expect(POS.divide(INF_POS).isNegative()).toBe(false);
-  expect(POS.divide(INF_NEG).isNegative()).toBe(true);
-  expect(NEG.divide(INF_POS).isNegative()).toBe(true);
-  expect(NEG.divide(INF_NEG).isNegative()).toBe(false);
-  expect(ZERO.divide(INF_POS).isNegative()).toBe(false);
-  expect(ZERO.divide(INF_NEG).isNegative()).toBe(true);
+  expect(decimalIsNegative(decimalDivide(POS, INF_POS))).toBe(false);
+  expect(decimalIsNegative(decimalDivide(POS, INF_NEG))).toBe(true);
+  expect(decimalIsNegative(decimalDivide(NEG, INF_POS))).toBe(true);
+  expect(decimalIsNegative(decimalDivide(NEG, INF_NEG))).toBe(false);
+  expect(decimalIsNegative(decimalDivide(ZERO, INF_POS))).toBe(false);
+  expect(decimalIsNegative(decimalDivide(ZERO, INF_NEG))).toBe(true);
 
   // Results are still exactly zero
-  const r = NEG.divide(INF_POS);
-  expect(r.isZero()).toBe(true);
-  expect(r.signum()).toBe(0);
-  expect(r.compare(ZERO)).toBe(0);
+  const r = decimalDivide(NEG, INF_POS);
+  expect(decimalIsZero(r)).toBe(true);
+  expect(decimalSignum(r)).toBe(0);
+  expect(decimalCompare(r, ZERO)).toBe(0);
 
   // A fresh instance is returned, not the shared module-level ZERO constant
-  expect(POS.divide(INF_POS)).not.toBe(DecimalConstants.ZERO);
-  expect(NEG.divide(INF_POS)).not.toBe(DecimalConstants.ZERO);
-  expect(ZERO.divide(INF_NEG)).not.toBe(DecimalConstants.ZERO);
+  expect(decimalDivide(POS, INF_POS)).not.toBe(DecimalConstants.ZERO);
+  expect(decimalDivide(NEG, INF_POS)).not.toBe(DecimalConstants.ZERO);
+  expect(decimalDivide(ZERO, INF_NEG)).not.toBe(DecimalConstants.ZERO);
 });
 
 test('mod', () => {
   // Any NaN returns NaN
-  expect(NAN.mod(NAN)).toEqual(NAN);
-  expect(NAN.mod(POS)).toEqual(NAN);
-  expect(POS.mod(NAN)).toEqual(NAN);
-  expect(NAN.mod(INF_POS)).toEqual(NAN);
-  expect(NAN.mod(INF_NEG)).toEqual(NAN);
+  expect(decimalMod(NAN, NAN)).toEqual(NAN);
+  expect(decimalMod(NAN, POS)).toEqual(NAN);
+  expect(decimalMod(POS, NAN)).toEqual(NAN);
+  expect(decimalMod(NAN, INF_POS)).toEqual(NAN);
+  expect(decimalMod(NAN, INF_NEG)).toEqual(NAN);
 
   // Infinity % Infinity = NaN
-  expect(INF_POS.mod(INF_POS)).toEqual(NAN);
+  expect(decimalMod(INF_POS, INF_POS)).toEqual(NAN);
 
   // Infinity % -Infinity = NaN
-  expect(INF_POS.mod(INF_NEG)).toEqual(NAN);
+  expect(decimalMod(INF_POS, INF_NEG)).toEqual(NAN);
 
   // Infinity % 0 = NaN
-  expect(INF_POS.mod(ZERO)).toEqual(NAN);
+  expect(decimalMod(INF_POS, ZERO)).toEqual(NAN);
 
   // Infinity % 10 = NaN
-  expect(INF_POS.mod(POS)).toEqual(NAN);
+  expect(decimalMod(INF_POS, POS)).toEqual(NAN);
 
   // Infinity % -10 = NaN
-  expect(INF_POS.mod(NEG)).toEqual(NAN);
+  expect(decimalMod(INF_POS, NEG)).toEqual(NAN);
 
   // -----
 
   // -Infinity % Infinity = NaN
-  expect(INF_NEG.mod(INF_POS)).toEqual(NAN);
+  expect(decimalMod(INF_NEG, INF_POS)).toEqual(NAN);
 
   // -Infinity % -Infinity = NaN
-  expect(INF_NEG.mod(INF_NEG)).toEqual(NAN);
+  expect(decimalMod(INF_NEG, INF_NEG)).toEqual(NAN);
 
   // -Infinity % 0 = NaN
-  expect(INF_NEG.mod(ZERO)).toEqual(NAN);
+  expect(decimalMod(INF_NEG, ZERO)).toEqual(NAN);
 
   // -Infinity % 10 = NaN
-  expect(INF_NEG.mod(POS)).toEqual(NAN);
+  expect(decimalMod(INF_NEG, POS)).toEqual(NAN);
 
   // -Infinity % -10 = NaN
-  expect(INF_NEG.mod(NEG)).toEqual(NAN);
+  expect(decimalMod(INF_NEG, NEG)).toEqual(NAN);
 
   // -----
 
   // 0 % Infinity = 0
-  expect(ZERO.mod(INF_POS)).toEqual(ZERO);
+  expect(decimalMod(ZERO, INF_POS)).toEqual(ZERO);
 
   // 0 % -Infinity = 0
-  expect(ZERO.mod(INF_NEG)).toEqual(ZERO);
+  expect(decimalMod(ZERO, INF_NEG)).toEqual(ZERO);
 
   // 10 % Infinity = 10
-  expect(POS.mod(INF_POS)).toEqual(POS);
+  expect(decimalMod(POS, INF_POS)).toEqual(POS);
 
   // 10 % -Infinity = 10
-  expect(POS.mod(INF_NEG)).toEqual(POS);
+  expect(decimalMod(POS, INF_NEG)).toEqual(POS);
 
   // -10 % Infinity = -10
-  expect(NEG.mod(INF_POS)).toEqual(NEG);
+  expect(decimalMod(NEG, INF_POS)).toEqual(NEG);
 
   // -10 % -Infinity = -10
-  expect(NEG.mod(INF_NEG)).toEqual(NEG);
+  expect(decimalMod(NEG, INF_NEG)).toEqual(NEG);
 
   // -----
 
   // 0 % 10 = 0
-  expect(ZERO.mod(POS)).toEqual(ZERO);
+  expect(decimalMod(ZERO, POS)).toEqual(ZERO);
 
   // 0 % -10 = 0
-  expect(ZERO.mod(NEG)).toEqual(ZERO);
+  expect(decimalMod(ZERO, NEG)).toEqual(ZERO);
 
   // 10 % 0 = NaN
-  expect(POS.mod(ZERO)).toEqual(NAN);
+  expect(decimalMod(POS, ZERO)).toEqual(NAN);
 
   // -10 % 0 = NaN
-  expect(NEG.mod(ZERO)).toEqual(NAN);
+  expect(decimalMod(NEG, ZERO)).toEqual(NAN);
 });
 
 test('increment / decrement', () => {
-  expect(NAN.increment()).toEqual(NAN);
-  expect(INF_POS.increment()).toEqual(INF_POS);
-  expect(INF_NEG.increment()).toEqual(INF_NEG);
+  expect(decimalIncrement(NAN)).toEqual(NAN);
+  expect(decimalIncrement(INF_POS)).toEqual(INF_POS);
+  expect(decimalIncrement(INF_NEG)).toEqual(INF_NEG);
 
-  expect(NAN.decrement()).toEqual(NAN);
-  expect(INF_POS.decrement()).toEqual(INF_POS);
-  expect(INF_NEG.decrement()).toEqual(INF_NEG);
+  expect(decimalDecrement(NAN)).toEqual(NAN);
+  expect(decimalDecrement(INF_POS)).toEqual(INF_POS);
+  expect(decimalDecrement(INF_NEG)).toEqual(INF_NEG);
 });
 
 test('formatting', () => {
-  expect(NAN.toString()).toEqual('NaN');
-  expect(INF_POS.toString()).toEqual('Infinity');
-  expect(INF_NEG.toString()).toEqual('-Infinity');
+  expect(decimalToString(NAN)).toEqual('NaN');
+  expect(decimalToString(INF_POS)).toEqual('Infinity');
+  expect(decimalToString(INF_NEG)).toEqual('-Infinity');
 
-  expect(NAN.toParts()).toEqual([{ type: 'nan', value: 'NaN' }]);
-  expect(INF_POS.toParts()).toEqual([{ type: 'infinity', value: 'Infinity' }]);
-  expect(INF_NEG.toParts()).toEqual([{ type: 'infinity', value: '-Infinity' }]);
+  expect(decimalToParts(NAN)).toEqual([{ type: 'nan', value: 'NaN' }]);
+  expect(decimalToParts(INF_POS)).toEqual([{ type: 'infinity', value: 'Infinity' }]);
+  expect(decimalToParts(INF_NEG)).toEqual([{ type: 'infinity', value: '-Infinity' }]);
 });
 
 test('signum', () => {
-  expect(NAN.signum()).toEqual(0);
-  expect(INF_POS.signum()).toEqual(1);
-  expect(INF_NEG.signum()).toEqual(-1);
+  expect(decimalSignum(NAN)).toEqual(0);
+  expect(decimalSignum(INF_POS)).toEqual(1);
+  expect(decimalSignum(INF_NEG)).toEqual(-1);
 });
 
 test('to integer', () => {
-  expect(NAN.toInteger()).toEqual(NAN);
-  expect(INF_POS.toInteger()).toEqual(INF_POS);
-  expect(INF_NEG.toInteger()).toEqual(INF_NEG);
+  expect(decimalToInteger(NAN)).toEqual(NAN);
+  expect(decimalToInteger(INF_POS)).toEqual(INF_POS);
+  expect(decimalToInteger(INF_NEG)).toEqual(INF_NEG);
 });
 
 test('trailing zeros', () => {
-  expect(NAN.trailingZeros()).toEqual(0);
-  expect(INF_POS.trailingZeros()).toEqual(0);
-  expect(INF_NEG.trailingZeros()).toEqual(0);
+  expect(decimalTrailingZeros(NAN)).toEqual(0);
+  expect(decimalTrailingZeros(INF_POS)).toEqual(0);
+  expect(decimalTrailingZeros(INF_NEG)).toEqual(0);
 });
 
 test('strip trailing zeros', () => {
-  expect(NAN.stripTrailingZeros()).toEqual(NAN);
-  expect(INF_POS.stripTrailingZeros()).toEqual(INF_POS);
-  expect(INF_NEG.stripTrailingZeros()).toEqual(INF_NEG);
+  expect(decimalStripTrailingZeros(NAN)).toEqual(NAN);
+  expect(decimalStripTrailingZeros(INF_POS)).toEqual(INF_POS);
+  expect(decimalStripTrailingZeros(INF_NEG)).toEqual(INF_NEG);
 });
 
 test('scientific representation', () => {
-  expect(NAN.scientific()).toEqual([NAN, 0]);
-  expect(INF_POS.scientific()).toEqual([INF_POS, 0]);
-  expect(INF_NEG.scientific()).toEqual([INF_NEG, 0]);
+  expect(decimalScientific(NAN)).toEqual([NAN, 0]);
+  expect(decimalScientific(INF_POS)).toEqual([INF_POS, 0]);
+  expect(decimalScientific(INF_NEG)).toEqual([INF_NEG, 0]);
 });
 
 test('precision', () => {
-  expect(NAN.precision()).toEqual(0);
-  expect(INF_POS.precision()).toEqual(0);
-  expect(INF_NEG.precision()).toEqual(0);
+  expect(decimalPrecision(NAN)).toEqual(0);
+  expect(decimalPrecision(INF_POS)).toEqual(0);
+  expect(decimalPrecision(INF_NEG)).toEqual(0);
 });
 
 test('scale', () => {
-  expect(NAN.scale()).toEqual(0);
-  expect(INF_POS.scale()).toEqual(0);
-  expect(INF_NEG.scale()).toEqual(0);
+  expect(decimalScale(NAN)).toEqual(0);
+  expect(decimalScale(INF_POS)).toEqual(0);
+  expect(decimalScale(INF_NEG)).toEqual(0);
 });
 
 test('integer digits', () => {
-  expect(NAN.integerDigits()).toEqual(0);
-  expect(INF_POS.integerDigits()).toEqual(0);
-  expect(INF_NEG.integerDigits()).toEqual(0);
+  expect(decimalIntegerDigits(NAN)).toEqual(0);
+  expect(decimalIntegerDigits(INF_POS)).toEqual(0);
+  expect(decimalIntegerDigits(INF_NEG)).toEqual(0);
 });
 
 test('set scale', () => {
-  expect(NAN.setScale(3)).toEqual(NAN);
-  expect(INF_POS.setScale(3)).toEqual(INF_POS);
-  expect(INF_NEG.setScale(3)).toEqual(INF_NEG);
+  expect(decimalSetScale(NAN, 3)).toEqual(NAN);
+  expect(decimalSetScale(INF_POS, 3)).toEqual(INF_POS);
+  expect(decimalSetScale(INF_NEG, 3)).toEqual(INF_NEG);
 });
 
 test('align exp', () => {
-  expect(NAN.alignexp()).toEqual(0);
-  expect(INF_POS.alignexp()).toEqual(0);
-  expect(INF_NEG.alignexp()).toEqual(0);
+  expect(decimalAlignexp(NAN)).toEqual(0);
+  expect(decimalAlignexp(INF_POS)).toEqual(0);
+  expect(decimalAlignexp(INF_NEG)).toEqual(0);
 });
 
 test('move point', () => {
-  expect(NAN.movePoint(3)).toEqual(NAN);
-  expect(INF_POS.movePoint(3)).toEqual(INF_POS);
-  expect(INF_NEG.movePoint(3)).toEqual(INF_NEG);
+  expect(decimalMovePoint(NAN, 3)).toEqual(NAN);
+  expect(decimalMovePoint(INF_POS, 3)).toEqual(INF_POS);
+  expect(decimalMovePoint(INF_NEG, 3)).toEqual(INF_NEG);
 });
 
 test('shift left', () => {
-  expect(NAN.shiftleft(3)).toEqual(NAN);
-  expect(INF_POS.shiftleft(3)).toEqual(INF_POS);
-  expect(INF_NEG.shiftleft(3)).toEqual(INF_NEG);
+  expect(decimalShiftleft(NAN, 3)).toEqual(NAN);
+  expect(decimalShiftleft(INF_POS, 3)).toEqual(INF_POS);
+  expect(decimalShiftleft(INF_NEG, 3)).toEqual(INF_NEG);
 });
 
 test('shift right', () => {
-  expect(NAN.shiftright(3)).toEqual(NAN);
-  expect(INF_POS.shiftright(3)).toEqual(INF_POS);
-  expect(INF_NEG.shiftright(3)).toEqual(INF_NEG);
+  expect(decimalShiftright(NAN, 3)).toEqual(NAN);
+  expect(decimalShiftright(INF_POS, 3)).toEqual(INF_POS);
+  expect(decimalShiftright(INF_NEG, 3)).toEqual(INF_NEG);
 });
 
 test('scientific string', () => {
-  expect(NAN.toScientificString()).toEqual('NaN');
-  expect(INF_POS.toScientificString()).toEqual('Infinity');
-  expect(INF_NEG.toScientificString()).toEqual('-Infinity');
+  expect(decimalToScientificString(NAN)).toEqual('NaN');
+  expect(decimalToScientificString(INF_POS)).toEqual('Infinity');
+  expect(decimalToScientificString(INF_NEG)).toEqual('-Infinity');
 });
 
 test('parts', () => {
-  expect(NAN.toParts()).toEqual([{ type: 'nan', value: 'NaN' }]);
-  expect(INF_POS.toParts()).toEqual([{ type: 'infinity', value: 'Infinity' }]);
-  expect(INF_NEG.toParts()).toEqual([{ type: 'infinity', value: '-Infinity' }]);
+  expect(decimalToParts(NAN)).toEqual([{ type: 'nan', value: 'NaN' }]);
+  expect(decimalToParts(INF_POS)).toEqual([{ type: 'infinity', value: 'Infinity' }]);
+  expect(decimalToParts(INF_NEG)).toEqual([{ type: 'infinity', value: '-Infinity' }]);
 });
 
 test('scientific parts', () => {
-  expect(NAN.toScientificParts()).toEqual([{ type: 'nan', value: 'NaN' }]);
-  expect(INF_POS.toScientificParts()).toEqual([{ type: 'infinity', value: 'Infinity' }]);
-  expect(INF_NEG.toScientificParts()).toEqual([{ type: 'infinity', value: '-Infinity' }]);
+  expect(decimalToScientificParts(NAN)).toEqual([{ type: 'nan', value: 'NaN' }]);
+  expect(decimalToScientificParts(INF_POS)).toEqual([{ type: 'infinity', value: 'Infinity' }]);
+  expect(decimalToScientificParts(INF_NEG)).toEqual([{ type: 'infinity', value: '-Infinity' }]);
 });

@@ -1,4 +1,4 @@
-import { Decimal } from '@phensley/decimal';
+import { Decimal, decimal } from '@phensley/decimal';
 import { NumberContext } from '../../../src/internals/numbers/context';
 import { parseNumberPattern } from '../../../src/parsing/number';
 
@@ -16,11 +16,11 @@ test('standard', () => {
 
   let n: Decimal;
 
-  n = ctx.adjust(new Decimal('0.1000'));
-  expect(n).toEqual(new Decimal('0.1'));
+  n = ctx.adjust(decimal('0.1000'));
+  expect(n).toEqual(decimal('0.1'));
 
-  n = ctx.adjust(new Decimal('0.00000'));
-  expect(n).toEqual(new Decimal('0'));
+  n = ctx.adjust(decimal('0.00000'));
+  expect(n).toEqual(decimal('0'));
 });
 
 test('standard min/max significant', () => {

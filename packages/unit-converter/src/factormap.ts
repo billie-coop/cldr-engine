@@ -1,4 +1,16 @@
-import { Rational, RationalConstants } from '@phensley/decimal';
+import {
+  Rational,
+  RationalConstants,
+  rational,
+  rationalAdd,
+  rationalCompare,
+  rationalDivide,
+  rationalInverse,
+  rationalMultiply,
+  rationalNegate,
+  decimalAlignexp,
+  decimalPrecision,
+} from '@phensley/decimal';
 import { Heap } from '@phensley/cldr-utils';
 import { FactorDef } from './types';
 
@@ -34,7 +46,7 @@ export interface UnitConversion {
   offset?: Rational;
 }
 
-const ONE = new Rational(1);
+const ONE = rational(1);
 
 /**
  * Build a graph of conversion factors between units. Sets of conversion
@@ -89,7 +101,7 @@ export class UnitFactors {
     if (n) {
       const e = n[dst];
       if (e) {
-        return { path: [src, dst], factors: [e[0]], offset: e[1].compare(0) === 0 ? undefined : e[1] };
+        return { path: [src, dst], factors: [e[0]], offset: rationalCompare(e[1], 0) === 0 ? undefined : e[1] };
       }
     }
 
@@ -115,12 +127,12 @@ export class UnitFactors {
         const next = path[i];
         const [r, a] = this.graph[curr]![next]!;
         factors.push(r);
-        offset = offset.multiply(r).add(a);
+        offset = rationalAdd(rationalMultiply(offset, r), a);
         curr = next;
       }
 
       const r: UnitConversion = { path, factors };
-      if (offset.compare(0) !== 0) {
+      if (rationalCompare(offset, 0) !== 0) {
         r.offset = offset;
       }
 
@@ -142,12 +154,12 @@ export class UnitFactors {
   protected init(): void {
     for (const factor of this.factors) {
       const [src, raw, dst, rawOffset] = factor;
-      const rat = typeof raw === 'string' ? new Rational(raw) : raw;
+      const rat = typeof raw === 'string' ? rational(raw) : raw;
       const off =
         rawOffset === undefined
           ? RationalConstants.ZERO
           : typeof rawOffset === 'string'
-            ? new Rational(rawOffset)
+            ? rational(rawOffset)
             : rawOffset;
 
       // Convert src -> dst
@@ -165,7 +177,7 @@ export class UnitFactors {
       }
       const tmp = m[src];
       if (!tmp) {
-        m[src] = [rat.inverse(), off.divide(rat).negate()];
+        m[src] = [rationalInverse(rat), rationalNegate(rationalDivide(off, rat))];
       }
     }
     this.initialized = true;
@@ -219,9 +231,9 @@ const cmp = (x: E, y: E) => (x[1] < y[1] ? -1 : x[1] > y[1] ? 1 : 0);
  * edge costs; e.g. `0.001` must not cost less than `1000`).
  */
 const precision = (r: Rational) => {
-  const n = r.numerator();
-  const d = r.denominator();
-  return Math.abs(n.precision() + n.alignexp()) + Math.abs(d.precision() + d.alignexp());
+  const n = r.numerator;
+  const d = r.denominator;
+  return Math.abs(decimalPrecision(n) + decimalAlignexp(n)) + Math.abs(decimalPrecision(d) + decimalAlignexp(d));
 };
 
 /**

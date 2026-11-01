@@ -1,6 +1,13 @@
 import { PluralType, RelativeTimes, RelativeTimeFields, RelativeTimeFieldType } from '@phensley/cldr-types';
 
-import { coerceDecimal, DecimalArg, DecimalConstants } from '@phensley/decimal';
+import {
+  DecimalArg,
+  DecimalConstants,
+  decimal,
+  decimalCompare,
+  decimalIsNegative,
+  decimalNegate,
+} from '@phensley/decimal';
 
 import { DateFieldInternals, Internals } from '../internals';
 import { RelativeTimeFieldFormatOptions } from '../../common';
@@ -40,14 +47,14 @@ export class DateFieldInternalsImpl implements DateFieldInternals {
     const format: RelativeTimeFields = this.relativeTimes[width] || this.relativeTimes.wide;
     const group = options.group === undefined ? true : options.group;
 
-    let n = coerceDecimal(value);
+    let n = decimal(value);
     n = this.internals.numbers.adjustDecimal(n, options);
-    const negative = n.isNegative();
+    const negative = decimalIsNegative(n);
     if (negative) {
-      n = n.negate();
+      n = decimalNegate(n);
     }
 
-    const iszero = n.compare(DecimalConstants.ZERO) === 0;
+    const iszero = decimalCompare(n, DecimalConstants.ZERO) === 0;
     let res = '';
 
     if (iszero) {
@@ -61,13 +68,13 @@ export class DateFieldInternalsImpl implements DateFieldInternals {
         case 'second':
           break;
         default:
-          if (n.compare(DecimalConstants.TWO) === 0) {
+          if (decimalCompare(n, DecimalConstants.TWO) === 0) {
             const p = negative ? format.previous2.get(bundle, field) : format.next2.get(bundle, field);
             if (p !== '') {
               res = p;
             }
             // Fall through
-          } else if (n.compare(DecimalConstants.ONE) === 0) {
+          } else if (decimalCompare(n, DecimalConstants.ONE) === 0) {
             res = negative ? format.previous.get(bundle, field) : format.next.get(bundle, field);
           }
           break;

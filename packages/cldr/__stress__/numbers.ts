@@ -11,9 +11,13 @@ import {
   UnitFormatStyleType,
   UnitLength,
   UnitType,
+  decimal,
+  decimalToString,
 } from '../src';
 import { getCLDR } from '../__tests__/_helpers';
 import { Timer } from './timer';
+
+const str = (n: string | Decimal): string => (typeof n === 'string' ? n : decimalToString(n));
 
 const VERBOSE = true;
 
@@ -32,7 +36,7 @@ const CURRENCY_NUMBERS: (string | Decimal)[] = [
   '12345.789',
   '-12345.789',
   '1000000000',
-  new Decimal('1.579e-13'),
+  decimal('1.579e-13'),
   DecimalConstants.PI,
   MAX,
   MAX + MAX,
@@ -156,7 +160,7 @@ export const numberStress = (): void => {
         s = engine.Numbers.formatDecimal(n, o);
         if (!s) {
           if (VERBOSE) {
-            console.log(`[numbers] format decimal empty ${n.toString()} ${JSON.stringify(o)}`);
+            console.log(`[numbers] format decimal empty ${str(n)} ${JSON.stringify(o)}`);
           }
           empty++;
         }
@@ -176,7 +180,7 @@ export const numberStress = (): void => {
           if (!s) {
             if (VERBOSE) {
               console.log(
-                `[numbers] format currency empty ` + `${locale.id} ${n.toString()} ${currency} ${JSON.stringify(o)}`,
+                `[numbers] format currency empty ` + `${locale.id} ${str(n)} ${currency} ${JSON.stringify(o)}`,
               );
             }
             empty++;
@@ -213,7 +217,7 @@ export const numberStress = (): void => {
           s = engine.Units.formatQuantity({ value: n, unit }, o);
           if (!s) {
             if (VERBOSE) {
-              console.log(`[numbers] format quantity empty ${locale.id} ${n.toString()} ${unit} ${JSON.stringify(o)}`);
+              console.log(`[numbers] format quantity empty ${locale.id} ${str(n)} ${unit} ${JSON.stringify(o)}`);
             }
             empty++;
           }
@@ -224,7 +228,7 @@ export const numberStress = (): void => {
             if (VERBOSE) {
               console.log(
                 `[numbers] format quantity per empty ` +
-                  `${locale.id} ${n.toString()} ${unit} per: 'second' ${JSON.stringify(o)}`,
+                  `${locale.id} ${str(n)} ${unit} per: 'second' ${JSON.stringify(o)}`,
               );
             }
             empty++;

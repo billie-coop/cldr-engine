@@ -2,6 +2,7 @@ import { CurrencyFormatOptions, Decimal, DecimalFormatOptions } from '../../../s
 
 import { NumberContext } from '../../../src/internals/numbers/context';
 import { parseNumberPattern, NumberPattern } from '../../../src/parsing/number';
+import { decimal, decimalToString } from '@phensley/decimal';
 
 test('zeros', () => {
   let opts: DecimalFormatOptions;
@@ -15,23 +16,23 @@ test('zeros', () => {
   ctx = new NumberContext(opts, 'half-even', false, false, -1);
   ctx.setPattern(pattern);
 
-  n = ctx.adjust(new Decimal('0'));
-  expect(n.toString()).toEqual('0.0');
+  n = ctx.adjust(decimal('0'));
+  expect(decimalToString(n)).toEqual('0.0');
 
   opts = { maximumSignificantDigits: 1, minimumSignificantDigits: 2 };
   ctx = new NumberContext(opts, 'half-even', false, false, -1);
   ctx.setPattern(pattern);
 
-  n = ctx.adjust(new Decimal('0'));
-  expect(n.toString()).toEqual('0.0');
+  n = ctx.adjust(decimal('0'));
+  expect(decimalToString(n)).toEqual('0.0');
 
   pattern = parseNumberPattern('#,##0.000')[0];
   opts = {};
   ctx = new NumberContext(opts, 'half-even', false, false, -1);
   ctx.setPattern(pattern);
 
-  n = ctx.adjust(new Decimal('0'));
-  expect(n.toString()).toEqual('0.000');
+  n = ctx.adjust(decimal('0'));
+  expect(decimalToString(n)).toEqual('0.000');
 });
 
 test('defaulting coverage', () => {
@@ -45,8 +46,8 @@ test('defaulting coverage', () => {
   opts = { minimumFractionDigits: 1, maximumFractionDigits: 3 };
   ctx = new NumberContext(opts, 'half-even', false, false, -1);
   ctx.setPattern(pattern);
-  n = ctx.adjust(new Decimal('1.0'));
-  expect(n.toString()).toEqual('1.0');
+  n = ctx.adjust(decimal('1.0'));
+  expect(decimalToString(n)).toEqual('1.0');
 });
 
 test('decimal default', () => {

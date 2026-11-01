@@ -1,40 +1,40 @@
-import { Decimal, Part, PartsDecimalFormatter, StringDecimalFormatter } from '../src';
+import { Part, decimal, decimalFormat, decimalToString, partsDecimalFormatter, stringDecimalFormatter } from '../src';
 
-const parse = (s: string) => new Decimal(s);
+const parse = (s: string) => decimal(s);
 
 type FormatArgs = [string, string, number, number, number, number];
 
 const format = (s: string, opts: FormatArgs): string => {
   const n = parse(s);
-  const f = new StringDecimalFormatter();
+  const f = stringDecimalFormatter();
   const [d, g, mi, mg, pg, sg] = opts;
-  n.format(f, d, g, mi, mg, pg, sg, false);
+  decimalFormat(n, f, d, g, mi, mg, pg, sg, false);
   return f.render();
 };
 
 const formatParts = (s: string, opts: any[]): Part[] => {
   const n = parse(s);
-  const f = new PartsDecimalFormatter(opts[0], opts[1]);
+  const f = partsDecimalFormatter(opts[0], opts[1]);
   const [d, g, mi, mg, pg, sg] = opts;
-  n.format(f, d, g, mi, mg, pg, sg, false);
+  decimalFormat(n, f, d, g, mi, mg, pg, sg, false);
   return f.render();
 };
 
 test('string', () => {
-  expect(parse('1.0').toString()).toEqual('1.0');
-  expect(parse('1.1').toString()).toEqual('1.1');
-  expect(parse('1.01').toString()).toEqual('1.01');
-  expect(parse('10.01').toString()).toEqual('10.01');
+  expect(decimalToString(parse('1.0'))).toEqual('1.0');
+  expect(decimalToString(parse('1.1'))).toEqual('1.1');
+  expect(decimalToString(parse('1.01'))).toEqual('1.01');
+  expect(decimalToString(parse('10.01'))).toEqual('10.01');
 
-  expect(parse('.1').toString()).toEqual('0.1');
-  expect(parse('.01').toString()).toEqual('0.01');
-  expect(parse('.101').toString()).toEqual('0.101');
+  expect(decimalToString(parse('.1'))).toEqual('0.1');
+  expect(decimalToString(parse('.01'))).toEqual('0.01');
+  expect(decimalToString(parse('.101'))).toEqual('0.101');
 
-  expect(parse('.0101010101').toString()).toEqual('0.0101010101');
+  expect(decimalToString(parse('.0101010101'))).toEqual('0.0101010101');
 
-  expect(parse('100e3').toString()).toEqual('100000');
-  expect(parse('10234.012314').toString()).toEqual('10234.012314');
-  expect(parse('0.000000456000000000000').toString()).toEqual('0.000000456000000000000');
+  expect(decimalToString(parse('100e3'))).toEqual('100000');
+  expect(decimalToString(parse('10234.012314'))).toEqual('10234.012314');
+  expect(decimalToString(parse('0.000000456000000000000'))).toEqual('0.000000456000000000000');
 });
 
 test('format', () => {

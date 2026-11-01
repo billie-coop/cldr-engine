@@ -1,6 +1,6 @@
 import { PluralType, UnitsSchema, UnitInfo, UnitType } from '@phensley/cldr-types';
 
-import { coerceDecimal, DecimalConstants } from '@phensley/decimal';
+import { DecimalConstants, decimal } from '@phensley/decimal';
 
 import { Internals, NumberRenderer, UnitInternals } from '../internals';
 import { Quantity, UnitFormatOptions } from '../../common';
@@ -29,7 +29,7 @@ export class UnitsInternalImpl implements UnitInternals {
     options: UnitFormatOptions,
     params: NumberParams,
   ): T {
-    const n = coerceDecimal(q.value);
+    const n = decimal(q.value);
     const [num, plural] = this.internals.numbers.formatDecimal(bundle, renderer, n, options, params);
     if (q.unit === undefined) {
       return num;

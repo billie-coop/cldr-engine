@@ -1,4 +1,4 @@
-import { Decimal } from '@phensley/decimal';
+import { decimal } from '@phensley/decimal';
 import { pluralRules, Plurals, PluralRules } from '../src';
 
 test('basic', () => {
@@ -6,7 +6,7 @@ test('basic', () => {
   const plurals: Plurals = pluralRules;
   const rules: PluralRules = plurals.get(lang);
 
-  expect(rules.operands(new Decimal('123'))).toEqual({
+  expect(rules.operands(decimal('123'))).toEqual({
     f: 0,
     i: 123,
     n: 123,
@@ -18,9 +18,9 @@ test('basic', () => {
 
   expect(rules.cardinal(0)).toEqual('other');
   expect(rules.cardinal('0')).toEqual('other');
-  expect(rules.cardinal(new Decimal(0))).toEqual('other');
+  expect(rules.cardinal(decimal(0))).toEqual('other');
 
   expect(rules.cardinal(1)).toEqual('one');
   expect(rules.cardinal('1')).toEqual('one');
-  expect(rules.cardinal(new Decimal(1))).toEqual('one');
+  expect(rules.cardinal(decimal(1))).toEqual('one');
 });

@@ -1,8 +1,8 @@
-import { Decimal, DecimalConstants, MathContext } from '../src';
+import { DecimalConstants, MathContext, decimal, decimalDivide, decimalDivmod, decimalMod } from '../src';
 
-const parse = (s: string) => new Decimal(s);
-const div = (u: string, v: string, c?: MathContext) => parse(u).divide(parse(v), c);
-const divmod = (u: string, v: string) => parse(u).divmod(parse(v));
+const parse = (s: string) => decimal(s);
+const div = (u: string, v: string, c?: MathContext) => decimalDivide(parse(u), parse(v), c);
+const divmod = (u: string, v: string) => decimalDivmod(parse(u), parse(v));
 
 test('divide default', () => {
   expect(div('0', '5')).toEqual(parse('0'));
@@ -288,15 +288,15 @@ test('divmod', () => {
   expect(divmod('300000000.14159', '1484930')).toEqual([parse('202'), parse('44140.14159')]);
 });
 
-const DAY = new Decimal(86400);
-const HOUR = new Decimal(3600);
-const MINUTE = new Decimal(60);
+const DAY = decimal(86400);
+const HOUR = decimal(3600);
+const MINUTE = decimal(60);
 
 test('divmod conversions', () => {
-  const timestamp = new Decimal(1468800 + 46800 + 2520 + 23);
-  const [days, t2] = timestamp.divmod(DAY);
-  const [hours, t3] = t2.divmod(HOUR);
-  const [minutes, seconds] = t3.divmod(MINUTE);
+  const timestamp = decimal(1468800 + 46800 + 2520 + 23);
+  const [days, t2] = decimalDivmod(timestamp, DAY);
+  const [hours, t3] = decimalDivmod(t2, HOUR);
+  const [minutes, seconds] = decimalDivmod(t3, MINUTE);
 
   expect(days).toEqual(parse('17'));
   expect(hours).toEqual(parse('13'));
@@ -309,19 +309,19 @@ test('divmod shift', () => {
 });
 
 test('mod', () => {
-  expect(parse('0').mod(parse('1'))).toEqual(parse('0'));
+  expect(decimalMod(parse('0'), parse('1'))).toEqual(parse('0'));
 
-  expect(parse('99').mod(parse('9'))).toEqual(parse('0'));
-  expect(parse('100').mod(parse('9'))).toEqual(parse('1'));
+  expect(decimalMod(parse('99'), parse('9'))).toEqual(parse('0'));
+  expect(decimalMod(parse('100'), parse('9'))).toEqual(parse('1'));
 
-  expect(parse('122').mod(parse('3'))).toEqual(parse('2'));
-  expect(parse('123').mod(parse('3'))).toEqual(parse('0'));
-  expect(parse('124').mod(parse('3'))).toEqual(parse('1'));
+  expect(decimalMod(parse('122'), parse('3'))).toEqual(parse('2'));
+  expect(decimalMod(parse('123'), parse('3'))).toEqual(parse('0'));
+  expect(decimalMod(parse('124'), parse('3'))).toEqual(parse('1'));
 
-  expect(parse('122').mod(parse('4'))).toEqual(parse('2'));
-  expect(parse('123').mod(parse('4'))).toEqual(parse('3'));
-  expect(parse('124').mod(parse('4'))).toEqual(parse('0'));
+  expect(decimalMod(parse('122'), parse('4'))).toEqual(parse('2'));
+  expect(decimalMod(parse('123'), parse('4'))).toEqual(parse('3'));
+  expect(decimalMod(parse('124'), parse('4'))).toEqual(parse('0'));
 
-  expect(parse('123.456').mod(parse('10'))).toEqual(parse('3.456'));
-  expect(parse('990.987').mod(parse('10'))).toEqual(parse('0.987'));
+  expect(decimalMod(parse('123.456'), parse('10'))).toEqual(parse('3.456'));
+  expect(decimalMod(parse('990.987'), parse('10'))).toEqual(parse('0.987'));
 });

@@ -1,4 +1,4 @@
-import { Decimal, DecimalConstants } from '@phensley/decimal';
+import { Decimal, DecimalConstants, decimalCompare, decimalSubtract } from '@phensley/decimal';
 import { PluralRules } from '@phensley/plurals';
 import { MessageArg, MessageArgs, MessageNamedArgs } from './args';
 import { MessageArgConverter } from './converter';
@@ -99,7 +99,7 @@ export class MessageEngine {
         }
         const offset = code[2];
         const num = this.converter.asDecimal(arg);
-        argsub = offset ? num.subtract(offset) : num;
+        argsub = offset ? decimalSubtract(num, offset) : num;
         const category =
           code[3] === PluralNumberType.CARDINAL ? this.plurals.cardinal(argsub) : this.plurals.ordinal(argsub);
 
@@ -113,7 +113,7 @@ export class MessageEngine {
               if (v === undefined) {
                 v = this.converter.asDecimal(c[1]);
               }
-              if (num.compare(v) === 0) {
+              if (decimalCompare(num, v) === 0) {
                 this._evaluate(c[2], args, num);
                 found = 1;
                 break loop;

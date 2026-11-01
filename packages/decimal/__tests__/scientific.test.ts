@@ -1,8 +1,14 @@
-import { Decimal } from '../src';
+import {
+  decimal,
+  decimalScientific,
+  decimalToScientificParts,
+  decimalToScientificString,
+  decimalToString,
+} from '../src';
 
-const sci = (d: string, m?: number) => new Decimal(d).toScientificString(m);
+const sci = (d: string, m?: number) => decimalToScientificString(decimal(d), m);
 
-const scip = (d: string, m?: number) => new Decimal(d).toScientificParts(m);
+const scip = (d: string, m?: number) => decimalToScientificParts(decimal(d), m);
 
 test('scientific string', () => {
   expect(sci('0')).toEqual('0');
@@ -27,11 +33,11 @@ test('minIntDigits < 1 is clamped to 1', () => {
   expect(sci('1234.5678', -2)).toEqual(sci('1234.5678', 1));
   expect(sci('1234.5678', 0)).toEqual('1.2345678E+3');
 
-  const [c0, e0] = new Decimal('1234.5678').scientific(0);
-  const [c1, e1] = new Decimal('1234.5678').scientific(1);
-  expect([c0.toString(), e0]).toEqual([c1.toString(), e1]);
+  const [c0, e0] = decimalScientific(decimal('1234.5678'), 0);
+  const [c1, e1] = decimalScientific(decimal('1234.5678'), 1);
+  expect([decimalToString(c0), e0]).toEqual([decimalToString(c1), e1]);
 
-  expect(new Decimal('1234.5678').toScientificParts(0)).toEqual(new Decimal('1234.5678').toScientificParts(1));
+  expect(decimalToScientificParts(decimal('1234.5678'), 0)).toEqual(decimalToScientificParts(decimal('1234.5678'), 1));
 });
 
 test('negative zero', () => {

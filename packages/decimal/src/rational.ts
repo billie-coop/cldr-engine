@@ -1,25 +1,36 @@
-import { Decimal, DecimalArg, DecimalConstants } from './decimal';
+import {
+  decimal,
+  decimalAdd,
+  decimalCompare,
+  decimalDivide,
+  decimalMultiply,
+  decimalNegate,
+  decimalSubtract,
+  decimalToString,
+  isDecimal,
+  Decimal,
+  DecimalArg,
+  DecimalConstants,
+} from './decimal';
 import { MathContext } from './types';
 
-const coerceDecimal = (n: DecimalArg): Decimal => {
-  if (typeof n === 'number') {
-    return new Decimal(n);
-  } else if (typeof n === 'string') {
-    return fromString(n);
-  }
-  return n;
-};
+/**
+ * Arbitrary precision rational value: plain, immutable data. Use the `rational*` functions to
+ * operate on it.
+ *
+ * @public
+ */
+export interface Rational {
+  readonly numerator: Decimal;
+  readonly denominator: Decimal;
+}
 
-const coerceRational = (n: RationalArg): Rational => {
-  if (typeof n === 'number') {
-    return new Rational(n, DecimalConstants.ONE);
-  } else if (typeof n === 'string') {
-    return new Rational(n);
-  } else if (n instanceof Rational) {
-    return n as Rational;
-  }
-  return new Rational(n, DecimalConstants.ONE);
-};
+/**
+ * Valid argument for constructing a Rational value.
+ *
+ * @public
+ */
+export type RationalArg = Rational | Decimal | number | string;
 
 /**
  * Default Rational parser, to identify named constants.
@@ -31,105 +42,168 @@ const fromString = (s: string): Decimal => {
     case 'pi':
       return DecimalConstants.PI;
     default:
-      return new Decimal(s);
+      return decimal(s);
   }
 };
 
+const coerce = (n: DecimalArg): Decimal => (typeof n === 'string' ? fromString(n) : decimal(n));
+
+const make = (numerator: Decimal, denominator: Decimal): Rational => ({ numerator, denominator });
+
 /**
- * Valid argument for constructing a Rational value.
+ * Returns true if the argument is a Rational value.
  *
  * @public
  */
-export type RationalArg = Rational | Decimal | number | string;
+export const isRational = (x: any): x is Rational =>
+  x !== null && typeof x === 'object' && isDecimal(x.numerator) && isDecimal(x.denominator);
 
 /**
- * Arbitrary precision rational type.
+ * Construct a rational. A single string argument is parsed as "numerator / denominator"
+ * (either side may be 'e' or 'pi').
  *
  * @public
  */
-export class Rational {
-  protected numer!: Decimal;
-  protected denom!: Decimal;
-
-  constructor(numerator: DecimalArg, denominator?: DecimalArg) {
-    if (typeof numerator === 'string' && denominator === undefined) {
-      this._parse(numerator);
-    } else {
-      denominator = denominator === undefined ? DecimalConstants.ONE : denominator;
-      this.numer = coerceDecimal(numerator);
-      this.denom = coerceDecimal(denominator);
-    }
+export const rational = (numerator: DecimalArg, denominator?: DecimalArg): Rational => {
+  if (typeof numerator === 'string' && denominator === undefined) {
+    const i = numerator.indexOf('/');
+    return i === -1
+      ? make(fromString(numerator), DecimalConstants.ONE)
+      : make(fromString(numerator.substring(0, i).trim()), fromString(numerator.substring(i + 1).trim()));
   }
+  return make(coerce(numerator), coerce(denominator === undefined ? DecimalConstants.ONE : denominator));
+};
 
-  numerator(): Decimal {
-    return this.numer;
+/**
+ * Converts a valid argument into a Rational value.
+ *
+ * @public
+ */
+export const coerceRational = (n: RationalArg): Rational => {
+  if (typeof n === 'number') {
+    return rational(n, DecimalConstants.ONE);
+  } else if (typeof n === 'string') {
+    return rational(n);
+  } else if (isRational(n)) {
+    return n;
   }
+  return rational(n, DecimalConstants.ONE);
+};
 
-  denominator(): Decimal {
-    return this.denom;
-  }
+/**
+ * Compare u to v, returning -1, 0 or 1.
+ *
+ * @public
+ */
+export const rationalCompare = (un: RationalArg, vn: RationalArg, context?: MathContext): number => {
+  const u = coerceRational(un);
+  const v = coerceRational(vn);
+  const a = decimalMultiply(u.numerator, v.denominator, context);
+  const b = decimalMultiply(v.numerator, u.denominator, context);
+  return decimalCompare(a, b);
+};
 
-  compare(num: RationalArg, context?: MathContext): number {
-    const u: Rational = this;
-    const v = coerceRational(num);
-    const a = u.numer.multiply(v.denom, context);
-    const b = v.numer.multiply(u.denom, context);
-    return a.compare(b);
-  }
+/**
+ * Add u and v.
+ *
+ * @public
+ */
+export const rationalAdd = (un: RationalArg, vn: RationalArg, context?: MathContext): Rational => {
+  const u = coerceRational(un);
+  const n = coerceRational(vn);
+  return rational(
+    decimalAdd(
+      decimalMultiply(u.numerator, n.denominator, context),
+      decimalMultiply(n.numerator, u.denominator, context),
+    ),
+    decimalMultiply(u.denominator, n.denominator, context),
+  );
+};
 
-  add(num: RationalArg, context?: MathContext): Rational {
-    const n = coerceRational(num);
-    return new Rational(
-      this.numer.multiply(n.denom, context).add(n.numer.multiply(this.denom, context)),
-      this.denom.multiply(n.denom, context),
-    );
-  }
+/**
+ * Subtract v from u.
+ *
+ * @public
+ */
+export const rationalSubtract = (un: RationalArg, vn: RationalArg, context?: MathContext): Rational => {
+  const u = coerceRational(un);
+  const n = coerceRational(vn);
+  return rational(
+    decimalSubtract(
+      decimalMultiply(u.numerator, n.denominator, context),
+      decimalMultiply(n.numerator, u.denominator, context),
+    ),
+    decimalMultiply(u.denominator, n.denominator, context),
+  );
+};
 
-  subtract(num: RationalArg, context?: MathContext): Rational {
-    const n = coerceRational(num);
-    return new Rational(
-      this.numer.multiply(n.denom, context).subtract(n.numer.multiply(this.denom, context)),
-      this.denom.multiply(n.denom, context),
-    );
-  }
+/**
+ * Invert the sign.
+ *
+ * @public
+ */
+export const rationalNegate = (un: RationalArg): Rational => {
+  const u = coerceRational(un);
+  return rational(decimalNegate(u.numerator), u.denominator);
+};
 
-  negate(): Rational {
-    return new Rational(this.numer.negate(), this.denom);
-  }
+/**
+ * Divide u by v.
+ *
+ * @public
+ */
+export const rationalDivide = (un: RationalArg, vn: RationalArg, context?: MathContext): Rational => {
+  const u = coerceRational(un);
+  const n = coerceRational(vn);
+  return rational(
+    decimalMultiply(u.numerator, n.denominator, context),
+    decimalMultiply(u.denominator, n.numerator, context),
+  );
+};
 
-  divide(num: RationalArg, context?: MathContext): Rational {
-    const n = coerceRational(num);
-    return new Rational(this.numer.multiply(n.denom, context), this.denom.multiply(n.numer, context));
-  }
+/**
+ * Multiply u by v.
+ *
+ * @public
+ */
+export const rationalMultiply = (un: RationalArg, vn: RationalArg, context?: MathContext): Rational => {
+  const u = coerceRational(un);
+  const n = coerceRational(vn);
+  return rational(
+    decimalMultiply(u.numerator, n.numerator, context),
+    decimalMultiply(u.denominator, n.denominator, context),
+  );
+};
 
-  multiply(num: RationalArg, context?: MathContext): Rational {
-    const n = coerceRational(num);
-    return new Rational(this.numer.multiply(n.numer, context), this.denom.multiply(n.denom, context));
-  }
+/**
+ * Swap numerator and denominator.
+ *
+ * @public
+ */
+export const rationalInverse = (un: RationalArg): Rational => {
+  const u = coerceRational(un);
+  return rational(u.denominator, u.numerator);
+};
 
-  inverse(): Rational {
-    return new Rational(this.denom, this.numer);
-  }
+/**
+ * Divide the numerator by the denominator.
+ *
+ * @public
+ */
+export const rationalToDecimal = (un: RationalArg, context?: MathContext): Decimal => {
+  const u = coerceRational(un);
+  return decimalDivide(u.numerator, u.denominator, context);
+};
 
-  toDecimal(context?: MathContext): Decimal {
-    return this.numer.divide(this.denom, context);
-  }
-
-  toString(): string {
-    return `${this.numer.toString()} / ${this.denom.toString()}`;
-  }
-
-  private _parse(raw: string): void {
-    const i = raw.indexOf('/');
-    if (i === -1) {
-      this.numer = fromString(raw);
-      this.denom = DecimalConstants.ONE;
-    } else {
-      this.numer = fromString(raw.substring(0, i).trim());
-      this.denom = fromString(raw.substring(i + 1).trim());
-    }
-  }
-}
+/**
+ * Format as "numerator / denominator".
+ *
+ * @public
+ */
+export const rationalToString = (un: RationalArg): string => {
+  const u = coerceRational(un);
+  return `${decimalToString(u.numerator)} / ${decimalToString(u.denominator)}`;
+};
 
 /**
  * Common Rational values as constants.
@@ -137,6 +211,6 @@ export class Rational {
  * @public
  */
 export const RationalConstants = {
-  ZERO: new Rational(0, 1),
-  ONE: new Rational(1, 1),
+  ZERO: /*#__PURE__*/ rational(0, 1),
+  ONE: /*#__PURE__*/ rational(1, 1),
 };

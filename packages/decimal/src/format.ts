@@ -9,7 +9,8 @@ export interface Part {
 }
 
 /**
- * Formatting of decimal values.
+ * Accumulates the characters of a formatted decimal. Digits arrive from least- to
+ * most-significant, so `render()` reverses them.
  *
  * @public
  */
@@ -26,64 +27,54 @@ export interface DecimalFormatter<T> {
 }
 
 /**
- * Formats a decimal into a string.
+ * Formatter that renders a decimal into a string.
  *
  * @public
  */
-export class StringDecimalFormatter implements DecimalFormatter<string> {
-  protected parts: string[] = [];
-
-  add(c: string): void {
-    this.parts.push(c);
-  }
-
-  render(): string {
-    return this.parts.reverse().join('');
-  }
-}
+export const stringDecimalFormatter = (): DecimalFormatter<string> => {
+  const parts: string[] = [];
+  return {
+    add: (c: string): void => {
+      parts.push(c);
+    },
+    render: (): string => parts.reverse().join(''),
+  };
+};
 
 /**
- * Formats a decimal into an array of parts.
+ * Formatter that renders a decimal into an array of parts.
  *
  * @public
  */
-export class PartsDecimalFormatter implements DecimalFormatter<Part[]> {
-  protected parts: Part[] = [];
-  protected curr: string[] = [];
+export const partsDecimalFormatter = (decimal: string, group: string): DecimalFormatter<Part[]> => {
+  const parts: Part[] = [];
+  let curr: string[] = [];
+  const current = (): string => curr.reverse().join('');
+  return {
+    add: (c: string): void => {
+      switch (c) {
+        case decimal:
+          parts.push({ type: 'fraction', value: curr.reverse().join('') });
+          parts.push({ type: 'decimal', value: c });
+          curr = [];
+          break;
 
-  constructor(
-    protected decimal: string,
-    protected group: string,
-  ) {}
+        case group:
+          parts.push({ type: 'integer', value: current() });
+          parts.push({ type: 'group', value: c });
+          curr = [];
+          break;
 
-  add(c: string): void {
-    switch (c) {
-      case this.decimal:
-        this.parts.push({ type: 'fraction', value: this.curr.reverse().join('') });
-        this.parts.push({ type: 'decimal', value: c });
-        this.curr = [];
-        break;
-
-      case this.group:
-        this.parts.push({ type: 'integer', value: this.current() });
-        this.parts.push({ type: 'group', value: c });
-        this.curr = [];
-        break;
-
-      default:
-        this.curr.push(c);
-        break;
-    }
-  }
-
-  render(): Part[] {
-    if (this.curr.length > 0) {
-      this.parts.push({ type: 'integer', value: this.current() });
-    }
-    return this.parts.reverse();
-  }
-
-  private current(): string {
-    return this.curr.reverse().join('');
-  }
-}
+        default:
+          curr.push(c);
+          break;
+      }
+    },
+    render: (): Part[] => {
+      if (curr.length > 0) {
+        parts.push({ type: 'integer', value: current() });
+      }
+      return parts.reverse();
+    },
+  };
+};

@@ -1,83 +1,98 @@
-import { Decimal, DecimalArg, DecimalConstants, Rational } from '../src';
+import {
+  DecimalArg,
+  DecimalConstants,
+  Rational,
+  rational,
+  rationalAdd,
+  rationalCompare,
+  rationalDivide,
+  rationalInverse,
+  rationalMultiply,
+  rationalNegate,
+  rationalSubtract,
+  rationalToDecimal,
+  rationalToString,
+  decimal,
+} from '../src';
 
-const rat = (a: DecimalArg, b: DecimalArg): Rational => new Rational(a, b);
-const parse = (s: string) => new Rational(s);
+const rat = (a: DecimalArg, b: DecimalArg): Rational => rational(a, b);
+const parse = (s: string) => rational(s);
 
 test('parsing', () => {
-  let r = new Rational('1 / pi');
-  expect(r.numerator()).toEqual(DecimalConstants.ONE);
-  expect(r.denominator()).toBe(DecimalConstants.PI);
+  let r = rational('1 / pi');
+  expect(r.numerator).toEqual(DecimalConstants.ONE);
+  expect(r.denominator).toBe(DecimalConstants.PI);
 
-  r = new Rational('1 / e');
-  expect(r.numerator()).toEqual(DecimalConstants.ONE);
-  expect(r.denominator()).toBe(DecimalConstants.E);
+  r = rational('1 / e');
+  expect(r.numerator).toEqual(DecimalConstants.ONE);
+  expect(r.denominator).toBe(DecimalConstants.E);
 
-  r = new Rational('-17.35e-1');
-  expect(r.numerator()).toEqual(new Decimal('-17.35e-1'));
+  r = rational('-17.35e-1');
+  expect(r.numerator).toEqual(decimal('-17.35e-1'));
 
   r = rat('1.5', '2.3');
-  expect(r.numerator()).toEqual(new Decimal('1.5'));
-  expect(r.denominator()).toEqual(new Decimal('2.3'));
+  expect(r.numerator).toEqual(decimal('1.5'));
+  expect(r.denominator).toEqual(decimal('2.3'));
 
-  r = new Rational(17);
-  expect(r.numerator()).toEqual(new Decimal('17'));
-  expect(r.denominator()).toEqual(DecimalConstants.ONE);
+  r = rational(17);
+  expect(r.numerator).toEqual(decimal('17'));
+  expect(r.denominator).toEqual(DecimalConstants.ONE);
 });
 
 test('multiplication', () => {
-  expect(parse('1 / 5').multiply('2 / 7')).toEqual(parse('2 / 35'));
+  expect(rationalMultiply(parse('1 / 5'), '2 / 7')).toEqual(parse('2 / 35'));
 });
 
 test('divide', () => {
-  expect(parse('1 / 5').divide('2 / 7')).toEqual(parse('7 / 10'));
+  expect(rationalDivide(parse('1 / 5'), '2 / 7')).toEqual(parse('7 / 10'));
 });
 
 test('add', () => {
-  expect(parse('1 / 5').add('1 / 4')).toEqual(parse('9 / 20'));
-  expect(parse('1 / 5').add(1)).toEqual(parse('6 / 5'));
-  expect(parse('273.15').multiply('9 / 5').add('-459.67').compare('32 / 1')).toEqual(0);
-  expect(parse('1 / 3').add('1 / 3').compare('2 / 3')).toEqual(0);
+  expect(rationalAdd(parse('1 / 5'), '1 / 4')).toEqual(parse('9 / 20'));
+  expect(rationalAdd(parse('1 / 5'), 1)).toEqual(parse('6 / 5'));
+  expect(rationalCompare(rationalAdd(rationalMultiply(parse('273.15'), '9 / 5'), '-459.67'), '32 / 1')).toEqual(0);
+  expect(rationalCompare(rationalAdd(parse('1 / 3'), '1 / 3'), '2 / 3')).toEqual(0);
 });
 
 test('subtract', () => {
-  expect(parse('1 / 5').subtract('1 / 4')).toEqual(parse('-1 / 20'));
-  expect(parse('3 / 5').subtract(1)).toEqual(parse('-2 / 5'));
+  expect(rationalSubtract(parse('1 / 5'), '1 / 4')).toEqual(parse('-1 / 20'));
+  expect(rationalSubtract(parse('3 / 5'), 1)).toEqual(parse('-2 / 5'));
 });
 
 test('negate', () => {
-  expect(parse('3 / 5').negate()).toEqual(parse('-3 / 5'));
-  expect(parse('-3 / 5').negate()).toEqual(parse('3 / 5'));
+  expect(rationalNegate(parse('3 / 5'))).toEqual(parse('-3 / 5'));
+  expect(rationalNegate(parse('-3 / 5'))).toEqual(parse('3 / 5'));
 });
 
 test('inverse', () => {
-  expect(parse('1 / 5').inverse()).toEqual(parse('5 / 1'));
+  expect(rationalInverse(parse('1 / 5'))).toEqual(parse('5 / 1'));
 });
 
 test('compare', () => {
-  expect(parse('1 / 5').compare(parse('1 / 5'))).toEqual(0);
-  expect(parse('1 / 5').compare(parse('1 / 6'))).toEqual(1);
-  expect(parse('.1 / 10').compare(parse('.2 / 10'))).toEqual(-1);
+  expect(rationalCompare(parse('1 / 5'), parse('1 / 5'))).toEqual(0);
+  expect(rationalCompare(parse('1 / 5'), parse('1 / 6'))).toEqual(1);
+  expect(rationalCompare(parse('.1 / 10'), parse('.2 / 10'))).toEqual(-1);
 
-  expect(parse('1 / 5').compare('.1')).toEqual(1);
-  expect(parse('1 / 5').compare(0.1)).toEqual(1);
-  expect(parse('1 / 5').compare(new Decimal('0.1'))).toEqual(1);
+  expect(rationalCompare(parse('1 / 5'), '.1')).toEqual(1);
+  expect(rationalCompare(parse('1 / 5'), 0.1)).toEqual(1);
+  expect(rationalCompare(parse('1 / 5'), decimal('0.1'))).toEqual(1);
 
-  expect(parse('1 / 20').compare('.1')).toEqual(-1);
-  expect(parse('1 / 20').compare(0.1)).toEqual(-1);
-  expect(parse('1 / 20').compare(new Decimal('0.1'))).toEqual(-1);
+  expect(rationalCompare(parse('1 / 20'), '.1')).toEqual(-1);
+  expect(rationalCompare(parse('1 / 20'), 0.1)).toEqual(-1);
+  expect(rationalCompare(parse('1 / 20'), decimal('0.1'))).toEqual(-1);
 });
 
 test('coerce', () => {
-  expect(new Rational(15)).toEqual(parse('15 / 1'));
-  expect(new Rational(new Decimal(15))).toEqual(parse('15 / 1'));
-  expect(new Rational(new Decimal('15'), new Decimal('3'))).toEqual(parse('15 / 3'));
-  expect(new Rational(15, 3)).toEqual(parse('15 / 3'));
+  expect(rational(15)).toEqual(parse('15 / 1'));
+  expect(rational(decimal(15))).toEqual(parse('15 / 1'));
+  expect(rational(decimal('15'), decimal('3'))).toEqual(parse('15 / 3'));
+  expect(rational(15, 3)).toEqual(parse('15 / 3'));
 });
 
 test('to decimal', () => {
-  expect(parse('15 / 3').toDecimal()).toEqual(new Decimal('5'));
+  expect(rationalToDecimal(parse('15 / 3'))).toEqual(decimal('5'));
 });
 
 test('to string', () => {
-  expect(parse('15 / 3').toString()).toEqual('15 / 3');
+  expect(rationalToString(parse('15 / 3'))).toEqual('15 / 3');
 });

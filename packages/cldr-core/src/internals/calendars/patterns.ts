@@ -1,6 +1,6 @@
 import { CalendarSchema, PluralType } from '@phensley/cldr-types';
 import { LRU } from '@phensley/cldr-utils';
-import { coerceDecimal } from '@phensley/decimal';
+import { decimal } from '@phensley/decimal';
 
 import { Internals } from '../../internals';
 import { DateTimeNode, parseDatePattern } from '../../parsing/date';
@@ -230,7 +230,7 @@ export class GregorianPatterns extends CalendarPatterns {
       switch (s.skeleton) {
         case 'MMMMW':
         case 'yw': {
-          const week = coerceDecimal(s.skeleton === 'yw' ? d.weekOfYear() : d.weekOfMonth());
+          const week = decimal(s.skeleton === 'yw' ? d.weekOfYear() : d.weekOfMonth());
           plural = this.bundle.plurals().cardinal(week) as PluralType;
           pattern = this.rawPluralFormats[plural][s.skeleton];
           break;

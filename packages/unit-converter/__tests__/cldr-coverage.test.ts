@@ -1,4 +1,16 @@
-import { Decimal, Rational } from '@phensley/decimal';
+import {
+  Decimal,
+  decimal,
+  decimalAbs,
+  decimalCompare,
+  decimalIsZero,
+  decimalMultiply,
+  decimalSubtract,
+  decimalToString,
+  rational,
+  rationalCompare,
+  rationalMultiply,
+} from '@phensley/decimal';
 import {
   ACCELERATION,
   ANGLE,
@@ -71,12 +83,12 @@ const converter = () => {
 };
 
 const close = (d: Decimal, v: string) => {
-  const target = new Decimal(v);
-  const diff = d.subtract(target).abs();
+  const target = decimal(v);
+  const diff = decimalAbs(decimalSubtract(d, target));
   // relative tolerance (1e-12): catches wrong-magnitude and wrong-constant
   // bugs while absorbing finite-precision decimal rendering
-  const scale = target.abs().isZero() ? new Decimal(1) : target.abs();
-  expect(diff.compare(scale.multiply(new Decimal('1e-12')))).toBeLessThan(0);
+  const scale = decimalIsZero(decimalAbs(target)) ? decimal(1) : decimalAbs(target);
+  expect(decimalCompare(diff, decimalMultiply(scale, decimal('1e-12')))).toBeLessThan(0);
 };
 
 test('categories are closed within components and separated between them', () => {
@@ -238,40 +250,40 @@ test('every CLDR unit dimension is registered in some category', () => {
 
 test('previously missing or wrong units convert per CLDR 48.2.0', () => {
   const c = converter();
-  const cvt = (cat: string, src: string, dst: string) => c.convert(cat, new Decimal(1), src, dst)!;
+  const cvt = (cat: string, src: string, dst: string) => c.convert(cat, decimal(1), src, dst)!;
 
   // pressure
-  expect(cvt('pressure', 'atmosphere', 'pascal').toString()).toEqual('101325');
-  expect(cvt('pressure', 'bar', 'pascal').toString()).toEqual('100000');
-  expect(cvt('pressure', 'pascal', 'hectopascal').toString()).toEqual('0.01');
-  expect(cvt('pressure', 'ofhg', 'pascal').toString()).toEqual('133.322387415');
+  expect(decimalToString(cvt('pressure', 'atmosphere', 'pascal'))).toEqual('101325');
+  expect(decimalToString(cvt('pressure', 'bar', 'pascal'))).toEqual('100000');
+  expect(decimalToString(cvt('pressure', 'pascal', 'hectopascal'))).toEqual('0.01');
+  expect(decimalToString(cvt('pressure', 'ofhg', 'pascal'))).toEqual('133.322387415');
   close(cvt('pressure', 'millimeter-ofhg', 'pascal'), '133.3223684210526315789473684');
 
   // energy (F5: calorie was 4.1868, foodcalorie was 4.184 — CLDR 48 is 4.184 / 4184)
-  expect(cvt('energy', 'calorie', 'joule').toString()).toEqual('4.184');
-  expect(cvt('energy', 'foodcalorie', 'joule').toString()).toEqual('4184');
-  expect(cvt('energy', 'kilocalorie', 'joule').toString()).toEqual('4184');
-  expect(cvt('energy', 'electronvolt', 'joule').toString()).toEqual('0.0000000000000000001602177');
+  expect(decimalToString(cvt('energy', 'calorie', 'joule'))).toEqual('4.184');
+  expect(decimalToString(cvt('energy', 'foodcalorie', 'joule'))).toEqual('4184');
+  expect(decimalToString(cvt('energy', 'kilocalorie', 'joule'))).toEqual('4184');
+  expect(decimalToString(cvt('energy', 'electronvolt', 'joule'))).toEqual('0.0000000000000000001602177');
   close(cvt('energy', 'british-thermal-unit', 'kilowatt-hour'), '0.000292875073469');
   close(cvt('energy', 'therm-us', 'kilowatt-hour'), '29.300111111111111');
 
   // mass
   close(cvt('mass', 'grain', 'pound'), '0.0001428571428571428571428571428');
   close(cvt('mass', 'slug', 'kilogram'), '14.593902937206365');
-  expect(cvt('mass', 'dalton', 'kilogram').toString()).toEqual('0.00000000000000000000000000166053878283');
+  expect(decimalToString(cvt('mass', 'dalton', 'kilogram'))).toEqual('0.00000000000000000000000000166053878283');
   close(cvt('mass', 'earth-mass', 'kilogram'), '5.9722e24');
 
   // volume
-  expect(cvt('volume', 'barrel', 'gallon').toString()).toEqual('42');
-  expect(cvt('volume', 'dram', 'fluid-ounce').toString()).toEqual('0.125');
-  expect(cvt('volume', 'jigger', 'fluid-ounce').toString()).toEqual('1.5');
+  expect(decimalToString(cvt('volume', 'barrel', 'gallon'))).toEqual('42');
+  expect(decimalToString(cvt('volume', 'dram', 'fluid-ounce'))).toEqual('0.125');
+  expect(decimalToString(cvt('volume', 'jigger', 'fluid-ounce'))).toEqual('1.5');
   close(cvt('volume', 'drop', 'fluid-ounce'), '0.0017361111111111111');
   close(cvt('volume', 'pint-imperial', 'pint'), '1.200949925504855');
   close(cvt('volume', 'koku', 'liter'), '180.3906836964688');
-  expect(cvt('volume', 'tablespoon', 'fluid-ounce').toString()).toEqual('0.5');
+  expect(decimalToString(cvt('volume', 'tablespoon', 'fluid-ounce'))).toEqual('0.5');
 
   // length
-  expect(cvt('length', 'chain', 'meter').toString()).toEqual('20.1168');
+  expect(decimalToString(cvt('length', 'chain', 'meter'))).toEqual('20.1168');
   close(cvt('length', 'shaku-length', 'meter'), '0.03305785123966942');
   close(cvt('length', 'parsec', 'meter'), '3.0856775814913673e16');
   close(cvt('length', 'earth-radius', 'kilometer'), '6378.1');
@@ -280,24 +292,24 @@ test('previously missing or wrong units convert per CLDR 48.2.0', () => {
   // which differs from true pi past the 10th digit)
   close(cvt('angle', 'arc-minute', 'degree'), '0.01666666666666666666666666666');
   close(cvt('angle', 'radian', 'degree'), '57.29577951308232052');
-  expect(cvt('angle', 'steradian', 'steradian').toString()).toEqual('1');
+  expect(decimalToString(cvt('angle', 'steradian', 'steradian'))).toEqual('1');
 
   // duration
-  expect(cvt('duration', 'fortnight', 'day').toString()).toEqual('14');
+  expect(decimalToString(cvt('duration', 'fortnight', 'day'))).toEqual('14');
   close(cvt('duration', 'quarter', 'month'), '3');
   close(cvt('duration', 'day-person', 'month-person'), '0.03285488408386209');
 
   // ratio / substance
-  expect(cvt('ratio', 'percent', 'part').toString()).toEqual('0.01');
+  expect(decimalToString(cvt('ratio', 'percent', 'part'))).toEqual('0.01');
   close(cvt('ratio', 'karat', 'part'), '0.04166666666666666666666666667');
-  expect(cvt('substance', 'mole', 'item').toString()).toEqual('602214076000000000000000');
+  expect(decimalToString(cvt('substance', 'mole', 'item'))).toEqual('602214076000000000000000');
   // ofglucose and katal are singleton dimensions (no other unit shares their
   // base), so they are registered but only convertible to themselves
-  expect(cvt('substance', 'ofglucose', 'ofglucose').toString()).toEqual('1');
-  expect(c.convert('substance', new Decimal(1), 'katal', 'item')).toBe(undefined);
+  expect(decimalToString(cvt('substance', 'ofglucose', 'ofglucose'))).toEqual('1');
+  expect(c.convert('substance', decimal(1), 'katal', 'item')).toBe(undefined);
 
   // speed
-  expect(cvt('speed', 'light-speed', 'meter-per-second').toString()).toEqual('299792458');
+  expect(decimalToString(cvt('speed', 'light-speed', 'meter-per-second'))).toEqual('299792458');
 });
 
 test('hand-maintained and CLDR factors agree on shared edges', () => {
@@ -320,8 +332,8 @@ test('hand-maintained and CLDR factors agree on shared edges', () => {
   ];
   for (const [cat, src, dst, expected] of checks) {
     const conv = c.get(cat, src, dst)!;
-    const fac = conv.factors.reduce((p, f) => p.multiply(f), new Rational(1));
-    expect({ cat, src, dst, direct: conv.path.length === 2, equal: fac.compare(expected) === 0 }).toEqual({
+    const fac = conv.factors.reduce((p, f) => rationalMultiply(p, f), rational(1));
+    expect({ cat, src, dst, direct: conv.path.length === 2, equal: rationalCompare(fac, expected) === 0 }).toEqual({
       cat,
       src,
       dst,
@@ -354,19 +366,19 @@ test('electric units are registered but not mutually convertible', () => {
     ]),
   );
   expect(c.get('electric', 'volt', 'ohm')).toBe(undefined);
-  expect(c.convert('electric', new Decimal(2), 'ampere', 'milliampere')!.toString()).toEqual('2000');
+  expect(decimalToString(c.convert('electric', decimal(2), 'ampere', 'milliampere')!)).toEqual('2000');
 });
 
 test('volume UK variant localizes generic units without US leakage', () => {
   const c = converter();
   // UK gallon is the imperial gallon (4.54609 L), not the US gallon
-  expect(c.convert('volume-uk', new Decimal(1), 'gallon', 'liter')!.toString()).toEqual('4.54609');
-  expect(c.convert('volume-uk', new Decimal(1), 'pint', 'liter')!.toString()).toEqual('0.56826125');
-  expect(c.convert('volume-uk', new Decimal(1), 'cup', 'milliliter')!.toString()).toEqual('284.1');
+  expect(decimalToString(c.convert('volume-uk', decimal(1), 'gallon', 'liter')!)).toEqual('4.54609');
+  expect(decimalToString(c.convert('volume-uk', decimal(1), 'pint', 'liter')!)).toEqual('0.56826125');
+  expect(decimalToString(c.convert('volume-uk', decimal(1), 'cup', 'milliliter')!)).toEqual('284.1');
   // US category keeps the US values
-  expect(c.convert('volume', new Decimal(1), 'gallon', 'liter')!.toString()).toEqual('3.785411784');
-  expect(c.convert('volume', new Decimal(1), 'pint', 'liter')!.toString()).toEqual('0.473176473');
+  expect(decimalToString(c.convert('volume', decimal(1), 'gallon', 'liter')!)).toEqual('3.785411784');
+  expect(decimalToString(c.convert('volume', decimal(1), 'pint', 'liter')!)).toEqual('0.473176473');
   // imperial-specific units convert in both
-  close(c.convert('volume', new Decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
-  close(c.convert('volume-uk', new Decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
+  close(c.convert('volume', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
+  close(c.convert('volume-uk', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
 });

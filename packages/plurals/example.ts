@@ -1,4 +1,4 @@
-import { Decimal } from '@phensley/decimal';
+import { decimal, decimalToString } from '@phensley/decimal';
 import { pluralRules } from './src';
 
 const LANGUAGES = ['en', 'fr', 'lt', 'pl', 'mt', 'pt', 'pt-PT'];
@@ -31,7 +31,7 @@ const NUMBERS = [
 
 let s = '';
 for (const n of NUMBERS) {
-  s += `${new Decimal(n).toString().padStart(35)}  `;
+  s += `${decimalToString(decimal(n)).padStart(35)}  `;
   for (const lang of LANGUAGES) {
     const plurals = pluralRules.get(lang);
     const cat = plurals.cardinal(n);

@@ -1,5 +1,12 @@
 import { UnitType } from '@phensley/cldr-types';
-import { Decimal, Rational } from '@phensley/decimal';
+import {
+  rational,
+  rationalCompare,
+  rationalMultiply,
+  rationalToString,
+  decimal,
+  decimalToString,
+} from '@phensley/decimal';
 import { ANGLE, AREA, DURATION, FactorDef, UnitConversion, UnitConverter, UnitFactors } from '../src';
 
 test('factors', () => {
@@ -7,7 +14,7 @@ test('factors', () => {
   const map = new UnitFactors(factors);
   let c: UnitConversion;
 
-  const f = (e: UnitConversion) => e.factors.map((x) => x.toString());
+  const f = (e: UnitConversion) => e.factors.map((x) => rationalToString(x));
 
   c = map.get('g-force', 'meter-per-square-second')!;
   expect(f(c)).toEqual(['9.80665 / 1']);
@@ -20,7 +27,7 @@ test('angle', () => {
   const map = new UnitFactors(ANGLE);
   let c: UnitConversion;
 
-  const f = (e: UnitConversion) => e.factors.map((x) => x.toString());
+  const f = (e: UnitConversion) => e.factors.map((x) => rationalToString(x));
 
   c = map.get('arc-second', 'arc-minute')!;
   expect(f(c)).toEqual(['1 / 60']);
@@ -39,7 +46,7 @@ test('area', () => {
   const map = new UnitFactors(AREA);
   let c: UnitConversion;
 
-  const f = (e: UnitConversion) => e.factors.map((x) => x.toString());
+  const f = (e: UnitConversion) => e.factors.map((x) => rationalToString(x));
 
   c = map.get('acre', 'square-foot')!;
   expect(f(c)).toEqual(['43560 / 1']);
@@ -60,23 +67,23 @@ test('area', () => {
 
 test('rational factors', () => {
   let c: UnitConversion;
-  const map = new UnitFactors([['foo' as UnitType, new Rational('2 / 1'), 'bar' as UnitType]]);
+  const map = new UnitFactors([['foo' as UnitType, rational('2 / 1'), 'bar' as UnitType]]);
 
   c = map.get('foo', 'bar')!;
   expect(c.path).toEqual(['foo', 'bar']);
   expect(c.factors.length).toEqual(1);
-  expect(c.factors[0].toString()).toEqual('2 / 1');
+  expect(rationalToString(c.factors[0])).toEqual('2 / 1');
 });
 
 test('duration century is 100 years (CLDR 48.2.0 convertUnits: century = 100 year)', () => {
   const map = new UnitFactors(DURATION);
   const c = map.get('century', 'year')!;
-  const fac = c.factors.reduce((p, x) => p.multiply(x), new Rational(1));
-  expect(fac.compare('100 / 1')).toEqual(0);
+  const fac = c.factors.reduce((p, x) => rationalMultiply(p, x), rational(1));
+  expect(rationalCompare(fac, '100 / 1')).toEqual(0);
 
   const conv = new UnitConverter();
   conv.add('duration', new UnitFactors(DURATION));
-  expect(conv.convert('duration', new Decimal(1), 'century', 'second')!.toString()).toEqual('3155695200');
-  expect(conv.convert('duration', new Decimal(1), 'century', 'year')!.toString()).toEqual('100');
-  expect(conv.convert('duration', new Decimal(1), 'year', 'second')!.toString()).toEqual('31556952');
+  expect(decimalToString(conv.convert('duration', decimal(1), 'century', 'second')!)).toEqual('3155695200');
+  expect(decimalToString(conv.convert('duration', decimal(1), 'century', 'year')!)).toEqual('100');
+  expect(decimalToString(conv.convert('duration', decimal(1), 'year', 'second')!)).toEqual('31556952');
 });

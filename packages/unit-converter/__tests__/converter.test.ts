@@ -1,6 +1,6 @@
 import { UnitConversion, UnitConverter, UnitFactors } from '../src';
 import { ACCELERATION, ANGLE, LENGTH } from '../src';
-import { Decimal } from '@phensley/decimal';
+import { Decimal, rationalToString, decimal, decimalToString } from '@phensley/decimal';
 
 test('converter', () => {
   const c = new UnitConverter();
@@ -26,7 +26,7 @@ test('converter', () => {
   f = c.get('angle', 'revolution', 'arc-minute')!;
   // Direct edge from the CLDR star table (1 revolution = 21600 arc-minutes)
   expect(f.path).toEqual(['revolution', 'arc-minute']);
-  expect(f.factors.map((x) => x.toString())).toEqual(['21600 / 1']);
+  expect(f.factors.map((x) => rationalToString(x))).toEqual(['21600 / 1']);
 
   f = c.get('angle', 'unknown', 'arc-minute');
   expect(f).toBe(undefined);
@@ -34,10 +34,10 @@ test('converter', () => {
   f = c.get('unknown', 'arc-second', 'arc-minute');
   expect(f).toBe(undefined);
 
-  v = c.convert('angle', new Decimal(3), 'revolution', 'arc-minute')!;
-  expect(v.toString()).toEqual('64800');
+  v = c.convert('angle', decimal(3), 'revolution', 'arc-minute')!;
+  expect(decimalToString(v)).toEqual('64800');
 
-  v = c.convert('angle', new Decimal(3), 'revolution', 'unknown');
+  v = c.convert('angle', decimal(3), 'revolution', 'unknown');
   expect(v).toBe(undefined);
 });
 

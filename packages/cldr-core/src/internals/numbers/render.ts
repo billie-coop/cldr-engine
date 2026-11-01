@@ -1,4 +1,11 @@
-import { Decimal, DecimalFormatter, Part, PartsDecimalFormatter, StringDecimalFormatter } from '@phensley/decimal';
+import {
+  Decimal,
+  DecimalFormatter,
+  Part,
+  decimalFormat,
+  partsDecimalFormatter,
+  stringDecimalFormatter,
+} from '@phensley/decimal';
 
 import { CurrencySpacingPatterns, NumberParams } from '../../common/private';
 import { NumberField, NumberPattern } from '../../parsing/number';
@@ -47,7 +54,8 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
     }
 
     const formatter = this.formatter(decimal, group);
-    n.format(
+    decimalFormat(
+      n,
       formatter,
       decimal,
       group,
@@ -55,7 +63,7 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
       this.params.minimumGroupingDigits,
       priGroup,
       secGroup,
-      true, // zeroScale
+      true,
       this.params.digits,
     );
     const formatted = formatter.render();
@@ -175,7 +183,7 @@ export class StringNumberFormatter extends NumberFormatter<string> {
     return new StringValue();
   }
   formatter(_decimal: string, _group: string): DecimalFormatter<string> {
-    return new StringDecimalFormatter();
+    return stringDecimalFormatter();
   }
 }
 
@@ -187,7 +195,7 @@ export class PartsNumberFormatter extends NumberFormatter<Part[]> {
     return new PartsValue();
   }
   formatter(decimal: string, group: string): DecimalFormatter<Part[]> {
-    return new PartsDecimalFormatter(decimal, group);
+    return partsDecimalFormatter(decimal, group);
   }
 }
 

@@ -1,7 +1,7 @@
-import { Decimal } from '../src';
+import { decimal, decimalAdd } from '../src';
 
-const parse = (n: string) => new Decimal(n);
-const add = (u: string, v: string) => new Decimal(u).add(new Decimal(v));
+const parse = (n: string) => decimal(n);
+const add = (u: string, v: string) => decimalAdd(decimal(u), decimal(v));
 
 test('addition', () => {
   expect(add('0', '0')).toEqual(parse('0'));

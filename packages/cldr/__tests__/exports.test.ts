@@ -1,7 +1,6 @@
 import {
   BuddhistDate,
   CalendarDate,
-  Decimal,
   DecimalConstants,
   DefaultMessageArgConverter,
   GregorianDate,
@@ -10,12 +9,15 @@ import {
   LanguageTag,
   LocaleMatcher,
   PersianDate,
-  Rational,
   buildMessageMatcher,
   getCurrencyForRegion,
   getCurrencyFractions,
   parseMessagePattern,
   pluralRules,
+  decimal,
+  decimalToString,
+  rational,
+  rationalToDecimal,
 } from '../src';
 
 // These tests are simply to ensure that all top-level exported symbols are present and functional.
@@ -37,7 +39,7 @@ test('plural rules', () => {
   const rules = pluralRules.get('en', 'US');
 
   expect(rules.cardinal(DecimalConstants.ONE)).toEqual('one');
-  expect(rules.cardinal(new Decimal('5'))).toEqual('other');
+  expect(rules.cardinal(decimal('5'))).toEqual('other');
 });
 
 test('currency fractions', () => {
@@ -77,8 +79,8 @@ test('dates', () => {
 });
 
 test('rational', () => {
-  const r = new Rational('1/5');
-  expect(r.toDecimal().toString()).toEqual('0.2');
+  const r = rational('1/5');
+  expect(decimalToString(rationalToDecimal(r))).toEqual('0.2');
 });
 
 // test('message arg converter', () => {});
@@ -97,5 +99,5 @@ test('locale matcher', () => {
 
 test('messages', () => {
   const converter = new DefaultMessageArgConverter();
-  expect(converter.asDecimal('1.23')).toEqual(new Decimal('1.23'));
+  expect(converter.asDecimal('1.23')).toEqual(decimal('1.23'));
 });

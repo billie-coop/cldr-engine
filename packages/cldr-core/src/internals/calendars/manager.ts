@@ -1,4 +1,4 @@
-import { coerceDecimal } from '@phensley/decimal';
+import { decimal } from '@phensley/decimal';
 import { DateTimePatternField, DateTimePatternFieldType } from '@phensley/cldr-types';
 import { Cache } from '@phensley/cldr-utils';
 
@@ -115,8 +115,8 @@ export class CalendarManager {
     let pluralKey = '';
     if (!req.date && /[wW]/.test(skelKey)) {
       const p = this.bundle.plurals();
-      const wkM = p.cardinal(coerceDecimal(date.weekOfMonth()));
-      const wkY = p.cardinal(coerceDecimal(date.weekOfYear()));
+      const wkM = p.cardinal(decimal(date.weekOfMonth()));
+      const wkY = p.cardinal(decimal(date.weekOfYear()));
       pluralKey = `${wkM}\u0001${wkY}`;
     }
     const cacheKey = `${skelKey}\t${dateKey}\t${timeKey}\t${wrapKey}\t${pluralKey}\t${params.numberSystemName}`;

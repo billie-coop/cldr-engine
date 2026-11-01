@@ -1,14 +1,13 @@
-import { DivMod } from './math';
+import { divpow10, divword } from './math';
 import { Constants, POWERS10 } from './types';
 
 const cmp = (a: number, b: number): number => (a < b ? -1 : a === b ? 0 : 1);
 
-export const compare = (a: number[], b: number[], shift: number): number => {
-  const div = new DivMod();
+export const compare = (a: readonly number[], b: readonly number[], shift: number): number => {
   let n = a.length;
   let m = b.length;
 
-  const [q, r] = div.word(shift, Constants.RDIGITS);
+  const [q, r] = divword(shift, Constants.RDIGITS);
 
   if (r === 0) {
     while (--m >= 0) {
@@ -25,7 +24,7 @@ export const compare = (a: number[], b: number[], shift: number): number => {
     let lo = 0;
     --m;
     --n;
-    [hi, loprev] = div.pow10(b[m--], Constants.RDIGITS - r);
+    [hi, loprev] = divpow10(b[m--], Constants.RDIGITS - r);
     if (hi !== 0) {
       c = cmp(a[n], hi);
       if (c !== 0) {
@@ -35,7 +34,7 @@ export const compare = (a: number[], b: number[], shift: number): number => {
     }
     let x = 0;
     for (; m >= 0; m--, n--) {
-      [hi, lo] = div.pow10(b[m], Constants.RDIGITS - r);
+      [hi, lo] = divpow10(b[m], Constants.RDIGITS - r);
       x = ph * loprev + hi;
       c = cmp(a[n], x);
       if (c !== 0) {
@@ -52,7 +51,7 @@ export const compare = (a: number[], b: number[], shift: number): number => {
   return Number(!allzero(a, q));
 };
 
-export const allzero = (data: number[], len: number): number => {
+export const allzero = (data: readonly number[], len: number): number => {
   if (len <= data.length) {
     while (--len >= 0) {
       if (data[len] !== 0) {

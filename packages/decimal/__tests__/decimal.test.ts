@@ -1,93 +1,118 @@
-import { Decimal, RoundingModeType } from '../src';
-import { DivMod } from '../src/math';
+import {
+  RoundingModeType,
+  decimal,
+  decimalAbs,
+  decimalAlignexp,
+  decimalDecrement,
+  decimalIncrement,
+  decimalIntegerDigits,
+  decimalIsInteger,
+  decimalIsNegative,
+  decimalMovePoint,
+  decimalNegate,
+  decimalPrecision,
+  decimalProperties,
+  decimalScale,
+  decimalScientific,
+  decimalSetScale,
+  decimalShiftleft,
+  decimalShiftright,
+  decimalSignum,
+  decimalStripTrailingZeros,
+  decimalToInteger,
+  decimalToParts,
+  decimalToString,
+  decimalTrailingZeros,
+} from '../src';
+import { divpow10 } from '../src/math';
 
-const parse = (s: string) => new Decimal(s);
-const precision = (u: string) => parse(u).precision();
-const scale = (u: string) => parse(u).scale();
-const trailZeros = (u: string) => parse(u).trailingZeros();
-const shr = (u: string, s: number, m: RoundingModeType) => parse(u).shiftright(s, m);
+const parse = (s: string) => decimal(s);
+const precision = (u: string) => decimalPrecision(parse(u));
+const scale = (u: string) => decimalScale(parse(u));
+const trailZeros = (u: string) => decimalTrailingZeros(parse(u));
+const shr = (u: string, s: number, m: RoundingModeType) => decimalShiftright(parse(u), s, m);
 
 test('negate', () => {
-  expect(parse('1.12').negate()).toEqual(parse('-1.12'));
-  expect(parse('-1.12').negate()).toEqual(parse('1.12'));
-  expect(parse('0.00').negate()).toEqual(parse('-0.00'));
+  expect(decimalNegate(parse('1.12'))).toEqual(parse('-1.12'));
+  expect(decimalNegate(parse('-1.12'))).toEqual(parse('1.12'));
+  expect(decimalNegate(parse('0.00'))).toEqual(parse('-0.00'));
 });
 
 test('is negative', () => {
-  expect(parse('1').isNegative()).toEqual(false);
-  expect(parse('0').isNegative()).toEqual(false);
-  expect(parse('-1').isNegative()).toEqual(true);
+  expect(decimalIsNegative(parse('1'))).toEqual(false);
+  expect(decimalIsNegative(parse('0'))).toEqual(false);
+  expect(decimalIsNegative(parse('-1'))).toEqual(true);
 });
 
 test('exponent', () => {
-  expect(parse('100').exp()).toEqual(0);
-  expect(parse('1e10').exp()).toEqual(10);
-  expect(parse('1e-10').exp()).toEqual(-10);
+  expect(parse('100').exp).toEqual(0);
+  expect(parse('1e10').exp).toEqual(10);
+  expect(parse('1e-10').exp).toEqual(-10);
 });
 
 test('properties', () => {
-  expect(parse('-12300').properties()).toEqual([[12300], -1, 0, 0]);
+  expect(decimalProperties(parse('-12300'))).toEqual([[12300], -1, 0, 0]);
 
-  expect(parse('-123e10').properties()).toEqual([[123], -1, 10, 0]);
+  expect(decimalProperties(parse('-123e10'))).toEqual([[123], -1, 10, 0]);
 
-  expect(parse('-123e-10').properties()).toEqual([[123], -1, -10, 0]);
+  expect(decimalProperties(parse('-123e-10'))).toEqual([[123], -1, -10, 0]);
 
-  expect(parse('infinity').properties()).toEqual([[], 1, 0, 2]);
+  expect(decimalProperties(parse('infinity'))).toEqual([[], 1, 0, 2]);
 
-  expect(parse('-infinity').properties()).toEqual([[], -1, 0, 2]);
+  expect(decimalProperties(parse('-infinity'))).toEqual([[], -1, 0, 2]);
 
-  expect(parse('nan').properties()).toEqual([[], 0, 0, 1]);
+  expect(decimalProperties(parse('nan'))).toEqual([[], 0, 0, 1]);
 });
 
 test('signum', () => {
-  expect(parse('0').signum()).toEqual(0);
-  expect(parse('-0').signum()).toEqual(0);
-  expect(parse('10').signum()).toEqual(1);
-  expect(parse('-10').signum()).toEqual(-1);
+  expect(decimalSignum(parse('0'))).toEqual(0);
+  expect(decimalSignum(parse('-0'))).toEqual(0);
+  expect(decimalSignum(parse('10'))).toEqual(1);
+  expect(decimalSignum(parse('-10'))).toEqual(-1);
 });
 
 test('is integer', () => {
-  expect(parse('0').isInteger()).toEqual(true);
-  expect(parse('0.00').isInteger()).toEqual(true);
-  expect(parse('0.000').isInteger()).toEqual(true);
-  expect(parse('-0.00').isInteger()).toEqual(true);
-  expect(parse('0e5').isInteger()).toEqual(true);
-  expect(parse('0e-10').isInteger()).toEqual(true);
-  expect(parse('0.1').isInteger()).toEqual(false);
-  expect(parse('123').isInteger()).toEqual(true);
-  expect(parse('.123e3').isInteger()).toEqual(true);
-  expect(parse('123.01').isInteger()).toEqual(false);
-  expect(parse('123e-3').isInteger()).toEqual(false);
+  expect(decimalIsInteger(parse('0'))).toEqual(true);
+  expect(decimalIsInteger(parse('0.00'))).toEqual(true);
+  expect(decimalIsInteger(parse('0.000'))).toEqual(true);
+  expect(decimalIsInteger(parse('-0.00'))).toEqual(true);
+  expect(decimalIsInteger(parse('0e5'))).toEqual(true);
+  expect(decimalIsInteger(parse('0e-10'))).toEqual(true);
+  expect(decimalIsInteger(parse('0.1'))).toEqual(false);
+  expect(decimalIsInteger(parse('123'))).toEqual(true);
+  expect(decimalIsInteger(parse('.123e3'))).toEqual(true);
+  expect(decimalIsInteger(parse('123.01'))).toEqual(false);
+  expect(decimalIsInteger(parse('123e-3'))).toEqual(false);
 
-  expect(parse('1').isInteger()).toEqual(true);
-  expect(parse('1001').isInteger()).toEqual(true);
+  expect(decimalIsInteger(parse('1'))).toEqual(true);
+  expect(decimalIsInteger(parse('1001'))).toEqual(true);
 
   // If decimal is all zeros we count this as an integer since it can
   // be represented as an integer without loss of precision.
-  expect(parse('1.0').isInteger()).toEqual(true);
-  expect(parse('123.0').isInteger()).toEqual(true);
-  expect(parse('1001.0000000000').isInteger()).toEqual(true);
+  expect(decimalIsInteger(parse('1.0'))).toEqual(true);
+  expect(decimalIsInteger(parse('123.0'))).toEqual(true);
+  expect(decimalIsInteger(parse('1001.0000000000'))).toEqual(true);
 
-  expect(parse('1.01').isInteger()).toEqual(false);
-  expect(parse('1001.00000000001').isInteger()).toEqual(false);
-  expect(parse('10e100').isInteger()).toEqual(true);
-  expect(parse('10e-100').isInteger()).toEqual(false);
+  expect(decimalIsInteger(parse('1.01'))).toEqual(false);
+  expect(decimalIsInteger(parse('1001.00000000001'))).toEqual(false);
+  expect(decimalIsInteger(parse('10e100'))).toEqual(true);
+  expect(decimalIsInteger(parse('10e-100'))).toEqual(false);
 });
 
 test('integer digits', () => {
-  expect(parse('0').integerDigits()).toEqual(1);
-  expect(parse('0.0001').integerDigits()).toEqual(1);
-  expect(parse('1.1').integerDigits()).toEqual(1);
-  expect(parse('1e-5').integerDigits()).toEqual(1);
-  expect(parse('1e0').integerDigits()).toEqual(1);
-  expect(parse('1e1').integerDigits()).toEqual(2);
-  expect(parse('1e2').integerDigits()).toEqual(3);
-  expect(parse('1e3').integerDigits()).toEqual(4);
-  expect(parse('1e4').integerDigits()).toEqual(5);
-  expect(parse('1e5').integerDigits()).toEqual(6);
-  expect(parse('12345.999999').integerDigits()).toEqual(5);
-  expect(parse('20000').integerDigits()).toEqual(5);
-  expect(parse('2e5').integerDigits()).toEqual(6);
+  expect(decimalIntegerDigits(parse('0'))).toEqual(1);
+  expect(decimalIntegerDigits(parse('0.0001'))).toEqual(1);
+  expect(decimalIntegerDigits(parse('1.1'))).toEqual(1);
+  expect(decimalIntegerDigits(parse('1e-5'))).toEqual(1);
+  expect(decimalIntegerDigits(parse('1e0'))).toEqual(1);
+  expect(decimalIntegerDigits(parse('1e1'))).toEqual(2);
+  expect(decimalIntegerDigits(parse('1e2'))).toEqual(3);
+  expect(decimalIntegerDigits(parse('1e3'))).toEqual(4);
+  expect(decimalIntegerDigits(parse('1e4'))).toEqual(5);
+  expect(decimalIntegerDigits(parse('1e5'))).toEqual(6);
+  expect(decimalIntegerDigits(parse('12345.999999'))).toEqual(5);
+  expect(decimalIntegerDigits(parse('20000'))).toEqual(5);
+  expect(decimalIntegerDigits(parse('2e5'))).toEqual(6);
 });
 
 test('precision', () => {
@@ -131,106 +156,105 @@ test('scale', () => {
 });
 
 test('set scale', () => {
-  expect(parse('10.34567').setScale(-4)).toEqual(parse('0e4'));
-  expect(parse('10.34567').setScale(-3)).toEqual(parse('0e3'));
-  expect(parse('10.34567').setScale(-2)).toEqual(parse('0e2'));
-  expect(parse('10.34567').setScale(-1)).toEqual(parse('1e1'));
-  expect(parse('10.34567').setScale(0)).toEqual(parse('10'));
-  expect(parse('10.34567').setScale(1)).toEqual(parse('10.3'));
-  expect(parse('10.34567').setScale(2)).toEqual(parse('10.35'));
-  expect(parse('10.34567').setScale(3)).toEqual(parse('10.346'));
-  expect(parse('10.34567').setScale(4)).toEqual(parse('10.3457'));
-  expect(parse('10.34567').setScale(5)).toEqual(parse('10.34567'));
-  expect(parse('10.34567').setScale(6)).toEqual(parse('10.345670'));
+  expect(decimalSetScale(parse('10.34567'), -4)).toEqual(parse('0e4'));
+  expect(decimalSetScale(parse('10.34567'), -3)).toEqual(parse('0e3'));
+  expect(decimalSetScale(parse('10.34567'), -2)).toEqual(parse('0e2'));
+  expect(decimalSetScale(parse('10.34567'), -1)).toEqual(parse('1e1'));
+  expect(decimalSetScale(parse('10.34567'), 0)).toEqual(parse('10'));
+  expect(decimalSetScale(parse('10.34567'), 1)).toEqual(parse('10.3'));
+  expect(decimalSetScale(parse('10.34567'), 2)).toEqual(parse('10.35'));
+  expect(decimalSetScale(parse('10.34567'), 3)).toEqual(parse('10.346'));
+  expect(decimalSetScale(parse('10.34567'), 4)).toEqual(parse('10.3457'));
+  expect(decimalSetScale(parse('10.34567'), 5)).toEqual(parse('10.34567'));
+  expect(decimalSetScale(parse('10.34567'), 6)).toEqual(parse('10.345670'));
 
-  expect(parse('1034567').setScale(-6)).toEqual(parse('1e+6'));
-  expect(parse('1034567').setScale(-5)).toEqual(parse('10e+5'));
-  expect(parse('1034567').setScale(-4)).toEqual(parse('103e+4'));
-  expect(parse('1034567').setScale(-3)).toEqual(parse('1035e+3'));
-  expect(parse('1034567').setScale(-2)).toEqual(parse('10346e+2'));
-  expect(parse('1034567').setScale(-1)).toEqual(parse('103457e+1'));
-  expect(parse('1034567').setScale(0)).toEqual(parse('1034567'));
-  expect(parse('1034567').setScale(1)).toEqual(parse('1034567.0'));
-  expect(parse('1034567').setScale(2)).toEqual(parse('1034567.00'));
-  expect(parse('1034567').setScale(3)).toEqual(parse('1034567.000'));
+  expect(decimalSetScale(parse('1034567'), -6)).toEqual(parse('1e+6'));
+  expect(decimalSetScale(parse('1034567'), -5)).toEqual(parse('10e+5'));
+  expect(decimalSetScale(parse('1034567'), -4)).toEqual(parse('103e+4'));
+  expect(decimalSetScale(parse('1034567'), -3)).toEqual(parse('1035e+3'));
+  expect(decimalSetScale(parse('1034567'), -2)).toEqual(parse('10346e+2'));
+  expect(decimalSetScale(parse('1034567'), -1)).toEqual(parse('103457e+1'));
+  expect(decimalSetScale(parse('1034567'), 0)).toEqual(parse('1034567'));
+  expect(decimalSetScale(parse('1034567'), 1)).toEqual(parse('1034567.0'));
+  expect(decimalSetScale(parse('1034567'), 2)).toEqual(parse('1034567.00'));
+  expect(decimalSetScale(parse('1034567'), 3)).toEqual(parse('1034567.000'));
 
-  expect(parse('12345.6').setScale(1)).toEqual(parse('12345.6'));
-  expect(parse('12345.67').setScale(1)).toEqual(parse('12345.7'));
-  expect(parse('12345.678').setScale(1)).toEqual(parse('12345.7'));
-  expect(parse('12345.6781').setScale(1)).toEqual(parse('12345.7'));
-  expect(parse('12345.67811').setScale(1)).toEqual(parse('12345.7'));
-  expect(parse('12345.678111').setScale(1)).toEqual(parse('12345.7'));
-  expect(parse('12345.6781111').setScale(1)).toEqual(parse('12345.7'));
-  expect(parse('12345.67811111').setScale(1)).toEqual(parse('12345.7'));
-  expect(parse('12345.678111111').setScale(1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.6'), 1)).toEqual(parse('12345.6'));
+  expect(decimalSetScale(parse('12345.67'), 1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.678'), 1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.6781'), 1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.67811'), 1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.678111'), 1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.6781111'), 1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.67811111'), 1)).toEqual(parse('12345.7'));
+  expect(decimalSetScale(parse('12345.678111111'), 1)).toEqual(parse('12345.7'));
 
-  expect(parse('100599.99').setScale(-3)).toEqual(parse('101e3'));
+  expect(decimalSetScale(parse('100599.99'), -3)).toEqual(parse('101e3'));
 });
 
 test('abs', () => {
-  expect(parse('0').abs()).toEqual(parse('0'));
-  expect(parse('2.79').abs()).toEqual(parse('2.79'));
-  expect(parse('12345.6789').abs()).toEqual(parse('12345.6789'));
-  expect(parse('-2.79').abs()).toEqual(parse('2.79'));
-  expect(parse('-12345.6789').abs()).toEqual(parse('12345.6789'));
+  expect(decimalAbs(parse('0'))).toEqual(parse('0'));
+  expect(decimalAbs(parse('2.79'))).toEqual(parse('2.79'));
+  expect(decimalAbs(parse('12345.6789'))).toEqual(parse('12345.6789'));
+  expect(decimalAbs(parse('-2.79'))).toEqual(parse('2.79'));
+  expect(decimalAbs(parse('-12345.6789'))).toEqual(parse('12345.6789'));
 });
 
 test('to integer', () => {
-  expect(parse('0.000').toInteger()).toEqual(parse('0'));
-  expect(parse('0.999').toInteger()).toEqual(parse('0'));
-  expect(parse('-0.999').toInteger()).toEqual(parse('-0'));
-  expect(parse('2.79').toInteger()).toEqual(parse('2'));
-  expect(parse('12345.6789').toInteger()).toEqual(parse('12345'));
-  expect(parse('-2.79').toInteger()).toEqual(parse('-2'));
-  expect(parse('-12345.6789').toInteger()).toEqual(parse('-12345'));
+  expect(decimalToInteger(parse('0.000'))).toEqual(parse('0'));
+  expect(decimalToInteger(parse('0.999'))).toEqual(parse('0'));
+  expect(decimalToInteger(parse('-0.999'))).toEqual(parse('-0'));
+  expect(decimalToInteger(parse('2.79'))).toEqual(parse('2'));
+  expect(decimalToInteger(parse('12345.6789'))).toEqual(parse('12345'));
+  expect(decimalToInteger(parse('-2.79'))).toEqual(parse('-2'));
+  expect(decimalToInteger(parse('-12345.6789'))).toEqual(parse('-12345'));
 });
 
 test('divmod pow10', () => {
-  const d = new DivMod();
-  expect(d.pow10(1234, 1)).toEqual([123, 4]);
-  expect(d.pow10(1234, 2)).toEqual([12, 34]);
-  expect(d.pow10(10001, 1)).toEqual([1000, 1]);
-  expect(d.pow10(10001, 2)).toEqual([100, 1]);
-  expect(d.pow10(10001, 3)).toEqual([10, 1]);
+  expect(divpow10(1234, 1)).toEqual([123, 4]);
+  expect(divpow10(1234, 2)).toEqual([12, 34]);
+  expect(divpow10(10001, 1)).toEqual([1000, 1]);
+  expect(divpow10(10001, 2)).toEqual([100, 1]);
+  expect(divpow10(10001, 3)).toEqual([10, 1]);
 });
 
 test('aligned exponent', () => {
-  expect(parse('1.234').alignexp()).toEqual(0);
-  expect(parse('1.234e0').alignexp()).toEqual(0);
-  expect(parse('1.234e1').alignexp()).toEqual(1);
-  expect(parse('1.234e2').alignexp()).toEqual(2);
+  expect(decimalAlignexp(parse('1.234'))).toEqual(0);
+  expect(decimalAlignexp(parse('1.234e0'))).toEqual(0);
+  expect(decimalAlignexp(parse('1.234e1'))).toEqual(1);
+  expect(decimalAlignexp(parse('1.234e2'))).toEqual(2);
 
-  expect(parse('12.34').alignexp()).toEqual(1);
-  expect(parse('12.34e0').alignexp()).toEqual(1);
-  expect(parse('12.34e1').alignexp()).toEqual(2);
-  expect(parse('12.34e2').alignexp()).toEqual(3);
-  expect(parse('12.3456789').alignexp()).toEqual(1);
-  expect(parse('.02').alignexp()).toEqual(-2);
+  expect(decimalAlignexp(parse('12.34'))).toEqual(1);
+  expect(decimalAlignexp(parse('12.34e0'))).toEqual(1);
+  expect(decimalAlignexp(parse('12.34e1'))).toEqual(2);
+  expect(decimalAlignexp(parse('12.34e2'))).toEqual(3);
+  expect(decimalAlignexp(parse('12.3456789'))).toEqual(1);
+  expect(decimalAlignexp(parse('.02'))).toEqual(-2);
 
-  expect(parse('0.00012345123e8').alignexp()).toEqual(4);
-  expect(parse('1.2345123e4').alignexp()).toEqual(4);
-  expect(parse('12.345123e3').alignexp()).toEqual(4);
-  expect(parse('12345.123').alignexp()).toEqual(4);
+  expect(decimalAlignexp(parse('0.00012345123e8'))).toEqual(4);
+  expect(decimalAlignexp(parse('1.2345123e4'))).toEqual(4);
+  expect(decimalAlignexp(parse('12.345123e3'))).toEqual(4);
+  expect(decimalAlignexp(parse('12345.123'))).toEqual(4);
 });
 
 test('to string', () => {
   // expect(parse('-1.3e-5').toString()).toEqual('-0.000013');
   // expect(parse('-2.9999998e-23').toString()).toEqual('-0.000000000000000000000029999998');
 
-  expect(parse('0').toString()).toEqual('0');
-  expect(parse('0e10').toString()).toEqual('0');
-  expect(parse('0e-10').toString()).toEqual('0.0000000000');
+  expect(decimalToString(parse('0'))).toEqual('0');
+  expect(decimalToString(parse('0e10'))).toEqual('0');
+  expect(decimalToString(parse('0e-10'))).toEqual('0.0000000000');
 });
 
 test('to parts', () => {
-  expect(parse('-15.1234e2').toParts()).toEqual([
+  expect(decimalToParts(parse('-15.1234e2'))).toEqual([
     { type: 'minus', value: '-' },
     { type: 'integer', value: '1512' },
     { type: 'decimal', value: '.' },
     { type: 'fraction', value: '34' },
   ]);
 
-  expect(parse('1.3e-5').toParts()).toEqual([
+  expect(decimalToParts(parse('1.3e-5'))).toEqual([
     { type: 'integer', value: '0' },
     { type: 'decimal', value: '.' },
     { type: 'fraction', value: '000013' },
@@ -238,80 +262,80 @@ test('to parts', () => {
 });
 
 test('move point', () => {
-  expect(parse('1').movePoint(1)).toEqual(parse('1e1'));
-  expect(parse('1e5').movePoint(1)).toEqual(parse('1e6'));
-  expect(parse('1').movePoint(-1)).toEqual(parse('1e-1'));
-  expect(parse('1.234').movePoint(-2)).toEqual(parse('1.234e-2'));
+  expect(decimalMovePoint(parse('1'), 1)).toEqual(parse('1e1'));
+  expect(decimalMovePoint(parse('1e5'), 1)).toEqual(parse('1e6'));
+  expect(decimalMovePoint(parse('1'), -1)).toEqual(parse('1e-1'));
+  expect(decimalMovePoint(parse('1.234'), -2)).toEqual(parse('1.234e-2'));
 
-  expect(parse('1.234').movePoint(0).toString()).toEqual('1.234');
-  expect(parse('1.234').movePoint(-2).toString()).toEqual('0.01234');
-  expect(parse('1.234').movePoint(2).toString()).toEqual('123.4');
-  expect(parse('1.234').movePoint(-6).toString()).toEqual('0.000001234');
-  expect(parse('1.234').movePoint(6).toString()).toEqual('1234000');
+  expect(decimalToString(decimalMovePoint(parse('1.234'), 0))).toEqual('1.234');
+  expect(decimalToString(decimalMovePoint(parse('1.234'), -2))).toEqual('0.01234');
+  expect(decimalToString(decimalMovePoint(parse('1.234'), 2))).toEqual('123.4');
+  expect(decimalToString(decimalMovePoint(parse('1.234'), -6))).toEqual('0.000001234');
+  expect(decimalToString(decimalMovePoint(parse('1.234'), 6))).toEqual('1234000');
 });
 
 test('increment', () => {
-  expect(parse('-1').increment()).toEqual(parse('-0'));
-  expect(parse('-0').increment()).toEqual(parse('1'));
-  expect(parse('0').increment()).toEqual(parse('1'));
-  expect(parse('0.9').increment()).toEqual(parse('1.9'));
-  expect(parse('.1111111111111').increment()).toEqual(parse('1.1111111111111'));
+  expect(decimalIncrement(parse('-1'))).toEqual(parse('-0'));
+  expect(decimalIncrement(parse('-0'))).toEqual(parse('1'));
+  expect(decimalIncrement(parse('0'))).toEqual(parse('1'));
+  expect(decimalIncrement(parse('0.9'))).toEqual(parse('1.9'));
+  expect(decimalIncrement(parse('.1111111111111'))).toEqual(parse('1.1111111111111'));
 
-  expect(parse('9').increment()).toEqual(parse('10'));
-  expect(parse('99').increment()).toEqual(parse('100'));
-  expect(parse('999').increment()).toEqual(parse('1000'));
-  expect(parse('9999').increment()).toEqual(parse('10000'));
-  expect(parse('99999').increment()).toEqual(parse('100000'));
-  expect(parse('999999').increment()).toEqual(parse('1000000'));
-  expect(parse('9999999').increment()).toEqual(parse('10000000'));
+  expect(decimalIncrement(parse('9'))).toEqual(parse('10'));
+  expect(decimalIncrement(parse('99'))).toEqual(parse('100'));
+  expect(decimalIncrement(parse('999'))).toEqual(parse('1000'));
+  expect(decimalIncrement(parse('9999'))).toEqual(parse('10000'));
+  expect(decimalIncrement(parse('99999'))).toEqual(parse('100000'));
+  expect(decimalIncrement(parse('999999'))).toEqual(parse('1000000'));
+  expect(decimalIncrement(parse('9999999'))).toEqual(parse('10000000'));
 });
 
 test('decrement', () => {
-  expect(parse('-1').decrement()).toEqual(parse('-2'));
-  expect(parse('1').decrement()).toEqual(parse('0'));
-  expect(parse('1.9').decrement()).toEqual(parse('0.9'));
+  expect(decimalDecrement(parse('-1'))).toEqual(parse('-2'));
+  expect(decimalDecrement(parse('1'))).toEqual(parse('0'));
+  expect(decimalDecrement(parse('1.9'))).toEqual(parse('0.9'));
 });
 
 test('scientific', () => {
-  expect(parse('0').scientific()).toEqual([parse('0'), 0]);
-  expect(parse('1').scientific()).toEqual([parse('1'), 0]);
-  expect(parse('-1.2').scientific()).toEqual([parse('-1.2'), 0]);
+  expect(decimalScientific(parse('0'))).toEqual([parse('0'), 0]);
+  expect(decimalScientific(parse('1'))).toEqual([parse('1'), 0]);
+  expect(decimalScientific(parse('-1.2'))).toEqual([parse('-1.2'), 0]);
 
-  expect(parse('0.0012').scientific()).toEqual([parse('1.2'), -3]);
-  expect(parse('0.0001234').scientific()).toEqual([parse('1.234'), -4]);
+  expect(decimalScientific(parse('0.0012'))).toEqual([parse('1.2'), -3]);
+  expect(decimalScientific(parse('0.0001234'))).toEqual([parse('1.234'), -4]);
 
-  expect(parse('210').scientific()).toEqual([parse('2.10'), 2]);
-  expect(parse('100000').scientific()).toEqual([parse('1.00000'), 5]);
-  expect(parse('199999').scientific()).toEqual([parse('1.99999'), 5]);
+  expect(decimalScientific(parse('210'))).toEqual([parse('2.10'), 2]);
+  expect(decimalScientific(parse('100000'))).toEqual([parse('1.00000'), 5]);
+  expect(decimalScientific(parse('199999'))).toEqual([parse('1.99999'), 5]);
 
   // alter minimum number of integer digits
-  expect(parse('0').scientific(1)).toEqual([parse('0'), 0]);
-  expect(parse('0').scientific(2)).toEqual([parse('0e1'), -1]);
-  expect(parse('0').scientific(3)).toEqual([parse('0e2'), -2]);
+  expect(decimalScientific(parse('0'), 1)).toEqual([parse('0'), 0]);
+  expect(decimalScientific(parse('0'), 2)).toEqual([parse('0e1'), -1]);
+  expect(decimalScientific(parse('0'), 3)).toEqual([parse('0e2'), -2]);
 });
 
 test('shift left', () => {
-  expect(parse('1.0').shiftleft(0)).toEqual(parse('1.0'));
-  expect(parse('1.0').shiftleft(1)).toEqual(parse('10.0'));
-  expect(parse('1.234').shiftleft(1)).toEqual(parse('12.340'));
+  expect(decimalShiftleft(parse('1.0'), 0)).toEqual(parse('1.0'));
+  expect(decimalShiftleft(parse('1.0'), 1)).toEqual(parse('10.0'));
+  expect(decimalShiftleft(parse('1.234'), 1)).toEqual(parse('12.340'));
 
-  expect(parse('1234').shiftleft(0)).toEqual(parse('1234'));
-  expect(parse('1234').shiftleft(1)).toEqual(parse('12340'));
-  expect(parse('1234').shiftleft(2)).toEqual(parse('123400'));
-  expect(parse('1234').shiftleft(3)).toEqual(parse('1234000'));
-  expect(parse('1234').shiftleft(4)).toEqual(parse('12340000'));
-  expect(parse('1234').shiftleft(5)).toEqual(parse('123400000'));
-  expect(parse('1234').shiftleft(6)).toEqual(parse('1234000000'));
-  expect(parse('1234').shiftleft(7)).toEqual(parse('12340000000'));
-  expect(parse('1234').shiftleft(8)).toEqual(parse('123400000000'));
-  expect(parse('1234').shiftleft(9)).toEqual(parse('1234000000000'));
+  expect(decimalShiftleft(parse('1234'), 0)).toEqual(parse('1234'));
+  expect(decimalShiftleft(parse('1234'), 1)).toEqual(parse('12340'));
+  expect(decimalShiftleft(parse('1234'), 2)).toEqual(parse('123400'));
+  expect(decimalShiftleft(parse('1234'), 3)).toEqual(parse('1234000'));
+  expect(decimalShiftleft(parse('1234'), 4)).toEqual(parse('12340000'));
+  expect(decimalShiftleft(parse('1234'), 5)).toEqual(parse('123400000'));
+  expect(decimalShiftleft(parse('1234'), 6)).toEqual(parse('1234000000'));
+  expect(decimalShiftleft(parse('1234'), 7)).toEqual(parse('12340000000'));
+  expect(decimalShiftleft(parse('1234'), 8)).toEqual(parse('123400000000'));
+  expect(decimalShiftleft(parse('1234'), 9)).toEqual(parse('1234000000000'));
 
-  expect(parse('12345.234').shiftleft(1)).toEqual(parse('123452.340'));
-  expect(parse('12345.234').shiftleft(2)).toEqual(parse('1234523.400'));
-  expect(parse('12345.234').shiftleft(3)).toEqual(parse('12345234.000'));
-  expect(parse('12345.234').shiftleft(4)).toEqual(parse('123452340.000'));
+  expect(decimalShiftleft(parse('12345.234'), 1)).toEqual(parse('123452.340'));
+  expect(decimalShiftleft(parse('12345.234'), 2)).toEqual(parse('1234523.400'));
+  expect(decimalShiftleft(parse('12345.234'), 3)).toEqual(parse('12345234.000'));
+  expect(decimalShiftleft(parse('12345.234'), 4)).toEqual(parse('123452340.000'));
 
-  expect(parse('12345678900000000000').shiftleft(10)).toEqual(parse('123456789000000000000000000000'));
+  expect(decimalShiftleft(parse('12345678900000000000'), 10)).toEqual(parse('123456789000000000000000000000'));
 });
 
 test('shift right', () => {
@@ -458,9 +482,9 @@ test('trailing zeros count', () => {
 });
 
 test('trailing zeros strip', () => {
-  expect(parse('1.234000').stripTrailingZeros()).toEqual(parse('1.234'));
-  expect(parse('100e10').stripTrailingZeros()).toEqual(parse('1e12'));
-  expect(parse('1.00e-10').stripTrailingZeros()).toEqual(parse('1e-10'));
-  expect(parse('0e-2').stripTrailingZeros()).toEqual(parse('0'));
-  expect(parse('0.000e-2').stripTrailingZeros()).toEqual(parse('0'));
+  expect(decimalStripTrailingZeros(parse('1.234000'))).toEqual(parse('1.234'));
+  expect(decimalStripTrailingZeros(parse('100e10'))).toEqual(parse('1e12'));
+  expect(decimalStripTrailingZeros(parse('1.00e-10'))).toEqual(parse('1e-10'));
+  expect(decimalStripTrailingZeros(parse('0e-2'))).toEqual(parse('0'));
+  expect(decimalStripTrailingZeros(parse('0.000e-2'))).toEqual(parse('0'));
 });

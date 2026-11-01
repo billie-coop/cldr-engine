@@ -1,4 +1,25 @@
-import { Decimal, DecimalConstants } from '@phensley/decimal';
+import {
+  Decimal,
+  DecimalConstants,
+  decimal,
+  decimalAbs,
+  decimalCompare,
+  decimalDivmod,
+  decimalIntegerDigits,
+  decimalIsFinite,
+  decimalIsInfinity,
+  decimalIsInteger,
+  decimalIsNaN,
+  decimalIsNegative,
+  decimalNegate,
+  decimalScale,
+  decimalSetScale,
+  decimalShiftleft,
+  decimalStripTrailingZeros,
+  decimalSubtract,
+  decimalToInteger,
+  decimalToString,
+} from '@phensley/decimal';
 import { PluralRules } from '@phensley/plurals';
 import {
   ApplyLeft2NumFormatInst,
@@ -19,13 +40,13 @@ import { binarySearch } from './utils';
 // Divisors based on the number of integer digits in the number being formatted.
 // A 2-digit number's divisor will be '1e1', 3-digit '1e2' and so on.
 // This table stops just past the largest base value found in the RBNF dataset.
-const DIVISORS: Decimal[] = [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map(
-  (e) => new Decimal(`1e${e}`),
+const DIVISORS: Decimal[] = [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((e) =>
+  decimal(`1e${e}`),
 );
 
 const { ONE, ZERO } = DecimalConstants;
-const MINUS_ONE = ONE.negate();
-const TEN = new Decimal(10);
+const MINUS_ONE = decimalNegate(ONE);
+const TEN = decimal(10);
 
 type IntegerSubInst =
   ApplyLeftRuleInst | ApplyLeft2RuleInst | ApplyLeft2NumFormatInst | ApplyLeftNumFormatInst | SubLeftInst;
@@ -53,7 +74,7 @@ export class RBNF {
   ) {
     const { locales, symbols, numbers } = spellout;
     this.symbols = symbols ? symbols.split('_') : [];
-    this.numbers = numbers ? numbers.split('_').map((n: string) => new Decimal(n)) : [];
+    this.numbers = numbers ? numbers.split('_').map((n: string) => decimal(n)) : [];
     for (const id of Object.keys(locales)) {
       const { names, rulesets } = locales[id];
       const [_pub, _prv] = names;
@@ -157,7 +178,9 @@ export class RBNFEngine {
       this._format(n, si);
     }
     if (this.errors.length) {
-      console.log(`ERRORS: '${this.language}' rule '${name}' number '${n.toString()}'  ${this.errors.join('\n')}`);
+      console.log(
+        `ERRORS: '${this.language}' rule '${name}' number '${decimalToString(n)}'  ${this.errors.join('\n')}`,
+      );
     }
     return this.buf;
   }
@@ -165,9 +188,9 @@ export class RBNFEngine {
   protected _format(n: Decimal, si: number): void {
     const ri = this._match(n, si);
     if (ri === -1) {
-      if (n.isNaN()) {
+      if (decimalIsNaN(n)) {
         this.buf += this.symbols.nan;
-      } else if (n.isInfinity()) {
+      } else if (decimalIsInfinity(n)) {
         this.buf += this.symbols.infinity;
       }
       return;
@@ -178,21 +201,21 @@ export class RBNFEngine {
 
   protected _match(n: Decimal, si: number): number {
     const rules = this.rbnf.rulesets[si];
-    const neg = n.isNegative();
-    const int = n.isInteger();
-    const fin = n.isFinite();
+    const neg = decimalIsNegative(n);
+    const int = decimalIsInteger(n);
+    const fin = decimalIsFinite(n);
 
     for (let i = 0; i < rules.length; i++) {
       const r = rules[i];
       switch (r[0]) {
         case RuleType.NOT_A_NUMBER:
-          if (n.isNaN()) {
+          if (decimalIsNaN(n)) {
             return i;
           }
           break;
 
         case RuleType.INFINITY:
-          if (n.isInfinity()) {
+          if (decimalIsInfinity(n)) {
             return i;
           }
           break;
@@ -208,7 +231,7 @@ export class RBNFEngine {
             !int &&
             fin &&
             r[2] === this.decimal &&
-            ((neg && n.compare(MINUS_ONE) === 1) || (!neg && n.compare(ONE) === -1))
+            ((neg && decimalCompare(n, MINUS_ONE) === 1) || (!neg && decimalCompare(n, ONE) === -1))
           ) {
             return i;
           }
@@ -224,16 +247,16 @@ export class RBNFEngine {
         case RuleType.NORMAL:
         case RuleType.NORMAL_RADIX:
           if (fin) {
-            const m = n.abs();
+            const m = decimalAbs(n);
             const j = binarySearch(
               rules as (NormalRule | NormalRadixRule)[],
               true,
               i,
-              (e: NormalRule | NormalRadixRule): number => this.rbnf.numbers[e[2]].compare(m),
+              (e: NormalRule | NormalRadixRule): number => decimalCompare(this.rbnf.numbers[e[2]], m),
             );
             if (j < i) {
               const name = this.rbnf.allnames[si];
-              this.errors.push(`Malformed rules in ruleset '${name}' at ${i} for ${n.toString()}: got ${j}`);
+              this.errors.push(`Malformed rules in ruleset '${name}' at ${i} for ${decimalToString(n)}: got ${j}`);
               return -1;
             }
             return j;
@@ -255,15 +278,15 @@ export class RBNFEngine {
 
         case Opcode.OPTIONAL:
           // If number is not a multiple of radix, execute the optional block
-          if (ZERO.compare(n.divmod(this.getradix(r))[1]) !== 0) {
+          if (decimalCompare(ZERO, decimalDivmod(n, this.getradix(r))[1]) !== 0) {
             this._evalinst(n, inst[1], r, ri, si);
           }
           break;
 
         case Opcode.CARDINAL:
         case Opcode.ORDINAL:
-          const q = n.divmod(this.getradix(r))[0];
-          const cat = this.plural(q.stripTrailingZeros(), inst[0] === Opcode.CARDINAL);
+          const q = decimalDivmod(n, this.getradix(r))[0];
+          const cat = this.plural(decimalStripTrailingZeros(q), inst[0] === Opcode.CARDINAL);
           // Select string matching plural category, and fall back to 'other'
           let subs = inst[1].filter((s) => s[0] === cat);
           if (!subs.length) {
@@ -303,10 +326,10 @@ export class RBNFEngine {
         case Opcode.SUB_RIGHT_3:
         case Opcode.APPLY_RIGHT_RULE:
           if (r[0] === RuleType.MINUS) {
-            this._format(n.abs(), inst[0] === Opcode.APPLY_RIGHT_RULE ? inst[1] : si);
+            this._format(decimalAbs(n), inst[0] === Opcode.APPLY_RIGHT_RULE ? inst[1] : si);
           } else if (r[0] === RuleType.PROPER_FRACTION || r[0] === RuleType.IMPROPER_FRACTION) {
-            const m = n.abs();
-            this.fractionsub(m.subtract(m.toInteger()), inst, ri, si);
+            const m = decimalAbs(n);
+            this.fractionsub(decimalSubtract(m, decimalToInteger(m)), inst, ri, si);
           } else {
             this.modulussub(n, inst, this.getradix(r), ri, si);
           }
@@ -332,12 +355,12 @@ export class RBNFEngine {
       this.bydigit(n, ri, si, spaces);
     } else {
       let q = n;
-      if (q.scale() > 9) {
-        q = q.setScale(9);
+      if (decimalScale(q) > 9) {
+        q = decimalSetScale(q, 9);
       }
-      const t = q.shiftleft(q.scale()).toInteger();
+      const t = decimalToInteger(decimalShiftleft(q, decimalScale(q)));
       const m = binarySearch(DIVISORS, false, 0, (e: Decimal) => {
-        const r = e.compare(t);
+        const r = decimalCompare(e, t);
         return r;
       });
       const d = DIVISORS[m];
@@ -351,7 +374,7 @@ export class RBNFEngine {
   }
 
   protected integersub(n: Decimal, inst: IntegerSubInst, _ri: number, si: number): void {
-    n = n.toInteger();
+    n = decimalToInteger(n);
     switch (inst[0]) {
       case Opcode.APPLY_LEFT_RULE:
       case Opcode.APPLY_LEFT_2_RULE:
@@ -375,7 +398,7 @@ export class RBNFEngine {
   }
 
   protected multipliersub(n: Decimal, inst: RBNFInst, radix: Decimal, _ri: number, si: number): void {
-    const [q] = n.divmod(radix);
+    const [q] = decimalDivmod(n, radix);
     switch (inst[0]) {
       case Opcode.APPLY_LEFT_RULE:
       case Opcode.SUB_LEFT:
@@ -389,7 +412,7 @@ export class RBNFEngine {
   }
 
   protected modulussub(n: Decimal, inst: RBNFInst, radix: Decimal, _ri: number, si: number): void {
-    const r = n.divmod(radix)[1];
+    const r = decimalDivmod(n, radix)[1];
     switch (inst[0]) {
       case Opcode.APPLY_RIGHT_RULE:
       case Opcode.SUB_RIGHT:
@@ -405,16 +428,16 @@ export class RBNFEngine {
 
   protected bydigit(n: Decimal, _ri: number, si: number, spaces: boolean = true): void {
     let i = 0;
-    while (ZERO.compare(n) !== 0) {
+    while (decimalCompare(ZERO, n) !== 0) {
       if (spaces && i) {
         this.buf += ' ';
       }
       // Shift 1 digit to the left and isolate integer part
       // TODO: method for scanning Decimal by index
-      const q = n.shiftleft(1);
-      const r = q.toInteger();
+      const q = decimalShiftleft(n, 1);
+      const r = decimalToInteger(q);
       this._format(r, si);
-      n = q.subtract(r);
+      n = decimalSubtract(q, r);
       i++;
     }
   }
@@ -424,7 +447,7 @@ export class RBNFEngine {
     return r[0] === RuleType.NORMAL_RADIX
       ? n[r[3]]
       : r[0] === RuleType.NORMAL
-        ? DIVISORS[n[r[2]].integerDigits()]
+        ? DIVISORS[decimalIntegerDigits(n[r[2]])]
         : TEN;
   }
 }

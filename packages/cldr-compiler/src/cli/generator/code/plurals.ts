@@ -1,4 +1,12 @@
-import { Decimal, DecimalConstants } from '@phensley/decimal';
+import {
+  DecimalConstants,
+  decimal,
+  decimalAdd,
+  decimalCompare,
+  decimalMovePoint,
+  decimalScale,
+  decimalToString,
+} from '@phensley/decimal';
 import { Code, formatSource, HEADER } from './util';
 
 const generate = (sample: string): string[] => {
@@ -7,15 +15,15 @@ const generate = (sample: string): string[] => {
   }
   const res: string[] = [];
   const [_s, _e] = sample.split('~');
-  let s = new Decimal(_s);
-  const e = new Decimal(_e);
+  let s = decimal(_s);
+  const e = decimal(_e);
   let incr = DecimalConstants.ONE;
-  if (s.scale() > 0) {
-    incr = incr.movePoint(-s.scale());
+  if (decimalScale(s) > 0) {
+    incr = decimalMovePoint(incr, -decimalScale(s));
   }
-  while (s.compare(e) !== 0) {
-    res.push(s.toString());
-    s = s.add(incr);
+  while (decimalCompare(s, e) !== 0) {
+    res.push(decimalToString(s));
+    s = decimalAdd(s, incr);
   }
   return res;
 };

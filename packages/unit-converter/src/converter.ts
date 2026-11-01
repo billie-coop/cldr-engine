@@ -1,4 +1,12 @@
-import { Decimal, MathContext, RationalConstants } from '@phensley/decimal';
+import {
+  Decimal,
+  MathContext,
+  RationalConstants,
+  rationalMultiply,
+  rationalToDecimal,
+  decimalAdd,
+  decimalMultiply,
+} from '@phensley/decimal';
 import { UnitConversion, UnitFactors } from './factormap';
 
 /**
@@ -69,9 +77,9 @@ export class UnitConverter {
   convert(category: string, n: Decimal, src: string, dst: string, ctx?: MathContext): Decimal | undefined {
     const conv = this.get(category, src, dst);
     if (conv) {
-      const fac = conv.factors.reduce((p, c) => p.multiply(c, ctx), RationalConstants.ONE);
-      const res = n.multiply(fac.toDecimal(ctx), ctx);
-      return conv.offset ? res.add(conv.offset.toDecimal(ctx)) : res;
+      const fac = conv.factors.reduce((p, c) => rationalMultiply(p, c, ctx), RationalConstants.ONE);
+      const res = decimalMultiply(n, rationalToDecimal(fac, ctx), ctx);
+      return conv.offset ? decimalAdd(res, rationalToDecimal(conv.offset, ctx)) : res;
     }
     return undefined;
   }

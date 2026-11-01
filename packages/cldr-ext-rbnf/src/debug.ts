@@ -1,6 +1,6 @@
 /* istanbul ignore file -- @preserve */
 
-import { Decimal } from '@phensley/decimal';
+import { Decimal, decimalToString } from '@phensley/decimal';
 import { PluralRules } from '@phensley/plurals';
 import { Opcode, RuleType, RBNFInst, RBNFRule } from './rbnftypes';
 import {
@@ -162,7 +162,7 @@ class RBNFDebugEngine extends RBNFEngineBase {
     }
     let t: tracefunc | undefined;
     if (this.settings.trace) {
-      t = this.trace(`_evalinst '${n.toString()}' ${this.rbnf.allnames[si]} ${rulerepr(this.rbnf, r)}`);
+      t = this.trace(`_evalinst '${decimalToString(n)}' ${this.rbnf.allnames[si]} ${rulerepr(this.rbnf, r)}`);
     }
     super._evalinst(n, i, r, ri, si);
     if (this.settings.trace) {
@@ -171,7 +171,7 @@ class RBNFDebugEngine extends RBNFEngineBase {
   }
 
   protected modulussub(n: Decimal, inst: RBNFInst, radix: Decimal, _ri: number, si: number): void {
-    const t = this.trace('modolussub', n.toString());
+    const t = this.trace('modolussub', decimalToString(n));
     super.modulussub(n, inst, radix, _ri, si);
     t('modulussub');
   }
@@ -195,10 +195,10 @@ const rulerepr = (rbnf: RBNFSetBase, rule: RBNFRule): string => {
       res += 'NaN';
       break;
     case RuleType.NORMAL:
-      res += `"${rbnf.numbers[rule[2]]}"`;
+      res += `"${decimalToString(rbnf.numbers[rule[2]])}"`;
       break;
     case RuleType.NORMAL_RADIX:
-      res += `"${rbnf.numbers[rule[2]]}/${rbnf.numbers[rule[3]]}"`;
+      res += `"${decimalToString(rbnf.numbers[rule[2]])}/${decimalToString(rbnf.numbers[rule[3]])}"`;
       break;
     default:
       res += '!!!!!';

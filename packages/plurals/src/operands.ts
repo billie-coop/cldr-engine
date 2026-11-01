@@ -1,4 +1,4 @@
-import { Decimal } from '@phensley/decimal';
+import { Decimal, decimalProperties } from '@phensley/decimal';
 
 /**
  * Returns the number of digits in w, where w < RADIX.
@@ -84,7 +84,7 @@ export class NumberOperands {
    * exponent `c`.
    */
   constructor(d: Decimal, c: number = 0) {
-    const props = d.properties();
+    const props = decimalProperties(d);
     const flag = props[3];
     if (flag) {
       return;

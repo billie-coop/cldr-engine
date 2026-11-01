@@ -1,4 +1,4 @@
-import { coerceDecimal, Decimal, DecimalArg } from '@phensley/decimal';
+import { Decimal, DecimalArg, decimal } from '@phensley/decimal';
 import { NumberOperands } from './operands';
 
 import { Expr, Rule } from './types';
@@ -12,7 +12,7 @@ export type Operand = 'n' | 'i' | 'v' | 'w' | 'f' | 't' | 'c';
 // Notation for categories in compact plural rules
 const CATEGORIES: string[] = ['zero', 'one', 'two', 'few', 'many', 'other'];
 
-const arg = (n: DecimalArg, c: number = 0) => new NumberOperands(coerceDecimal(n), c);
+const arg = (n: DecimalArg, c: number = 0) => new NumberOperands(decimal(n), c);
 
 /**
  * Plural operations for a given language.

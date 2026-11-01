@@ -1,4 +1,4 @@
-import { Decimal, DecimalConstants } from '@phensley/decimal';
+import { Decimal, DecimalConstants, decimal, decimalToString, isDecimal } from '@phensley/decimal';
 import { MessageArg } from './args';
 
 /**
@@ -28,8 +28,8 @@ export class DefaultMessageArgConverter implements MessageArgConverter {
       case 'boolean':
         return arg.toString();
       case 'object':
-        if (arg instanceof Decimal) {
-          return arg.toString();
+        if (isDecimal(arg)) {
+          return decimalToString(arg);
         }
         break;
     }
@@ -43,17 +43,17 @@ export class DefaultMessageArgConverter implements MessageArgConverter {
     switch (typeof arg) {
       case 'string':
         try {
-          return new Decimal(arg);
+          return decimal(arg);
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
           return DecimalConstants.NAN;
         }
       case 'number':
-        return new Decimal(arg);
+        return decimal(arg);
       case 'boolean':
         return arg ? DecimalConstants.ONE : DecimalConstants.ZERO;
       case 'object':
-        if (arg instanceof Decimal) {
+        if (isDecimal(arg)) {
           return arg;
         }
         break;

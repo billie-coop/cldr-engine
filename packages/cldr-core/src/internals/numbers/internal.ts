@@ -8,7 +8,20 @@ import {
   PluralType,
 } from '@phensley/cldr-types';
 
-import { Decimal, Part } from '@phensley/decimal';
+import {
+  Decimal,
+  Part,
+  decimalAbs,
+  decimalDivide,
+  decimalIntegerDigits,
+  decimalIsNegative,
+  decimalIsZero,
+  decimalMovePoint,
+  decimalMultiply,
+  decimalScientific,
+  decimalSetScale,
+  decimalShiftright,
+} from '@phensley/decimal';
 
 import { Cache } from '@phensley/cldr-utils';
 
@@ -32,7 +45,8 @@ const ADJUST_PATTERN = parseNumberPattern('0')[0];
 /**
  * If n is zero check if it is signed and return abs.
  */
-const negzero = (n: Decimal, show?: boolean): Decimal => (!show && n.isZero() && n.isNegative() ? n.abs() : n);
+const negzero = (n: Decimal, show?: boolean): Decimal =>
+  !show && decimalIsZero(n) && decimalIsNegative(n) ? decimalAbs(n) : n;
 
 /**
  * Number internal engine singleton, shared across all locales.
@@ -152,7 +166,7 @@ export class NumberInternalsImpl implements NumberInternals {
           patternImpl.get(bundle, plural, ndigits)[0] || patternImpl.get(bundle, 'other', ndigits)[0] || standardRaw;
 
         // Re-select pattern as number may have changed sign due to rounding.
-        const pattern = this.getNumberPattern(raw, q2.isNegative());
+        const pattern = this.getNumberPattern(raw, decimalIsNegative(q2));
 
         result = renderer.render(q2, pattern, '', '', '', ctx.minInt, options.group);
         break;
@@ -164,13 +178,13 @@ export class NumberInternalsImpl implements NumberInternals {
       case 'permille-scaled': {
         // Get percent pattern.
         const raw = info.percentFormat.get(bundle) || latnInfo.percentFormat.get(bundle);
-        let pattern = this.getNumberPattern(raw, n.isNegative());
+        let pattern = this.getNumberPattern(raw, decimalIsNegative(n));
 
         // Scale the number to a percent or permille form as needed.
         if (style === 'percent') {
-          n = n.movePoint(2);
+          n = decimalMovePoint(n, 2);
         } else if (style === 'permille') {
-          n = n.movePoint(3);
+          n = decimalMovePoint(n, 3);
         }
 
         // Select percent or permille symbol.
@@ -185,14 +199,14 @@ export class NumberInternalsImpl implements NumberInternals {
         plural = plurals.cardinal(n) as PluralType;
 
         // Re-select pattern as number may have changed sign due to rounding.
-        pattern = this.getNumberPattern(raw, n.isNegative());
+        pattern = this.getNumberPattern(raw, decimalIsNegative(n));
         result = renderer.render(n, pattern, '', symbol, '', ctx.minInt, options.group);
         break;
       }
 
       case 'decimal': {
         // Get decimal pattern.
-        let pattern = this.getNumberPattern(standardRaw, n.isNegative());
+        let pattern = this.getNumberPattern(standardRaw, decimalIsNegative(n));
 
         // Adjust number using pattern and options, then render.
         const ctx = new NumberContext(options, round, false, false, -1);
@@ -202,7 +216,7 @@ export class NumberInternalsImpl implements NumberInternals {
         plural = plurals.cardinal(n) as PluralType;
 
         // Re-select pattern as number may have changed sign due to rounding.
-        pattern = this.getNumberPattern(standardRaw, n.isNegative());
+        pattern = this.getNumberPattern(standardRaw, decimalIsNegative(n));
         result = renderer.render(n, pattern, '', '', '', ctx.minInt, options.group);
         break;
       }
@@ -213,14 +227,14 @@ export class NumberInternalsImpl implements NumberInternals {
         const ctx = new NumberContext(options, round, false, true, -1);
         const latnSciFormat = latnInfo.scientificFormat;
         const format = sciFormat.get(bundle) || latnSciFormat.get(bundle);
-        let pattern = this.getNumberPattern(format, n.isNegative());
+        let pattern = this.getNumberPattern(format, decimalIsNegative(n));
 
         ctx.setPattern(pattern, true);
         n = ctx.adjust(n, true);
         n = negzero(n, options.negativeZero !== false);
-        pattern = this.getNumberPattern(format, n.isNegative());
+        pattern = this.getNumberPattern(format, decimalIsNegative(n));
         // Split number into coeffcient and exponent
-        const [coeff, exponent] = n.scientific(ctx.minInt);
+        const [coeff, exponent] = decimalScientific(n, ctx.minInt);
         const adjcoeff = ctx.adjust(coeff, true);
         result = renderer.render(adjcoeff, pattern, '', '', '', 1, false, exponent);
         break;
@@ -248,9 +262,9 @@ export class NumberInternalsImpl implements NumberInternals {
 
     if (options.cash && fractions.cashRounding > 1) {
       // Simple cash rounding to nearest "cash digits" increment
-      n = n.divide(fractions.cashRounding);
-      n = n.setScale(fractions.cashDigits, round);
-      n = n.multiply(fractions.cashRounding);
+      n = decimalDivide(n, fractions.cashRounding);
+      n = decimalSetScale(n, fractions.cashDigits, round);
+      n = decimalMultiply(n, fractions.cashRounding);
     }
 
     // TODO: display context support
@@ -274,7 +288,7 @@ export class NumberInternalsImpl implements NumberInternals {
       case 'code':
       case 'name': {
         const raw = info.decimalFormats.standard.get(bundle) || latnInfo.decimalFormats.standard.get(bundle);
-        let pattern = this.getNumberPattern(raw, n.isNegative());
+        let pattern = this.getNumberPattern(raw, decimalIsNegative(n));
 
         // Adjust number using pattern and options, then render.
         const ctx = new NumberContext(options, round, false, false, fractions.digits);
@@ -283,7 +297,7 @@ export class NumberInternalsImpl implements NumberInternals {
         n = negzero(n, false);
 
         // Re-select pattern as number may have changed sign due to rounding.
-        pattern = this.getNumberPattern(raw, n.isNegative());
+        pattern = this.getNumberPattern(raw, decimalIsNegative(n));
         const num = renderer.render(n, pattern, '', '', decimal, ctx.minInt, options.group);
 
         // Compute plural category and select pluralized unit.
@@ -327,7 +341,7 @@ export class NumberInternalsImpl implements NumberInternals {
           raw = standardRaw;
         }
 
-        const pattern = this.getNumberPattern(raw, q2.isNegative());
+        const pattern = this.getNumberPattern(raw, decimalIsNegative(q2));
         return renderer.render(q2, pattern, symbol, '', decimal, ctx.minInt, options.group);
       }
 
@@ -340,7 +354,7 @@ export class NumberInternalsImpl implements NumberInternals {
           styleArrow = style === 'symbol' ? latnInfo.currencyFormats.standard : latnInfo.currencyFormats.accounting;
           raw = styleArrow.get(bundle);
         }
-        let pattern = this.getNumberPattern(raw, n.isNegative());
+        let pattern = this.getNumberPattern(raw, decimalIsNegative(n));
 
         // Adjust number using pattern and options, then render.
         const ctx = new NumberContext(options, round, false, false, fractions.digits);
@@ -349,7 +363,7 @@ export class NumberInternalsImpl implements NumberInternals {
         n = negzero(n, false);
 
         // Re-select pattern as number may have changed sign due to rounding.
-        pattern = this.getNumberPattern(raw, n.isNegative());
+        pattern = this.getNumberPattern(raw, decimalIsNegative(n));
         const symbol = this._getCurrencySymbol(bundle, code as CurrencyType, width);
         return renderer.render(n, pattern, symbol, '', decimal, ctx.minInt, options.group);
       }
@@ -374,8 +388,8 @@ export class NumberInternalsImpl implements NumberInternals {
     patternImpl: DigitsArrow<PluralType>,
   ): [Decimal, number] {
     // Select the correct divisor based on the number of integer digits in n.
-    let negative = n.isNegative();
-    let ndigits = n.integerDigits();
+    let negative = decimalIsNegative(n);
+    let ndigits = decimalIntegerDigits(n);
 
     // Select the initial compact pattern based on the integer digits of n.
     // The plural category doesn't matter until the final pattern is selected.
@@ -390,16 +404,16 @@ export class NumberInternalsImpl implements NumberInternals {
     // zeros on compact patterns.
     let q1 = n;
     if (ndivisor > 0) {
-      q1 = q1.movePoint(-ndivisor);
+      q1 = decimalMovePoint(q1, -ndivisor);
     }
 
     // Adjust q1 using the compact pattern's parameters, to produce q2.
-    const q1digits = q1.integerDigits();
+    const q1digits = decimalIntegerDigits(q1);
     ctx.setCompact(pattern, q1digits, ndivisor, fracDigits);
 
     let q2 = ctx.adjust(q1);
-    const q2digits = q2.integerDigits();
-    negative = q2.isNegative();
+    const q2digits = decimalIntegerDigits(q2);
+    negative = decimalIsNegative(q2);
 
     // Check if the number rounded up, adding another integer digit.
     if (q2digits > q1digits) {
@@ -418,9 +432,9 @@ export class NumberInternalsImpl implements NumberInternals {
         // of the number at its correct scale. Otherwise we would end up with
         // 999,999 becoming 0.999999 and half-even rounding truncating the
         // number to '0M' instead of '1M'.
-        q1 = n.movePoint(-divisor);
-        q1 = q1.shiftright(divisor);
-        ctx.setCompact(pattern, q1.integerDigits(), divisor, fracDigits);
+        q1 = decimalMovePoint(n, -divisor);
+        q1 = decimalShiftright(q1, divisor);
+        ctx.setCompact(pattern, decimalIntegerDigits(q1), divisor, fracDigits);
         q2 = ctx.adjust(q1);
       }
     }
@@ -436,17 +450,17 @@ export class NumberInternalsImpl implements NumberInternals {
     divisor: number,
     patternImpl: DigitsArrow<PluralType>,
   ): [Decimal, number] {
-    const negative = n.isNegative();
+    const negative = decimalIsNegative(n);
     const ndigits = Math.log10(divisor) + 1;
     // Select compact patterns based on number of digits in divisor
     const [raw, ndivisor] = patternImpl.get(bundle, 'other', ndigits);
     if (ndivisor > 0) {
-      n = n.movePoint(-ndivisor);
+      n = decimalMovePoint(n, -ndivisor);
     }
 
     const pattern = this.getCompactPattern(raw, standardRaw, negative);
     const fracDigits = ctx.useSignificant ? -1 : 0;
-    ctx.setCompact(pattern, n.integerDigits(), divisor, fracDigits);
+    ctx.setCompact(pattern, decimalIntegerDigits(n), divisor, fracDigits);
 
     // Hack to avoid extra leading '0' for certain divisor cases.
     // Unless explicit minimum integers is set in options, we force it to

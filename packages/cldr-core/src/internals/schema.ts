@@ -1,5 +1,5 @@
 import { KeyIndex, Schema } from '@phensley/cldr-types';
-import { Decimal } from '@phensley/decimal';
+import { Decimal, decimal, decimalAdd, decimalMovePoint, decimalSubtract, decimalToString } from '@phensley/decimal';
 import {
   Digits,
   DigitsArrowImpl,
@@ -38,10 +38,10 @@ class Generator {
   }
 }
 
-const time = (n: [number, number]): Decimal => new Decimal(n[0]).add(new Decimal(n[1]).movePoint(-9));
+const time = (n: [number, number]): Decimal => decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));
 
 const elapsed = (start: [number, number], end: [number, number]): string =>
-  time(end).subtract(time(start)).movePoint(6).toString();
+  decimalToString(decimalMovePoint(decimalSubtract(time(end), time(start)), 6));
 
 /**
  * Builds the schema accessor singleton.

@@ -1,4 +1,16 @@
-import { Decimal, DecimalConstants, MathContext, RoundingModeType } from '../src';
+import {
+  Decimal,
+  DecimalConstants,
+  MathContext,
+  RoundingModeType,
+  decimal,
+  decimalAdd,
+  decimalDivide,
+  decimalMultiply,
+  decimalNegate,
+  decimalSubtract,
+  decimalToString,
+} from '../src';
 import { Timer } from './timer';
 
 const { PI, E } = DecimalConstants;
@@ -14,8 +26,8 @@ const RAW_NUMBERS: string = `
   666 6666 66666 666666 6666666 66666666 6666666666
   999 3333 99999 999999 9999999 99999999 9999999999
 
-  ${PI.toString()}
-  ${E.toString()}
+  ${decimalToString(PI)}
+  ${decimalToString(E)}
 
   # bell primes
   2 3 877 27644437 35742549198872617291353508656626642567 359334085968622831041960188598043661065388726959079837
@@ -27,7 +39,7 @@ RAW_NUMBERS.split(/\n/)
   .map((s) => s.trim())
   .filter((s) => s[0] !== '#')
   .map((s) => s.split(/\s+/))
-  .forEach((r) => r.filter((s) => s.length).forEach((s) => NUMBERS.push(new Decimal(s))));
+  .forEach((r) => r.filter((s) => s.length).forEach((s) => NUMBERS.push(decimal(s))));
 
 const ROUNDING: RoundingModeType[] = ['ceiling', 'up', 'down', 'floor', 'half-down', 'half-up', 'half-even'];
 
@@ -50,7 +62,7 @@ export const mathStress = (): void => {
   let div: Decimal;
   let total = 0;
 
-  const numbers: Decimal[] = NUMBERS.concat(NUMBERS.map((n) => n.negate()));
+  const numbers: Decimal[] = NUMBERS.concat(NUMBERS.map((n) => decimalNegate(n)));
   const timer = new Timer();
   timer.start();
 
@@ -62,18 +74,18 @@ export const mathStress = (): void => {
   for (const n of numbers) {
     for (const m of numbers) {
       for (const c of CONTEXTS) {
-        add = n.add(m);
-        sub = n.subtract(m);
-        mul = n.multiply(m, c);
-        div = n.divide(m, c);
+        add = decimalAdd(n, m);
+        sub = decimalSubtract(n, m);
+        mul = decimalMultiply(n, m, c);
+        div = decimalDivide(n, m, c);
 
         if (VERBOSE) {
-          let s = `${total}: n=${n.toString()} m=${m.toString()}\n`;
+          let s = `${total}: n=${decimalToString(n)} m=${decimalToString(m)}\n`;
           s += `  CONTEXT ${JSON.stringify(c)}\n`;
-          s += `      ADD ${add.toString()}\n`;
-          s += ` SUBTRACT ${sub.toString()}\n`;
-          s += ` MULTIPLY ${mul.toString()}\n`;
-          s += `   DIVIDE ${div.toString()}\n`;
+          s += `      ADD ${decimalToString(add)}\n`;
+          s += ` SUBTRACT ${decimalToString(sub)}\n`;
+          s += ` MULTIPLY ${decimalToString(mul)}\n`;
+          s += `   DIVIDE ${decimalToString(div)}\n`;
           console.log(s);
         } else if (total % 10000 === 0) {
           const pct = Math.round((total / cases) * 100);
