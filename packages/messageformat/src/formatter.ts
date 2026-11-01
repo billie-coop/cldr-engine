@@ -105,5 +105,7 @@ export const formatMessage = (
  *
  * @public
  */
-export const messageFormatterToString = (formatter: MessageFormatter): string =>
-  `MessageFormatter(formatters=${JSON.stringify(Object.keys(formatter.formatters))} cached=${cacheSize(formatter.cache)})`;
+export const messageFormatterToString = (formatter: MessageFormatter): string => {
+  const names = JSON.stringify(Object.keys(formatter.formatters));
+  return `MessageFormatter(formatters=${names} cached=${cacheSize(formatter.cache)})`;
+};
