@@ -1,11 +1,11 @@
 import { UnitType } from '@phensley/cldr-types';
-import { UnitFactors } from '../src';
+import { unitFactors, unitFactorsGet } from '../src';
 
 test('duplicate factors', () => {
-  const factors = new UnitFactors([
+  const factors = unitFactors([
     ['foo' as UnitType, '2', 'bar' as UnitType],
     ['foo' as UnitType, '2', 'bar' as UnitType],
   ]);
-  const conv = factors.get('foo', 'bar')!;
+  const conv = unitFactorsGet(factors, 'foo', 'bar')!;
   expect(conv.path).toEqual(['foo', 'bar']);
 });

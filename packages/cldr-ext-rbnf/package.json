@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "module": "lib-es/index.js",
   "types": "lib/index.d.ts",
+  "sideEffects": false,
   "author": "Patrick Hensley <pathensley@gmail.com>",
   "license": "Apache-2.0",
   "homepage": "https://github.com/phensley/cldr-engine/",

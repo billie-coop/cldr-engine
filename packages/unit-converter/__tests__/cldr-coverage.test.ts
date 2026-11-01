@@ -40,8 +40,13 @@ import {
   VOLUME,
   VOLUME_UK,
   FactorDef,
-  UnitConverter,
-  UnitFactors,
+  convertUnits,
+  createUnitConverter,
+  unitConverterAdd,
+  unitConverterFactors,
+  unitConverterGet,
+  unitFactors,
+  unitFactorsGet,
 } from '../src';
 
 const CATEGORIES: [string, FactorDef[]][] = [
@@ -75,9 +80,9 @@ const CATEGORIES: [string, FactorDef[]][] = [
 ];
 
 const converter = () => {
-  const c = new UnitConverter();
+  let c = createUnitConverter();
   for (const [cat, defs] of CATEGORIES) {
-    c.add(cat, new UnitFactors(defs));
+    c = unitConverterAdd(c, cat, unitFactors(defs));
   }
   return c;
 };
@@ -127,11 +132,17 @@ test('categories are closed within components and separated between them', () =>
         }
       }
     }
-    const map = new UnitFactors(defs);
+    const map = unitFactors(defs);
     for (const u of map.units) {
       for (const v of map.units) {
         const connected = component.get(u) === component.get(v);
-        expect({ category: cat, from: u, to: v, connected, reachable: map.get(u, v) !== undefined }).toEqual({
+        expect({
+          category: cat,
+          from: u,
+          to: v,
+          connected,
+          reachable: unitFactorsGet(map, u, v) !== undefined,
+        }).toEqual({
           category: cat,
           from: u,
           to: v,
@@ -146,7 +157,7 @@ test('categories are closed within components and separated between them', () =>
 test('every CLDR unit dimension is registered in some category', () => {
   const c = converter();
   const expectUnit = (unit: string) => {
-    const cats = CATEGORIES.filter(([cat]) => c.factors(cat)!.units.includes(unit));
+    const cats = CATEGORIES.filter(([cat]) => unitConverterFactors(c, cat)!.units.includes(unit));
     expect(cats.length).toBeGreaterThanOrEqual(1);
   };
   // the units called out in the F5 finding
@@ -250,7 +261,7 @@ test('every CLDR unit dimension is registered in some category', () => {
 
 test('previously missing or wrong units convert per CLDR 48.2.0', () => {
   const c = converter();
-  const cvt = (cat: string, src: string, dst: string) => c.convert(cat, decimal(1), src, dst)!;
+  const cvt = (cat: string, src: string, dst: string) => convertUnits(c, cat, decimal(1), src, dst)!;
 
   // pressure
   expect(decimalToString(cvt('pressure', 'atmosphere', 'pascal'))).toEqual('101325');
@@ -306,7 +317,7 @@ test('previously missing or wrong units convert per CLDR 48.2.0', () => {
   // ofglucose and katal are singleton dimensions (no other unit shares their
   // base), so they are registered but only convertible to themselves
   expect(decimalToString(cvt('substance', 'ofglucose', 'ofglucose'))).toEqual('1');
-  expect(c.convert('substance', decimal(1), 'katal', 'item')).toBe(undefined);
+  expect(convertUnits(c, 'substance', decimal(1), 'katal', 'item')).toBe(undefined);
 
   // speed
   expect(decimalToString(cvt('speed', 'light-speed', 'meter-per-second'))).toEqual('299792458');
@@ -331,7 +342,7 @@ test('hand-maintained and CLDR factors agree on shared edges', () => {
     ['volume', 'gallon', 'cubic-meter', '0.003785411784'],
   ];
   for (const [cat, src, dst, expected] of checks) {
-    const conv = c.get(cat, src, dst)!;
+    const conv = unitConverterGet(c, cat, src, dst)!;
     const fac = conv.factors.reduce((p, f) => rationalMultiply(p, f), rational(1));
     expect({ cat, src, dst, direct: conv.path.length === 2, equal: rationalCompare(fac, expected) === 0 }).toEqual({
       cat,
@@ -351,7 +362,7 @@ test('nonlinear beaufort scale is intentionally not registered', () => {
 
 test('electric units are registered but not mutually convertible', () => {
   const c = converter();
-  expect(c.factors('electric')!.units).toEqual(
+  expect(unitConverterFactors(c, 'electric')!.units).toEqual(
     expect.arrayContaining([
       'volt',
       'ohm',
@@ -365,20 +376,20 @@ test('electric units are registered but not mutually convertible', () => {
       'milliampere',
     ]),
   );
-  expect(c.get('electric', 'volt', 'ohm')).toBe(undefined);
-  expect(decimalToString(c.convert('electric', decimal(2), 'ampere', 'milliampere')!)).toEqual('2000');
+  expect(unitConverterGet(c, 'electric', 'volt', 'ohm')).toBe(undefined);
+  expect(decimalToString(convertUnits(c, 'electric', decimal(2), 'ampere', 'milliampere')!)).toEqual('2000');
 });
 
 test('volume UK variant localizes generic units without US leakage', () => {
   const c = converter();
   // UK gallon is the imperial gallon (4.54609 L), not the US gallon
-  expect(decimalToString(c.convert('volume-uk', decimal(1), 'gallon', 'liter')!)).toEqual('4.54609');
-  expect(decimalToString(c.convert('volume-uk', decimal(1), 'pint', 'liter')!)).toEqual('0.56826125');
-  expect(decimalToString(c.convert('volume-uk', decimal(1), 'cup', 'milliliter')!)).toEqual('284.1');
+  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'gallon', 'liter')!)).toEqual('4.54609');
+  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'pint', 'liter')!)).toEqual('0.56826125');
+  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'cup', 'milliliter')!)).toEqual('284.1');
   // US category keeps the US values
-  expect(decimalToString(c.convert('volume', decimal(1), 'gallon', 'liter')!)).toEqual('3.785411784');
-  expect(decimalToString(c.convert('volume', decimal(1), 'pint', 'liter')!)).toEqual('0.473176473');
+  expect(decimalToString(convertUnits(c, 'volume', decimal(1), 'gallon', 'liter')!)).toEqual('3.785411784');
+  expect(decimalToString(convertUnits(c, 'volume', decimal(1), 'pint', 'liter')!)).toEqual('0.473176473');
   // imperial-specific units convert in both
-  close(c.convert('volume', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
-  close(c.convert('volume-uk', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
+  close(convertUnits(c, 'volume', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
+  close(convertUnits(c, 'volume-uk', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
 });

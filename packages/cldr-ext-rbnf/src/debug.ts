@@ -3,13 +3,7 @@
 import { Decimal, decimalToString } from '@phensley/decimal';
 import { PluralRules } from '@phensley/plurals';
 import { Opcode, RuleType, RBNFInst, RBNFRule } from './rbnftypes';
-import {
-  RBNF as RBNFBase,
-  RBNFDecimalFormatter,
-  RBNFEngine as RBNFEngineBase,
-  RBNFSet as RBNFSetBase,
-  RBNFSymbols,
-} from './rbnf';
+import { RBNF, RBNFEngineHooks, RBNFSet, createRBNF, createRBNFSet } from './rbnf';
 
 const REVPLURALS: { [x: number]: string } = {
   0: 'zero',
@@ -25,89 +19,87 @@ export interface RBNFDebugSettings {
   coverage?: boolean;
 }
 
-export class RBNF extends RBNFBase {
-  static settings: RBNFDebugSettings = {};
-
-  constructor(plurals: PluralRules, spellout: any) {
-    super(plurals, spellout);
-  }
-
-  make(
-    id: string,
-    plurals: PluralRules,
-    pub: string[],
-    prv: string[],
-    numbers: Decimal[],
-    symbols: string[],
-    rulesets: RBNFRule[][],
-  ): RBNFSetBase {
-    return new RBNFDebugSet(id, plurals, pub, prv, numbers, symbols, rulesets, RBNF.settings);
-  }
+/**
+ * An RBNF set that traces execution and/or collects ruleset coverage
+ * information while formatting, according to its settings.
+ */
+export interface RBNFDebugSet extends RBNFSet {
+  /**
+   * Ruleset coverage collected while formatting: ruleset index to the set of
+   * rule indices evaluated. Filled in as a side effect of formatting.
+   */
+  readonly coverage: Map<number, Set<number>>;
 }
 
-export class RBNFDebugSet extends RBNFSetBase {
-  /**
-   * Collect and report ruleset coverage information.
-   */
-  readonly coverage: Map<number, Set<number>> = new Map();
+/**
+ * Decode the RBNF rulesets like createRBNF, building debug sets. The settings
+ * object is shared by all sets and read on every format call.
+ */
+export const createRBNFDebug = (
+  plurals: PluralRules,
+  spellout: any,
+  settings: RBNFDebugSettings = {},
+): RBNF<RBNFDebugSet> =>
+  createRBNF(plurals, spellout, (id, _plurals, pub, prv, numbers, symbols, rulesets) =>
+    createRBNFDebugSet(id, _plurals, pub, prv, numbers, symbols, rulesets, settings),
+  );
 
-  constructor(
-    id: string,
-    plurals: PluralRules,
-    pubnames: string[],
-    prvnames: string[],
-    numbers: Decimal[],
-    symbols: string[],
-    rulesets: RBNFRule[][],
-    private settings: RBNFDebugSettings,
-  ) {
-    super(id, plurals, pubnames, prvnames, numbers, symbols, rulesets);
-  }
+/**
+ * Build a debug RBNF set.
+ */
+export const createRBNFDebugSet = (
+  id: string,
+  plurals: PluralRules,
+  pubnames: string[],
+  prvnames: string[],
+  numbers: Decimal[],
+  symbols: string[],
+  rulesets: RBNFRule[][],
+  settings: RBNFDebugSettings,
+): RBNFDebugSet => {
+  const coverage: Map<number, Set<number>> = new Map();
+  const hooks = (): RBNFEngineHooks => debugHooks(set, settings, coverage);
+  const set: RBNFDebugSet = {
+    ...createRBNFSet(id, plurals, pubnames, prvnames, numbers, symbols, rulesets, hooks),
+    coverage,
+  };
+  return set;
+};
 
-  format(rulename: string, symbols: RBNFSymbols, n: Decimal, fallback: RBNFDecimalFormatter): string {
-    return new RBNFDebugEngine(
-      this.language,
-      this.plurals,
-      symbols,
-      this,
-      fallback,
-      this.settings,
-      this.coverage,
-    ).format(rulename, n);
-  }
-
-  report(detail: boolean = false): void {
-    console.log('Coverage report:');
-    for (let si = 0; si < this.allnames.length; si++) {
-      const name = this.allnames[si];
-      const rules = this.rulesets[si];
-      let pct = 0;
-      let count = 0;
-      const set = this.coverage.get(si);
-      let rpt = '';
-      for (let ri = 0; ri < rules.length; ri++) {
-        if (set && set.has(ri)) {
-          count++;
-        } else {
-          rpt += '   ' + rulerepr(this, rules[ri]) + '\n';
-        }
-      }
-      pct = (count / rules.length) * 100;
-      console.log(
-        padleft(`${Math.floor(pct)}%`, 6),
-        '[',
-        padleft(`${count}`, 2),
-        '/',
-        padleft(`${rules.length}`, 2),
-        ']',
-        name,
-      );
-      if (detail && pct < 100) {
-        console.log(rpt);
+/**
+ * Print the ruleset coverage report for a debug set.
+ */
+export const rbnfDebugReport = (set: RBNFDebugSet, detail: boolean = false): void => {
+  console.log('Coverage report:');
+  for (let si = 0; si < set.allnames.length; si++) {
+    const name = set.allnames[si];
+    const rules = set.rulesets[si];
+    let pct = 0;
+    let count = 0;
+    const covered = set.coverage.get(si);
+    let rpt = '';
+    for (let ri = 0; ri < rules.length; ri++) {
+      if (covered && covered.has(ri)) {
+        count++;
+      } else {
+        rpt += '   ' + rulerepr(set, rules[ri]) + '\n';
       }
     }
+    pct = (count / rules.length) * 100;
+    console.log(
+      padleft(`${Math.floor(pct)}%`, 6),
+      '[',
+      padleft(`${count}`, 2),
+      '/',
+      padleft(`${rules.length}`, 2),
+      ']',
+      name,
+    );
+    if (detail && pct < 100) {
+      console.log(rpt);
+    }
   }
-}
+};
 
 export const padleft = (s: string, n: number): string => {
   const d = n - s.length;
@@ -121,63 +113,56 @@ export const padright = (s: string, n: number): string => {
 
 type tracefunc = (...s: any[]) => void;
 
-class RBNFDebugEngine extends RBNFEngineBase {
-  private depth: number = 0;
-  private id: number = 0;
+/**
+ * Engine hooks for a single format call: trace depth and step ids restart
+ * with each call, coverage accumulates on the set.
+ */
+const debugHooks = (set: RBNFSet, settings: RBNFDebugSettings, coverage: Map<number, Set<number>>): RBNFEngineHooks => {
+  let depth = 0;
+  let id = 0;
 
-  constructor(
-    language: string,
-    plurals: PluralRules,
-    symbols: RBNFSymbols,
-    rbnf: RBNFSetBase,
-    fallback: RBNFDecimalFormatter,
-    private settings: RBNFDebugSettings,
-    private coverage: Map<number, Set<number>>,
-  ) {
-    super(language, plurals, symbols, rbnf, fallback);
-  }
-
-  protected trace(...s: any[]): tracefunc {
-    const id = `${padleft(`[${this.id}]`, 5)}`;
-    const indent = '  '.repeat(this.depth);
-    this.id++;
-    this.depth++;
-    if (this.settings.trace) {
-      console.log(indent, id, '>>', ...s);
+  const trace = (...s: any[]): tracefunc => {
+    const _id = `${padleft(`[${id}]`, 5)}`;
+    const indent = '  '.repeat(depth);
+    id++;
+    depth++;
+    if (settings.trace) {
+      console.log(indent, _id, '>>', ...s);
     }
     return (..._e: any[]) => {
-      this.depth--;
+      depth--;
     };
-  }
+  };
 
-  protected _evalinst(n: Decimal, i: RBNFInst[], r: RBNFRule, ri: number, si: number): void {
-    // Collect ruleset coverage during execution
-    if (this.settings.coverage) {
-      let covered = this.coverage.get(si);
-      if (!covered) {
-        covered = new Set();
-        this.coverage.set(si, covered);
+  return {
+    evalinst: (n: Decimal, r: RBNFRule, ri: number, si: number) => {
+      // Collect ruleset coverage during execution
+      if (settings.coverage) {
+        let covered = coverage.get(si);
+        if (!covered) {
+          covered = new Set();
+          coverage.set(si, covered);
+        }
+        covered.add(ri);
       }
-      covered.add(ri);
-    }
-    let t: tracefunc | undefined;
-    if (this.settings.trace) {
-      t = this.trace(`_evalinst '${decimalToString(n)}' ${this.rbnf.allnames[si]} ${rulerepr(this.rbnf, r)}`);
-    }
-    super._evalinst(n, i, r, ri, si);
-    if (this.settings.trace) {
-      t!('_evalinst');
-    }
-  }
+      let t: tracefunc | undefined;
+      if (settings.trace) {
+        t = trace(`_evalinst '${decimalToString(n)}' ${set.allnames[si]} ${rulerepr(set, r)}`);
+      }
+      return () => {
+        if (settings.trace) {
+          t!('_evalinst');
+        }
+      };
+    },
+    modulussub: (n: Decimal) => {
+      const t = trace('modolussub', decimalToString(n));
+      return () => t('modulussub');
+    },
+  };
+};
 
-  protected modulussub(n: Decimal, inst: RBNFInst, radix: Decimal, _ri: number, si: number): void {
-    const t = this.trace('modolussub', decimalToString(n));
-    super.modulussub(n, inst, radix, _ri, si);
-    t('modulussub');
-  }
-}
-
-const rulerepr = (rbnf: RBNFSetBase, rule: RBNFRule): string => {
+const rulerepr = (rbnf: RBNFSet, rule: RBNFRule): string => {
   let res = '';
   switch (rule[0]) {
     case RuleType.IMPROPER_FRACTION:
@@ -207,7 +192,7 @@ const rulerepr = (rbnf: RBNFSetBase, rule: RBNFRule): string => {
   return res;
 };
 
-const instrepr = (rbnf: RBNFSetBase, i: RBNFInst): string => {
+const instrepr = (rbnf: RBNFSet, i: RBNFInst): string => {
   switch (i[0]) {
     case Opcode.APPLY_LEFT_NUM_FORMAT:
       return `<${rbnf.symbols[i[1]]}<`;

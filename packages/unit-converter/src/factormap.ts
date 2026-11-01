@@ -41,183 +41,206 @@ type E = [
  * @public
  */
 export interface UnitConversion {
-  path: string[];
-  factors: Rational[];
-  offset?: Rational;
+  readonly path: readonly string[];
+  readonly factors: readonly Rational[];
+  readonly offset?: Rational;
 }
 
-const ONE = rational(1);
-
 /**
- * Build a graph of conversion factors between units. Sets of conversion
- * factors are closed, e.g. any factor must be convertable into any other
- * unit in the set. There must be a connected path of length 1 or greater
- * between any two units.
+ * A closed set of conversion factors between units, e.g. any unit in the set
+ * must be convertable into any other unit in the set. There must be a
+ * connected path of length 1 or greater between any two units.
  *
  * Gaps in the graph represent conversion factors that are unknown at the
  * time of graph construction. These are incrementally filled in on demand
  * by finding the shortest and lowest-cost conversion path between two units
  * with no direct conversion factor. The path is transformed into a direct
- * conversion factor by multiplying all factors along the path. Finally the
- * new factor is added to the graph.
+ * conversion factor by multiplying all factors along the path. The factor
+ * graph and the derived conversions are built lazily and cached internally,
+ * keyed by this record.
  *
  * @public
  */
-export class UnitFactors {
-  readonly units: string[] = [];
-  readonly unitset: Set<string> = new Set();
-  private graph: G<Edge> = {};
-  private cache: G<UnitConversion> = {};
-  private initialized: boolean = false;
-
-  /**
-   * Build a unit converter graph using the given factors.
-   */
-  constructor(readonly factors: FactorDef[]) {
-    for (let i = 0; i < factors.length; i++) {
-      const [src, , dst] = factors[i];
-      this.unitset.add(src);
-      this.unitset.add(dst);
-    }
-    this.unitset.forEach((u) => this.units.push(u));
-    this.units.sort();
-  }
-
-  /**
-   * Return the factor that converts units of 'src' into 'dst'.
-   */
-  get(src: string, dst: string): UnitConversion | undefined {
-    // Units are the same, conversion is 1
-    if (src === dst) {
-      return { path: [src, dst], factors: [ONE] };
-    }
-
-    if (!this.initialized) {
-      this.init();
-    }
-
-    // See if a direct conversion exists
-    const n = this.graph[src];
-    if (n) {
-      const e = n[dst];
-      if (e) {
-        return { path: [src, dst], factors: [e[0]], offset: rationalCompare(e[1], 0) === 0 ? undefined : e[1] };
-      }
-    }
-
-    // See if a cached path exists
-    const res = this.cache[src];
-    if (res) {
-      const m = res[dst];
-      if (m) {
-        return m;
-      }
-    }
-
-    // Find the shortest, lowest-cost conversion path between
-    // the two factors
-    const path = this.shortestPath(src, dst);
-    if (path) {
-      // Collect the conversion factors, composing the additive
-      // offset: after each step `offset = offset × factor + a`
-      const factors: Rational[] = [];
-      let offset = RationalConstants.ZERO;
-      let curr: string | undefined = path[0];
-      for (let i = 1; i < path.length; i++) {
-        const next = path[i];
-        const [r, a] = this.graph[curr]![next]!;
-        factors.push(r);
-        offset = rationalAdd(rationalMultiply(offset, r), a);
-        curr = next;
-      }
-
-      const r: UnitConversion = { path, factors };
-      if (rationalCompare(offset, 0) !== 0) {
-        r.offset = offset;
-      }
-
-      // Record this conversion factor in the cache
-      let tmp = this.cache[src];
-      if (!tmp) {
-        this.cache[src] = tmp = {};
-      }
-      tmp[dst] = r;
-      return r;
-    }
-    // No conversion factor exists
-    return undefined;
-  }
-
-  /**
-   * Lazy-initialize constructing the initial factor graph.
-   */
-  protected init(): void {
-    for (const factor of this.factors) {
-      const [src, raw, dst, rawOffset] = factor;
-      const rat = typeof raw === 'string' ? rational(raw) : raw;
-      const off =
-        rawOffset === undefined
-          ? RationalConstants.ZERO
-          : typeof rawOffset === 'string'
-            ? rational(rawOffset)
-            : rawOffset;
-
-      // Convert src -> dst
-      let m = this.graph[src];
-      if (!m) {
-        this.graph[src] = m = {};
-      }
-      m[dst] = [rat, off];
-
-      // Convert dst -> src, if an explicit mapping does not already exist.
-      // Inverting `dst = src × r + a` gives `src = dst × (1/r) − a/r`.
-      m = this.graph[dst];
-      if (!m) {
-        this.graph[dst] = m = {};
-      }
-      const tmp = m[src];
-      if (!tmp) {
-        m[src] = [rationalInverse(rat), rationalNegate(rationalDivide(off, rat))];
-      }
-    }
-    this.initialized = true;
-  }
-
-  /**
-   * Calculates the shortest path between a source and destination factor
-   * using Dijkstra's algorithm. The cost of a path is the minimized
-   * precision of the conversion factors.
-   */
-  protected shortestPath(src: string, dst: string): string[] | undefined {
-    const heap = new Heap(cmp, [[src, 0]]);
-    const edges: M<C> = {};
-    edges[src] = [0, undefined];
-
-    while (!heap.empty()) {
-      const [edge, cost] = heap.pop()!;
-      if (edge === dst) {
-        break;
-      }
-      const nbr = this.graph[edge];
-      if (!nbr) {
-        continue;
-      }
-
-      for (const n of Object.keys(nbr)) {
-        const [r] = nbr[n]!;
-        const newcost = cost + precision(r);
-        const path = edges[n];
-        if (!path || newcost < path[0]) {
-          edges[n] = [newcost, edge];
-          heap.push([n, newcost]);
-        }
-      }
-    }
-
-    const res = edges[dst];
-    return res ? extractpath(edges, dst) : undefined;
-  }
+export interface UnitFactors {
+  /** The conversion factors the set was built from. */
+  readonly factors: readonly FactorDef[];
+  /** Sorted array of all units in the set. */
+  readonly units: readonly string[];
+  /** Set of all units in the set. */
+  readonly unitset: ReadonlySet<string>;
 }
+
+/**
+ * Factor graph and cache of derived conversion paths for a set of factors.
+ */
+interface FactorGraph {
+  readonly graph: G<Edge>;
+  readonly cache: G<UnitConversion>;
+}
+
+const GRAPHS: WeakMap<UnitFactors, FactorGraph> = new WeakMap();
+
+const ONE = /*#__PURE__*/ rational(1);
+
+/**
+ * Build a set of unit conversion factors.
+ *
+ * @public
+ */
+export const unitFactors = (factors: readonly FactorDef[]): UnitFactors => {
+  const unitset: Set<string> = new Set();
+  for (let i = 0; i < factors.length; i++) {
+    const [src, , dst] = factors[i];
+    unitset.add(src);
+    unitset.add(dst);
+  }
+  const units: string[] = [];
+  unitset.forEach((u) => units.push(u));
+  units.sort();
+  return { factors, units, unitset };
+};
+
+/**
+ * Return the factor that converts units of 'src' into 'dst'.
+ *
+ * @public
+ */
+export const unitFactorsGet = (map: UnitFactors, src: string, dst: string): UnitConversion | undefined => {
+  // Units are the same, conversion is 1
+  if (src === dst) {
+    return { path: [src, dst], factors: [ONE] };
+  }
+
+  const { graph, cache } = factorGraph(map);
+
+  // See if a direct conversion exists
+  const n = graph[src];
+  if (n) {
+    const e = n[dst];
+    if (e) {
+      return { path: [src, dst], factors: [e[0]], offset: rationalCompare(e[1], 0) === 0 ? undefined : e[1] };
+    }
+  }
+
+  // See if a cached path exists
+  const res = cache[src];
+  if (res) {
+    const m = res[dst];
+    if (m) {
+      return m;
+    }
+  }
+
+  // Find the shortest, lowest-cost conversion path between
+  // the two factors
+  const path = shortestPath(graph, src, dst);
+  if (path) {
+    // Collect the conversion factors, composing the additive
+    // offset: after each step `offset = offset × factor + a`
+    const factors: Rational[] = [];
+    let offset = RationalConstants.ZERO;
+    let curr: string | undefined = path[0];
+    for (let i = 1; i < path.length; i++) {
+      const next = path[i];
+      const [r, a] = graph[curr]![next]!;
+      factors.push(r);
+      offset = rationalAdd(rationalMultiply(offset, r), a);
+      curr = next;
+    }
+
+    // The offset key is only present for affine conversions
+    const r: UnitConversion = rationalCompare(offset, 0) !== 0 ? { path, factors, offset } : { path, factors };
+
+    // Record this conversion factor in the cache
+    let tmp = cache[src];
+    if (!tmp) {
+      cache[src] = tmp = {};
+    }
+    tmp[dst] = r;
+    return r;
+  }
+  // No conversion factor exists
+  return undefined;
+};
+
+/**
+ * Return the factor graph for the set, constructing it on first use.
+ */
+const factorGraph = (map: UnitFactors): FactorGraph => {
+  let res = GRAPHS.get(map);
+  if (res) {
+    return res;
+  }
+
+  const graph: G<Edge> = {};
+  for (const factor of map.factors) {
+    const [src, raw, dst, rawOffset] = factor;
+    const rat = typeof raw === 'string' ? rational(raw) : raw;
+    const off =
+      rawOffset === undefined
+        ? RationalConstants.ZERO
+        : typeof rawOffset === 'string'
+          ? rational(rawOffset)
+          : rawOffset;
+
+    // Convert src -> dst
+    let m = graph[src];
+    if (!m) {
+      graph[src] = m = {};
+    }
+    m[dst] = [rat, off];
+
+    // Convert dst -> src, if an explicit mapping does not already exist.
+    // Inverting `dst = src × r + a` gives `src = dst × (1/r) − a/r`.
+    m = graph[dst];
+    if (!m) {
+      graph[dst] = m = {};
+    }
+    const tmp = m[src];
+    if (!tmp) {
+      m[src] = [rationalInverse(rat), rationalNegate(rationalDivide(off, rat))];
+    }
+  }
+
+  res = { graph, cache: {} };
+  GRAPHS.set(map, res);
+  return res;
+};
+
+/**
+ * Calculates the shortest path between a source and destination factor
+ * using Dijkstra's algorithm. The cost of a path is the minimized
+ * precision of the conversion factors.
+ */
+const shortestPath = (graph: G<Edge>, src: string, dst: string): string[] | undefined => {
+  const heap = new Heap(cmp, [[src, 0]]);
+  const edges: M<C> = {};
+  edges[src] = [0, undefined];
+
+  while (!heap.empty()) {
+    const [edge, cost] = heap.pop()!;
+    if (edge === dst) {
+      break;
+    }
+    const nbr = graph[edge];
+    if (!nbr) {
+      continue;
+    }
+
+    for (const n of Object.keys(nbr)) {
+      const [r] = nbr[n]!;
+      const newcost = cost + precision(r);
+      const path = edges[n];
+      if (!path || newcost < path[0]) {
+        edges[n] = [newcost, edge];
+        heap.push([n, newcost]);
+      }
+    }
+  }
+
+  const res = edges[dst];
+  return res ? extractpath(edges, dst) : undefined;
+};
 
 /**
  * Compare edge cost

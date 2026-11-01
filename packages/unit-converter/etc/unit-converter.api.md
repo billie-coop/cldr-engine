@@ -17,93 +17,20 @@ export const AREA: FactorDef[];
 export const CONSUMPTION: FactorDef[];
 
 // @public
-export class Decimal {
-    // Warning: (ae-forgotten-export) The symbol "DecimalArg" needs to be exported by the entry point index.d.ts
-    constructor(num: DecimalArg);
-    abs(): Decimal;
-    add(v: DecimalArg): Decimal;
-    protected addsub(u: Decimal, v: Decimal, vsign: number): Decimal;
-    alignexp(): number;
-    compare(v: DecimalArg, abs?: boolean): number;
-    // (undocumented)
-    protected data: number[];
-    decrement(): Decimal;
-    divide(v: DecimalArg, context?: MathContext): Decimal;
-    divmod(v: DecimalArg): [Decimal, Decimal];
-    exp(): number;
-    // (undocumented)
-    protected _exp: number;
+export const convertUnits: (converter: UnitConverter, category: string, n: Decimal, src: string, dst: string, ctx?: MathContext) => Decimal | undefined;
+
+// @public
+export const createUnitConverter: (categories?: {
+    readonly [category: string]: UnitFactors;
+}) => UnitConverter;
+
+// @public
+export interface Decimal {
+    readonly data: readonly number[];
+    readonly exp: number;
     // Warning: (ae-forgotten-export) The symbol "DecimalFlag" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    protected flag: DecimalFlag;
-    // Warning: (ae-forgotten-export) The symbol "DecimalFormatter" needs to be exported by the entry point index.d.ts
-    format<R>(formatter: DecimalFormatter<R>, decimal: string, group: string, minInt: number, minGroup: number, priGroup: number, secGroup: number, zeroScale: boolean, digits?: string[]): void;
-    // (undocumented)
-    protected formatFlags(): string;
-    // (undocumented)
-    protected formatFlagsParts(): Part[];
-    // (undocumented)
-    protected formatParts(d: Decimal, minInt: number): Part[];
-    // (undocumented)
-    protected formatString(d: Decimal, minInt: number): string;
-    // (undocumented)
-    protected static fromRaw(sign: number, _exp: number, data: number[], flag: DecimalFlag): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "Op" needs to be exported by the entry point index.d.ts
-    protected handleFlags(op: Op, v: Decimal): Decimal | undefined;
-    increment(): Decimal;
-    protected _increment(): void;
-    integerDigits(): number;
-    isFinite(): boolean;
-    isInfinity(): boolean;
-    isInteger(): boolean;
-    isNaN(): boolean;
-    isNegative(): boolean;
-    protected isodd(): boolean;
-    isZero(): boolean;
-    mod(v: DecimalArg): Decimal;
-    movePoint(n: number): Decimal;
-    multiply(v: DecimalArg, context?: MathContext): Decimal;
-    negate(): Decimal;
-    protected parse(arg: string | number): void;
-    protected _parse(str: string): string | undefined;
-    precision(): number;
-    properties(): [number[], number, number, number];
-    protected round(rnd: number, rest: number, mode: RoundingModeType): number;
-    scale(): number;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    scientific(minIntDigits?: number): [Decimal, number];
-    // Warning: (ae-forgotten-export) The symbol "RoundingModeType" needs to be exported by the entry point index.d.ts
-    setScale(scale: number, roundingMode?: RoundingModeType): Decimal;
-    // (undocumented)
-    protected _setScale(scale: number, roundingMode?: RoundingModeType): void;
-    shiftleft(shift: number): Decimal;
-    protected _shiftleft(shift: number): void;
-    shiftright(shift: number, mode?: RoundingModeType): Decimal;
-    protected _shiftright(shift: number, mode: RoundingModeType): void;
-    // (undocumented)
-    protected sign: number;
-    signum(): number;
-    stripTrailingZeros(): Decimal;
-    // (undocumented)
-    protected _stripTrailingZeros(): void;
-    subtract(v: DecimalArg): Decimal;
-    toInteger(): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "Part" needs to be exported by the entry point index.d.ts
-    toParts(): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificParts(minIntegers?: number): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificString(minIntegers?: number): string;
-    toString(): string;
-    trailingZeros(): number;
-    protected trim(): Decimal;
+    readonly flag: DecimalFlag;
+    readonly sign: number;
 }
 
 // @public
@@ -149,6 +76,8 @@ export const MASS: FactorDef[];
 export interface MathContext {
     // (undocumented)
     precision?: number;
+    // Warning: (ae-forgotten-export) The symbol "RoundingModeType" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     round?: RoundingModeType;
     // (undocumented)
@@ -171,36 +100,11 @@ export const RADIOACTIVITY: FactorDef[];
 export const RATIO: FactorDef[];
 
 // @public
-export class Rational {
-    constructor(numerator: DecimalArg, denominator?: DecimalArg);
+export interface Rational {
     // (undocumented)
-    add(num: RationalArg, context?: MathContext): Rational;
-    // Warning: (ae-forgotten-export) The symbol "RationalArg" needs to be exported by the entry point index.d.ts
-    //
+    readonly denominator: Decimal;
     // (undocumented)
-    compare(num: RationalArg, context?: MathContext): number;
-    // (undocumented)
-    protected denom: Decimal;
-    // (undocumented)
-    denominator(): Decimal;
-    // (undocumented)
-    divide(num: RationalArg, context?: MathContext): Rational;
-    // (undocumented)
-    inverse(): Rational;
-    // (undocumented)
-    multiply(num: RationalArg, context?: MathContext): Rational;
-    // (undocumented)
-    negate(): Rational;
-    // (undocumented)
-    protected numer: Decimal;
-    // (undocumented)
-    numerator(): Decimal;
-    // (undocumented)
-    subtract(num: RationalArg, context?: MathContext): Rational;
-    // (undocumented)
-    toDecimal(context?: MathContext): Decimal;
-    // (undocumented)
-    toString(): string;
+    readonly numerator: Decimal;
 }
 
 // @public
@@ -218,36 +122,48 @@ export const TORQUE: FactorDef[];
 // @public
 export interface UnitConversion {
     // (undocumented)
-    factors: Rational[];
+    readonly factors: readonly Rational[];
     // (undocumented)
-    offset?: Rational;
+    readonly offset?: Rational;
     // (undocumented)
-    path: string[];
+    readonly path: readonly string[];
 }
 
 // @public
-export class UnitConverter {
-    add(category: string, map: UnitFactors): void;
-    categories(): string[];
-    convert(category: string, n: Decimal, src: string, dst: string, ctx?: MathContext): Decimal | undefined;
-    factors(category: string): UnitFactors | undefined;
-    get(category: string, src: string, dst: string): UnitConversion | undefined;
-    has(category: string): boolean;
+export interface UnitConverter {
+    // (undocumented)
+    readonly storage: {
+        readonly [category: string]: UnitFactors;
+    };
 }
 
 // @public
-export class UnitFactors {
-    constructor(factors: FactorDef[]);
-    // (undocumented)
-    readonly factors: FactorDef[];
-    get(src: string, dst: string): UnitConversion | undefined;
-    protected init(): void;
-    protected shortestPath(src: string, dst: string): string[] | undefined;
-    // (undocumented)
-    readonly units: string[];
-    // (undocumented)
-    readonly unitset: Set<string>;
+export const unitConverterAdd: (converter: UnitConverter, category: string, map: UnitFactors) => UnitConverter;
+
+// @public
+export const unitConverterCategories: (converter: UnitConverter) => string[];
+
+// @public
+export const unitConverterFactors: (converter: UnitConverter, category: string) => UnitFactors | undefined;
+
+// @public
+export const unitConverterGet: (converter: UnitConverter, category: string, src: string, dst: string) => UnitConversion | undefined;
+
+// @public
+export const unitConverterHas: (converter: UnitConverter, category: string) => boolean;
+
+// @public
+export interface UnitFactors {
+    readonly factors: readonly FactorDef[];
+    readonly units: readonly string[];
+    readonly unitset: ReadonlySet<string>;
 }
+
+// @public
+export const unitFactors: (factors: readonly FactorDef[]) => UnitFactors;
+
+// @public
+export const unitFactorsGet: (map: UnitFactors, src: string, dst: string) => UnitConversion | undefined;
 
 // @public (undocumented)
 export type UnitType = 'g-force' | 'meter-per-square-second' | 'arc-minute' | 'arc-second' | 'degree' | 'radian' | 'revolution' | 'steradian' | 'acre' | 'bu-jp' | 'cho' | 'dunam' | 'hectare' | 'se-jp' | 'square-centimeter' | 'square-foot' | 'square-inch' | 'square-kilometer' | 'square-meter' | 'square-mile' | 'square-yard' | 'item' | 'karat' | 'katal' | 'milligram-ofglucose-per-deciliter' | 'millimole-per-liter' | 'mole' | 'ofglucose' | 'part' | 'part-per-1e6' | 'part-per-1e9' | 'percent' | 'permille' | 'permyriad' | 'liter-per-100-kilometer' | 'liter-per-kilometer' | 'mile-per-gallon' | 'mile-per-gallon-imperial' | 'bit' | 'byte' | 'gigabit' | 'gigabyte' | 'kilobit' | 'kilobyte' | 'megabit' | 'megabyte' | 'petabyte' | 'terabit' | 'terabyte' | 'century' | 'day' | 'day-person' | 'decade' | 'fortnight' | 'hour' | 'microsecond' | 'millisecond' | 'minute' | 'month' | 'month-person' | 'nanosecond' | 'night' | 'quarter' | 'second' | 'week' | 'week-person' | 'year' | 'year-person' | 'ampere' | 'coulomb' | 'farad' | 'henry' | 'milliampere' | 'ohm' | 'siemens' | 'volt' | 'becquerel' | 'british-thermal-unit' | 'british-thermal-unit-it' | 'calorie' | 'calorie-it' | 'electronvolt' | 'foodcalorie' | 'gray' | 'joule' | 'kilocalorie' | 'kilojoule' | 'kilowatt-hour' | 'sievert' | 'therm-us' | 'kilogram-force' | 'kilowatt-hour-per-100-kilometer' | 'newton' | 'pound-force' | 'gigahertz' | 'hertz' | 'kilohertz' | 'megahertz' | 'dot' | 'dot-per-centimeter' | 'dot-per-inch' | 'em' | 'megapixel' | 'pixel' | 'pixel-per-centimeter' | 'pixel-per-inch' | 'astronomical-unit' | 'centimeter' | 'chain' | 'decimeter' | 'earth-radius' | 'fathom' | 'foot' | 'furlong' | 'inch' | 'jo-jp' | 'ken' | 'kilometer' | 'light-year' | 'meter' | 'micrometer' | 'mile' | 'mile-scandinavian' | 'millimeter' | 'nanometer' | 'nautical-mile' | 'parsec' | 'picometer' | 'point' | 'ri-jp' | 'rin' | 'rod' | 'shaku-cloth' | 'shaku-length' | 'solar-radius' | 'sun' | 'yard' | 'candela' | 'lumen' | 'lux' | 'solar-luminosity' | 'tesla' | 'weber' | 'carat' | 'dalton' | 'earth-mass' | 'fun' | 'grain' | 'gram' | 'kilogram' | 'microgram' | 'milligram' | 'ounce' | 'ounce-troy' | 'pound' | 'slug' | 'solar-mass' | 'stone' | 'ton' | 'tonne' | 'gigawatt' | 'horsepower' | 'kilowatt' | 'megawatt' | 'milliwatt' | 'watt' | 'atmosphere' | 'bar' | 'gasoline-energy-density' | 'hectopascal' | 'inch-ofhg' | 'kilopascal' | 'megapascal' | 'millibar' | 'millimeter-ofhg' | 'ofhg' | 'pascal' | 'pound-force-per-square-inch' | 'beaufort' | 'kilometer-per-hour' | 'knot' | 'light-speed' | 'meter-per-second' | 'mile-per-hour' | 'celsius' | 'fahrenheit' | 'temperature' | 'kelvin' | 'rankine' | 'newton-meter' | 'pound-force-foot' | 'acre-foot' | 'barrel' | 'bushel' | 'centiliter' | 'cubic-centimeter' | 'cubic-foot' | 'cubic-inch' | 'cubic-kilometer' | 'cubic-meter' | 'cubic-mile' | 'cubic-yard' | 'cup' | 'cup-imperial' | 'cup-jp' | 'cup-metric' | 'deciliter' | 'dessert-spoon' | 'dessert-spoon-imperial' | 'dram' | 'drop' | 'fluid-ounce' | 'fluid-ounce-imperial' | 'fluid-ounce-metric' | 'gallon' | 'gallon-imperial' | 'hectoliter' | 'jigger' | 'koku' | 'kosaji' | 'liter' | 'megaliter' | 'milliliter' | 'osaji' | 'pinch' | 'pint' | 'pint-imperial' | 'pint-metric' | 'quart' | 'quart-imperial' | 'sai' | 'shaku' | 'tablespoon' | 'teaspoon' | 'to-jp';

@@ -1,78 +1,126 @@
 import { Decimal } from '@phensley/decimal';
-import { PluralRules, getPluralRules } from '@phensley/plurals';
+import { getPluralRules, PluralRules } from '@phensley/plurals';
 import { algorithmicNumbering } from './autogen.names';
 import { rbnfRulesets } from './autogen.rbnf';
-import { RBNF, RBNFDecimalFormatter, RBNFSet, RBNFSymbols } from './rbnf';
+import { RBNF, RBNFDecimalFormatter, RBNFSet, RBNFSymbols, createRBNF, rbnfGet, rbnfSetFormat } from './rbnf';
 
 const U = undefined;
-const ROOT = new RBNF(getPluralRules('root'), rbnfRulesets);
-const RBNFROOT = ROOT.get('root')!;
 
-export class AlgorithmicNumberingSystems {
+let root: RBNF | undefined;
+
+/**
+ * The rulesets bundled with the library, decoded on first use.
+ */
+const rootRBNF = (): RBNF => root || (root = createRBNF(getPluralRules('root'), rbnfRulesets));
+
+const rootSet = (): RBNFSet => rbnfGet(rootRBNF(), 'root')!;
+
+/**
+ * Locale-specific rule-based numbering systems, with fallback to the root locale.
+ */
+export interface AlgorithmicNumberingSystems {
   readonly rbnfset: RBNFSet | undefined;
-  readonly rulenames: string[] = [];
+  readonly rulenames: readonly string[];
+}
 
-  constructor(plurals: PluralRules, spellout: any, ...ids: string[]) {
-    const rbnf = new RBNF(plurals, spellout);
+/**
+ * A rule-based numbering system: a public ruleset in an RBNF set.
+ */
+export interface AlgorithmicNumberingSystem {
+  readonly name: string;
+  readonly symbols: RBNFSymbols;
+  readonly rbnf: RBNFSet;
+}
 
-    // Find the first defined system. This lets us check if a region-specific
-    // system exists, falling back to the language-script.
-    for (const id of ids) {
-      this.rbnfset = rbnf.get(id);
-      if (this.rbnfset) {
-        this.rulenames = this.rbnfset.pubnames;
-        // Include rules from the root locale that are not already defined
-        // by the locale.
-        for (const n of RBNFROOT.pubnames) {
-          if (!this.rbnfset.index.has(n)) {
-            this.rulenames.push(n);
-          }
+/**
+ * Decode the locale rulesets in the spellout resource and select the set for
+ * the given locale ids.
+ */
+export const createAlgorithmicNumberingSystems = (
+  plurals: PluralRules,
+  spellout: any,
+  ...ids: string[]
+): AlgorithmicNumberingSystems => {
+  const rbnf = createRBNF(plurals, spellout);
+  const rootset = rootSet();
+  let rbnfset: RBNFSet | undefined;
+  let rulenames: string[] = [];
+
+  // Find the first defined system. This lets us check if a region-specific
+  // system exists, falling back to the language-script.
+  // NOTE: 1.x does not stop at the first match: the last id wins, and an
+  // undefined last id falls back to the root locale below.
+  for (const id of ids) {
+    rbnfset = rbnfGet(rbnf, id);
+    if (rbnfset) {
+      rulenames = rbnfset.pubnames.slice(0);
+      // Include rules from the root locale that are not already defined
+      // by the locale.
+      for (const n of rootset.pubnames) {
+        if (!rbnfset.index.has(n)) {
+          rulenames.push(n);
         }
       }
     }
-    // If no locale rules are available, use those from the root locale.
-    if (!this.rbnfset) {
-      this.rulenames = RBNFROOT.pubnames.slice(0);
+  }
+  // If no locale rules are available, use those from the root locale.
+  if (!rbnfset) {
+    rulenames = rootset.pubnames.slice(0);
+  }
+  return { rbnfset, rulenames };
+};
+
+/**
+ * Build a rule-based numbering system.
+ */
+export const algorithmicNumberingSystem = (
+  name: string,
+  symbols: RBNFSymbols,
+  rbnf: RBNFSet,
+): AlgorithmicNumberingSystem => ({ name, symbols, rbnf });
+
+/**
+ * Return a globally-available rule-based numbering system, e.g. 'hant' or 'roman-upper'.
+ */
+export const algorithmicSystem = (
+  _systems: AlgorithmicNumberingSystems,
+  name: string,
+  symbols: RBNFSymbols,
+): AlgorithmicNumberingSystem | undefined => {
+  const path = algorithmicNumbering[name];
+  if (path) {
+    const set = rbnfGet(rootRBNF(), path[0]);
+    if (set && set.index.has(path[1])) {
+      return algorithmicNumberingSystem(path[1], symbols, set);
     }
   }
+  return U;
+};
 
-  /**
-   * Return a globally-available rule-based numbering system, e.g. 'hant' or 'roman-upper'.
-   */
-  system(name: string, symbols: RBNFSymbols): AlgorithmicNumberingSystem | undefined {
-    const path = algorithmicNumbering[name];
-    if (path) {
-      const set = ROOT.get(path[0]);
-      if (set && set.index.has(path[1])) {
-        return new AlgorithmicNumberingSystem(path[1], symbols, set);
-      }
-    }
-    return U;
+/**
+ * Return a locale-specific rule-based numbering system, e.g. 'spellout-cardinal' or
+ * 'digits-ordinal'.
+ */
+export const algorithmicRbnf = (
+  systems: AlgorithmicNumberingSystems,
+  rule: string,
+  symbols: RBNFSymbols,
+): AlgorithmicNumberingSystem | undefined => {
+  const rootset = rootSet();
+  let set: RBNFSet | undefined;
+  if (systems.rbnfset && systems.rbnfset.index.has(rule)) {
+    set = systems.rbnfset;
+  } else if (rootset.index.has(rule)) {
+    set = rootset;
   }
+  return set ? algorithmicNumberingSystem(rule, symbols, set) : U;
+};
 
-  /**
-   * Return a locale-specific rule-based numbering system, e.g. 'spellout-cardinal' or
-   * 'digits-ordinal'.
-   */
-  rbnf(rule: string, symbols: RBNFSymbols): AlgorithmicNumberingSystem | undefined {
-    let set: RBNFSet | undefined;
-    if (this.rbnfset && this.rbnfset.index.has(rule)) {
-      set = this.rbnfset;
-    } else if (RBNFROOT.index.has(rule)) {
-      set = RBNFROOT;
-    }
-    return set ? new AlgorithmicNumberingSystem(rule, symbols, set) : U;
-  }
-}
-
-export class AlgorithmicNumberingSystem {
-  constructor(
-    readonly name: string,
-    readonly symbols: RBNFSymbols,
-    readonly rbnf: RBNFSet,
-  ) {}
-
-  format(n: Decimal, fallback: RBNFDecimalFormatter): string {
-    return this.rbnf.format(this.name, this.symbols, n, fallback);
-  }
-}
+/**
+ * Format a number using the numbering system.
+ */
+export const algorithmicFormat = (
+  system: AlgorithmicNumberingSystem,
+  n: Decimal,
+  fallback: RBNFDecimalFormatter,
+): string => rbnfSetFormat(system.rbnf, system.name, system.symbols, n, fallback);

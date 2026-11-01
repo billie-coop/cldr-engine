@@ -1,51 +1,75 @@
-import { UnitConversion, UnitConverter, UnitFactors } from '../src';
+import {
+  UnitConversion,
+  convertUnits,
+  createUnitConverter,
+  unitConverterAdd,
+  unitConverterCategories,
+  unitConverterFactors,
+  unitConverterGet,
+  unitConverterHas,
+  unitFactors,
+} from '../src';
 import { ACCELERATION, ANGLE, LENGTH } from '../src';
 import { Decimal, rationalToString, decimal, decimalToString } from '@phensley/decimal';
 
 test('converter', () => {
-  const c = new UnitConverter();
+  let c = createUnitConverter();
   let f: UnitConversion | undefined;
   let v: Decimal | undefined;
 
-  const angle = new UnitFactors(ANGLE);
-  c.add('angle', angle);
+  const angle = unitFactors(ANGLE);
+  c = unitConverterAdd(c, 'angle', angle);
 
-  expect(c.has('angle')).toBe(true);
-  expect(c.has('acceleration')).toBe(false);
+  expect(unitConverterHas(c, 'angle')).toBe(true);
+  expect(unitConverterHas(c, 'acceleration')).toBe(false);
 
-  expect(() => c.add('angle', angle)).toThrowError();
+  expect(() => unitConverterAdd(c, 'angle', angle)).toThrowError();
 
-  c.add('acceleration', new UnitFactors(ACCELERATION));
-  expect(c.has('acceleration')).toBe(true);
+  c = unitConverterAdd(c, 'acceleration', unitFactors(ACCELERATION));
+  expect(unitConverterHas(c, 'acceleration')).toBe(true);
 
-  expect(c.factors('angle')).toBe(angle);
+  expect(unitConverterFactors(c, 'angle')).toBe(angle);
 
-  c.add('length', new UnitFactors(LENGTH));
-  expect(c.categories()).toEqual(['acceleration', 'angle', 'length']);
+  c = unitConverterAdd(c, 'length', unitFactors(LENGTH));
+  expect(unitConverterCategories(c)).toEqual(['acceleration', 'angle', 'length']);
 
-  f = c.get('angle', 'revolution', 'arc-minute')!;
+  f = unitConverterGet(c, 'angle', 'revolution', 'arc-minute')!;
   // Direct edge from the CLDR star table (1 revolution = 21600 arc-minutes)
   expect(f.path).toEqual(['revolution', 'arc-minute']);
   expect(f.factors.map((x) => rationalToString(x))).toEqual(['21600 / 1']);
 
-  f = c.get('angle', 'unknown', 'arc-minute');
+  f = unitConverterGet(c, 'angle', 'unknown', 'arc-minute');
   expect(f).toBe(undefined);
 
-  f = c.get('unknown', 'arc-second', 'arc-minute');
+  f = unitConverterGet(c, 'unknown', 'arc-second', 'arc-minute');
   expect(f).toBe(undefined);
 
-  v = c.convert('angle', decimal(3), 'revolution', 'arc-minute')!;
+  v = convertUnits(c, 'angle', decimal(3), 'revolution', 'arc-minute')!;
   expect(decimalToString(v)).toEqual('64800');
 
-  v = c.convert('angle', decimal(3), 'revolution', 'unknown');
+  v = convertUnits(c, 'angle', decimal(3), 'revolution', 'unknown');
   expect(v).toBe(undefined);
 });
 
 test('constructor', () => {
-  const c = new UnitConverter();
-  c.add('angle', new UnitFactors(ANGLE));
-  c.add('angle-2', new UnitFactors(ANGLE));
-  expect(c.has('angle')).toEqual(true);
-  expect(c.get('angle', 'degree', 'arc-minute')!.path).toEqual(['degree', 'arc-minute']);
-  expect(c.get('angle-2', 'degree', 'arc-minute')!.path).toEqual(['degree', 'arc-minute']);
+  let c = createUnitConverter();
+  c = unitConverterAdd(c, 'angle', unitFactors(ANGLE));
+  c = unitConverterAdd(c, 'angle-2', unitFactors(ANGLE));
+  expect(unitConverterHas(c, 'angle')).toEqual(true);
+  expect(unitConverterGet(c, 'angle', 'degree', 'arc-minute')!.path).toEqual(['degree', 'arc-minute']);
+  expect(unitConverterGet(c, 'angle-2', 'degree', 'arc-minute')!.path).toEqual(['degree', 'arc-minute']);
+});
+
+test('immutable add and initial categories', () => {
+  const empty = createUnitConverter();
+  const angle = unitFactors(ANGLE);
+  const c = unitConverterAdd(empty, 'angle', angle);
+  // the original converter is unchanged
+  expect(unitConverterCategories(empty)).toEqual([]);
+  expect(unitConverterHas(empty, 'angle')).toBe(false);
+  expect(unitConverterCategories(c)).toEqual(['angle']);
+
+  const d = createUnitConverter({ length: unitFactors(LENGTH), angle });
+  expect(unitConverterCategories(d)).toEqual(['angle', 'length']);
+  expect(unitConverterFactors(d, 'angle')).toBe(angle);
 });

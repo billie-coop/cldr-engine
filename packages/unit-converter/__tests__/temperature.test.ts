@@ -9,11 +9,19 @@ import {
   decimalSubtract,
   decimalToString,
 } from '@phensley/decimal';
-import { FactorDef, TEMPERATURE, UnitConverter, UnitFactors } from '../src';
+import {
+  FactorDef,
+  TEMPERATURE,
+  unitFactors,
+  unitFactorsGet,
+  convertUnits,
+  createUnitConverter,
+  unitConverterAdd,
+} from '../src';
 
-const temp = new UnitFactors(TEMPERATURE);
+const temp = unitFactors(TEMPERATURE);
 
-const conv = (src: string, dst: string) => temp.get(src, dst)!;
+const conv = (src: string, dst: string) => unitFactorsGet(temp, src, dst)!;
 
 test('temperature factors are affine', () => {
   // celsius -> kelvin is a direct edge with an offset
@@ -33,10 +41,10 @@ test('temperature compositions are exact', () => {
 });
 
 test('temperature conversions', () => {
-  const u = new UnitConverter();
-  u.add('temperature', temp);
+  let u = createUnitConverter();
+  u = unitConverterAdd(u, 'temperature', temp);
 
-  const f = (n: number, src: string, dst: string) => u.convert('temperature', decimal(n), src, dst)!;
+  const f = (n: number, src: string, dst: string) => convertUnits(u, 'temperature', decimal(n), src, dst)!;
 
   const eq = (d: Decimal, v: number | string) => expect(decimalCompare(d, v)).toEqual(0);
 
@@ -66,10 +74,10 @@ test('temperature round-trips', () => {
     ['fahrenheit', 'rankine'],
   ] as const) {
     for (const n of [-100, -40, 0, 1, 25, 100]) {
-      const rt = new UnitConverter();
-      rt.add('temperature', temp);
-      const v = rt.convert('temperature', decimal(n), a, b)!;
-      const back = rt.convert('temperature', v, b, a)!;
+      let rt = createUnitConverter();
+      rt = unitConverterAdd(rt, 'temperature', temp);
+      const v = convertUnits(rt, 'temperature', decimal(n), a, b)!;
+      const back = convertUnits(rt, 'temperature', v, b, a)!;
       // Repeating decimals (5/9) are only rendered at finite precision,
       // so allow a 1e-18 absolute tolerance; the exact-pair check below
       // pins celsius/kelvin to zero error.
@@ -98,6 +106,6 @@ test('offset inverts exactly', () => {
 // Type-level check that the affine FactorDef shape is accepted
 test('affine factor definition type', () => {
   const def: FactorDef = ['celsius', '1', 'kelvin', '273.15'];
-  const map = new UnitFactors([def]);
-  expect(decimalToString(rationalToDecimal(map.get('celsius', 'kelvin')!.offset!))).toEqual('273.15');
+  const map = unitFactors([def]);
+  expect(decimalToString(rationalToDecimal(unitFactorsGet(map, 'celsius', 'kelvin')!.offset!))).toEqual('273.15');
 });

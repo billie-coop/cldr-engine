@@ -26,9 +26,11 @@ import {
   TORQUE,
   VOLUME,
   VOLUME_UK,
+  unitFactors,
+  unitFactorsGet,
 } from '../src';
 
-import { FactorDef, UnitFactors } from '../src';
+import { FactorDef } from '../src';
 
 const FACTORS: FactorDef[][] = [
   ACCELERATION,
@@ -62,10 +64,10 @@ const FACTORS: FactorDef[][] = [
 
 test('cover all factors', () => {
   for (const factorset of FACTORS) {
-    const map = new UnitFactors(factorset);
+    const map = unitFactors(factorset);
     for (const u of map.units) {
       for (const v of map.units) {
-        map.get(u, v);
+        unitFactorsGet(map, u, v);
       }
     }
   }
