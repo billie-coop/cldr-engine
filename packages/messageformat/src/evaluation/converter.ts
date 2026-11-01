@@ -2,25 +2,26 @@ import { Decimal, DecimalConstants, decimal, decimalToString, isDecimal } from '
 import { MessageArg } from './args';
 
 /**
- * Interface for argument converters.
+ * Argument converter: a record of functions that map raw arguments to the
+ * types required by the internal tags.
  *
  * @public
  */
 export interface MessageArgConverter {
-  asString(arg: MessageArg | undefined): string;
-  asDecimal(arg: MessageArg | undefined): Decimal;
+  readonly asString: (arg: MessageArg | undefined) => string;
+  readonly asDecimal: (arg: MessageArg | undefined) => Decimal;
 }
 
 /**
- * Converts arguments to string or Decimal.
+ * Default argument converter: converts arguments to string or Decimal.
  *
  * @public
  */
-export class DefaultMessageArgConverter implements MessageArgConverter {
+export const defaultMessageArgConverter: MessageArgConverter = {
   /**
    * Convert to a string if possible.
    */
-  asString(arg: MessageArg | undefined): string {
+  asString: (arg: MessageArg | undefined): string => {
     switch (typeof arg) {
       case 'string':
         return arg;
@@ -34,12 +35,12 @@ export class DefaultMessageArgConverter implements MessageArgConverter {
         break;
     }
     return '';
-  }
+  },
 
   /**
    * Convert to a Decimal if possible, or zero.
    */
-  asDecimal(arg: MessageArg | undefined): Decimal {
+  asDecimal: (arg: MessageArg | undefined): Decimal => {
     switch (typeof arg) {
       case 'string':
         try {
@@ -59,5 +60,5 @@ export class DefaultMessageArgConverter implements MessageArgConverter {
         break;
     }
     return DecimalConstants.NAN;
-  }
-}
+  },
+};

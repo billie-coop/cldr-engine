@@ -11,101 +11,25 @@ export type Argument = string | number;
 export const buildMessageMatcher: (names: string[], sticky?: boolean) => MessageMatcher;
 
 // @public
-export class Decimal {
-    // Warning: (ae-forgotten-export) The symbol "DecimalArg" needs to be exported by the entry point index.d.ts
-    constructor(num: DecimalArg);
-    abs(): Decimal;
-    add(v: DecimalArg): Decimal;
-    protected addsub(u: Decimal, v: Decimal, vsign: number): Decimal;
-    alignexp(): number;
-    compare(v: DecimalArg, abs?: boolean): number;
-    // (undocumented)
-    protected data: number[];
-    decrement(): Decimal;
-    divide(v: DecimalArg, context?: MathContext): Decimal;
-    divmod(v: DecimalArg): [Decimal, Decimal];
-    exp(): number;
-    // (undocumented)
-    protected _exp: number;
+export const createMessageFormatter: (options?: MessageFormatterOptions) => MessageFormatter;
+
+// @public
+export interface Decimal {
+    readonly data: readonly number[];
+    readonly exp: number;
     // Warning: (ae-forgotten-export) The symbol "DecimalFlag" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    protected flag: DecimalFlag;
-    // Warning: (ae-forgotten-export) The symbol "DecimalFormatter" needs to be exported by the entry point index.d.ts
-    format<R>(formatter: DecimalFormatter<R>, decimal: string, group: string, minInt: number, minGroup: number, priGroup: number, secGroup: number, zeroScale: boolean, digits?: string[]): void;
-    // (undocumented)
-    protected formatFlags(): string;
-    // (undocumented)
-    protected formatFlagsParts(): Part[];
-    // (undocumented)
-    protected formatParts(d: Decimal, minInt: number): Part[];
-    // (undocumented)
-    protected formatString(d: Decimal, minInt: number): string;
-    // (undocumented)
-    protected static fromRaw(sign: number, _exp: number, data: number[], flag: DecimalFlag): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "Op" needs to be exported by the entry point index.d.ts
-    protected handleFlags(op: Op, v: Decimal): Decimal | undefined;
-    increment(): Decimal;
-    protected _increment(): void;
-    integerDigits(): number;
-    isFinite(): boolean;
-    isInfinity(): boolean;
-    isInteger(): boolean;
-    isNaN(): boolean;
-    isNegative(): boolean;
-    protected isodd(): boolean;
-    isZero(): boolean;
-    mod(v: DecimalArg): Decimal;
-    movePoint(n: number): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "MathContext" needs to be exported by the entry point index.d.ts
-    multiply(v: DecimalArg, context?: MathContext): Decimal;
-    negate(): Decimal;
-    protected parse(arg: string | number): void;
-    protected _parse(str: string): string | undefined;
-    precision(): number;
-    properties(): [number[], number, number, number];
-    protected round(rnd: number, rest: number, mode: RoundingModeType): number;
-    scale(): number;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    scientific(minIntDigits?: number): [Decimal, number];
-    // Warning: (ae-forgotten-export) The symbol "RoundingModeType" needs to be exported by the entry point index.d.ts
-    setScale(scale: number, roundingMode?: RoundingModeType): Decimal;
-    // (undocumented)
-    protected _setScale(scale: number, roundingMode?: RoundingModeType): void;
-    shiftleft(shift: number): Decimal;
-    protected _shiftleft(shift: number): void;
-    shiftright(shift: number, mode?: RoundingModeType): Decimal;
-    protected _shiftright(shift: number, mode: RoundingModeType): void;
-    // (undocumented)
-    protected sign: number;
-    signum(): number;
-    stripTrailingZeros(): Decimal;
-    // (undocumented)
-    protected _stripTrailingZeros(): void;
-    subtract(v: DecimalArg): Decimal;
-    toInteger(): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "Part" needs to be exported by the entry point index.d.ts
-    toParts(): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificParts(minIntegers?: number): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificString(minIntegers?: number): string;
-    toString(): string;
-    trailingZeros(): number;
-    protected trim(): Decimal;
+    readonly flag: DecimalFlag;
+    readonly sign: number;
 }
 
 // @public
-export class DefaultMessageArgConverter implements MessageArgConverter {
-    asDecimal(arg: MessageArg | undefined): Decimal;
-    asString(arg: MessageArg | undefined): string;
-}
+export const defaultMessageArgConverter: MessageArgConverter;
+
+// @public
+export const evaluateMessage: (plurals: PluralRules, converter: MessageArgConverter, formatters: MessageFormatFuncMap, code: MessageCode, positional: MessageArg[], named?: MessageNamedArgs) => string;
+
+// @public
+export const formatMessage: (formatter: MessageFormatter, message: string, positional: MessageArg[], named: MessageNamedArgs) => string;
 
 // @public
 export type MessageArg = any;
@@ -121,9 +45,9 @@ export interface MessageArgCode {
 // @public
 export interface MessageArgConverter {
     // (undocumented)
-    asDecimal(arg: MessageArg | undefined): Decimal;
+    readonly asDecimal: (arg: MessageArg | undefined) => Decimal;
     // (undocumented)
-    asString(arg: MessageArg | undefined): string;
+    readonly asString: (arg: MessageArg | undefined) => string;
 }
 
 // @public
@@ -150,12 +74,6 @@ export interface MessageBlockCode {
 export type MessageCode = MessageArgCode | MessageTextCode | MessagePluralCode | MessageBlockCode | MessageSelectCode | MessageSimpleCode | MessageArgSubCode | MessageNoopCode;
 
 // @public
-export class MessageEngine {
-    constructor(plurals: PluralRules, converter: MessageArgConverter, formatters: MessageFormatFuncMap, code: MessageCode);
-    evaluate(positional: MessageArg[], named?: MessageNamedArgs): string;
-}
-
-// @public
 export type MessageFormatFunc = (args: MessageArg[], options: string[]) => string;
 
 // @public
@@ -164,10 +82,19 @@ export type MessageFormatFuncMap = {
 };
 
 // @public
-export class MessageFormatter {
-    constructor(options?: MessageFormatterOptions);
-    format(message: string, positional: MessageArg[], named: MessageNamedArgs): string;
-    toString(): string;
+export interface MessageFormatter {
+    // Warning: (ae-forgotten-export) The symbol "Cache_2" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly cache: Cache_2<MessageCode>;
+    // (undocumented)
+    readonly converter: MessageArgConverter;
+    // (undocumented)
+    readonly formatters: MessageFormatFuncMap;
+    // (undocumented)
+    readonly matcher: MessageMatcher;
+    // (undocumented)
+    readonly plurals: PluralRules;
 }
 
 // @public
@@ -182,16 +109,19 @@ export interface MessageFormatterOptions {
 }
 
 // @public
+export const messageFormatterToString: (formatter: MessageFormatter) => string;
+
+// @public
 export interface MessageMatcher {
-    arguments(r: MessageState): (number | string)[] | undefined;
-    char(r: MessageState): string;
-    complete(r: MessageState): boolean;
-    formatter(r: MessageState): string | undefined;
-    identifier(r: MessageState): string | undefined;
-    options(r: MessageState): string[];
-    pluralChoice(r: MessageState): string | undefined;
-    pluralOffset(r: MessageState): number;
-    spaces(r: MessageState): boolean;
+    readonly arguments: (r: MessageState) => (number | string)[] | undefined;
+    readonly char: (r: MessageState) => string;
+    readonly complete: (r: MessageState) => boolean;
+    readonly formatter: (r: MessageState) => string | undefined;
+    readonly identifier: (r: MessageState) => string | undefined;
+    readonly options: (r: MessageState) => string[];
+    readonly pluralChoice: (r: MessageState) => string | undefined;
+    readonly pluralOffset: (r: MessageState) => number;
+    readonly spaces: (r: MessageState) => boolean;
 }
 
 // @public
@@ -324,16 +254,16 @@ export const enum PluralNumberType {
 
 // @public
 export interface PluralRules {
-    // (undocumented)
-    cardinal(n: DecimalArg, c?: number): string;
-    // Warning: (ae-forgotten-export) The symbol "NumberOperands" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Rule" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    operands(d: Decimal): NumberOperands;
+    readonly cardinals: readonly Rule[];
     // (undocumented)
-    ordinal(n: DecimalArg): string;
+    readonly ordinals: readonly Rule[];
+    // Warning: (ae-forgotten-export) The symbol "RangeMap" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    range(start: DecimalArg, end: DecimalArg): string;
+    readonly ranges: RangeMap;
 }
 
 // @public
@@ -348,37 +278,13 @@ export interface SelectChoice {
 }
 
 // @public
-export class StickyMatcher implements MessageMatcher {
-    constructor(formatters: string[], compile: regexpFunc);
-    // (undocumented)
-    arguments(r: MessageState): (number | string)[] | undefined;
-    // (undocumented)
-    char(r: MessageState): string;
-    // (undocumented)
-    complete(r: MessageState): boolean;
-    // (undocumented)
-    formatter(r: MessageState): string | undefined;
-    // (undocumented)
-    identifier(r: MessageState): string | undefined;
-    match(pattern: RegExp, r: MessageState): string | undefined;
-    // (undocumented)
-    options(r: MessageState): string[];
-    // (undocumented)
-    pluralChoice(r: MessageState): string | undefined;
-    // (undocumented)
-    pluralOffset(r: MessageState): number;
-    // (undocumented)
-    spaces(r: MessageState): boolean;
-}
+export const stickyMatcher: (formatters: string[], compile: regexpFunc) => MessageMatcher;
 
 // @public
 export const stickyRegexp: (pattern: string) => RegExp;
 
 // @public
-export class SubstringMatcher extends StickyMatcher {
-    // (undocumented)
-    match(pattern: RegExp, r: MessageState): string | undefined;
-}
+export const substringMatcher: (formatters: string[], compile: regexpFunc) => MessageMatcher;
 
 // @public
 export const substringRegexp: (pattern: string) => RegExp;

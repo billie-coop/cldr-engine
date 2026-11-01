@@ -1,4 +1,4 @@
-import { MessageArg, MessageFormatter } from '../src';
+import { MessageArg, createMessageFormatter, formatMessage, messageFormatterToString } from '../src';
 
 const formatters = {
   foo: (args: MessageArg[], options: string[]): string =>
@@ -9,47 +9,47 @@ const formatters = {
 };
 
 test('defaults', () => {
-  const f = new MessageFormatter();
-  expect(f.format('{0}', ['Foo'], {})).toEqual('Foo');
+  const f = createMessageFormatter();
+  expect(formatMessage(f, '{0}', ['Foo'], {})).toEqual('Foo');
 });
 
 test('basic formatter', () => {
-  const f = new MessageFormatter({ language: 'en', formatters });
+  const f = createMessageFormatter({ language: 'en', formatters });
 
-  expect(f.format('{0}', ['Hello'], {})).toEqual('Hello');
-  expect(f.format('{0 foo upper}', ['Hello'], {})).toEqual('HELLO');
-  expect(f.format('{0 foo lower}', ['Hello'], {})).toEqual('hello');
+  expect(formatMessage(f, '{0}', ['Hello'], {})).toEqual('Hello');
+  expect(formatMessage(f, '{0 foo upper}', ['Hello'], {})).toEqual('HELLO');
+  expect(formatMessage(f, '{0 foo lower}', ['Hello'], {})).toEqual('hello');
 
   for (let i = 0; i < 10; i++) {
-    expect(f.format('{0}', ['Hello'], {})).toEqual('Hello');
+    expect(formatMessage(f, '{0}', ['Hello'], {})).toEqual('Hello');
   }
 
-  expect(f.toString()).toContain('cached=3');
+  expect(messageFormatterToString(f)).toContain('cached=3');
 
-  expect(f.format('{0 plural one {# item} other {# items}}', [0], {})).toEqual('0 items');
-  expect(f.format('{0 plural one {# item} other {# items}}', [1], {})).toEqual('1 item');
-  expect(f.format('{0 plural one {# item} other {# items}}', [2], {})).toEqual('2 items');
+  expect(formatMessage(f, '{0 plural one {# item} other {# items}}', [0], {})).toEqual('0 items');
+  expect(formatMessage(f, '{0 plural one {# item} other {# items}}', [1], {})).toEqual('1 item');
+  expect(formatMessage(f, '{0 plural one {# item} other {# items}}', [2], {})).toEqual('2 items');
 
-  expect(f.toString()).toContain('cached=4');
+  expect(messageFormatterToString(f)).toContain('cached=4');
 });
 
 test('formatter prefixes', () => {
-  const f = new MessageFormatter({ language: 'en', formatters });
+  const f = createMessageFormatter({ language: 'en', formatters });
 
-  expect(f.format('{0 quux}', [0], {})).toEqual('quux');
-  expect(f.format('{0 quuxbar}', [0], {})).toEqual('quuxbar');
-  expect(f.format('{0 quuxbaz}', [0], {})).toEqual('quuxbaz');
+  expect(formatMessage(f, '{0 quux}', [0], {})).toEqual('quux');
+  expect(formatMessage(f, '{0 quuxbar}', [0], {})).toEqual('quuxbar');
+  expect(formatMessage(f, '{0 quuxbaz}', [0], {})).toEqual('quuxbaz');
 });
 
 test('missing arguments pass through as literal argument reference text', () => {
-  const f = new MessageFormatter({ language: 'en' });
+  const f = createMessageFormatter({ language: 'en' });
 
-  expect(f.format('{0}', [], {})).toEqual('{0}');
-  expect(f.format('hi {0}!', [], {})).toEqual('hi {0}!');
-  expect(f.format('{name}', [], {})).toEqual('{name}');
+  expect(formatMessage(f, '{0}', [], {})).toEqual('{0}');
+  expect(formatMessage(f, 'hi {0}!', [], {})).toEqual('hi {0}!');
+  expect(formatMessage(f, '{name}', [], {})).toEqual('{name}');
   // plural / selectordinal / select are not evaluated for a missing argument
-  expect(f.format('{0, plural, other {#}}', [], {})).toEqual('{0}');
-  expect(f.format('{count, plural, one {# item} other {# items}}', [], {})).toEqual('{count}');
-  expect(f.format('{0, selectordinal, one {#st} other {#th}}', [], {})).toEqual('{0}');
-  expect(f.format('{name, select, female {her} other {their}}', [], {})).toEqual('{name}');
+  expect(formatMessage(f, '{0, plural, other {#}}', [], {})).toEqual('{0}');
+  expect(formatMessage(f, '{count, plural, one {# item} other {# items}}', [], {})).toEqual('{count}');
+  expect(formatMessage(f, '{0, selectordinal, one {#st} other {#th}}', [], {})).toEqual('{0}');
+  expect(formatMessage(f, '{name, select, female {her} other {their}}', [], {})).toEqual('{name}');
 });

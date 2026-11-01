@@ -1,5 +1,5 @@
 import { PrimitiveBundle } from '@phensley/cldr-types';
-import { pluralRules, PluralRules } from '@phensley/plurals';
+import { PluralRules, getPluralRules } from '@phensley/plurals';
 import { LanguageTag, tagExtensionSubtags, tagLanguage, tagRegion, tagScript } from '@phensley/language-tag';
 
 /**
@@ -93,6 +93,6 @@ export const stringBundle = (
     calendarSystem,
     numberSystem,
     spellout,
-    plurals: pluralRules.get(language, region),
+    plurals: getPluralRules(language, region),
   };
 };

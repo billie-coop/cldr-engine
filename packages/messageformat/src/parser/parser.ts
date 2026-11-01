@@ -25,7 +25,16 @@ const enum Chars {
  * @public
  */
 export const parseMessagePattern = (raw: string, matcher: MessageMatcher, disableEscapes?: boolean): MessageCode =>
-  new MessagePatternParser(raw, matcher, disableEscapes).parse();
+  outer({ raw, matcher, disableEscapes }, { t: raw, s: 0, e: raw.length });
+
+/**
+ * Inputs to the parse of one message pattern.
+ */
+interface ParseContext {
+  readonly raw: string;
+  readonly matcher: MessageMatcher;
+  readonly disableEscapes?: boolean;
+}
 
 /**
  * Hand-implemented parser for ICU message format. Designed to be compact and
@@ -53,325 +62,318 @@ export const parseMessagePattern = (raw: string, matcher: MessageMatcher, disabl
  * See:
  *   https://unpkg.com/messageformat-parser/parser.js
  */
-class MessagePatternParser {
-  constructor(
-    private raw: string,
-    private matcher: MessageMatcher,
-    private disableEscapes?: boolean,
-  ) {}
+const outer = (p: ParseContext, r: MessageState, argsub?: Argument): MessageCode => {
+  // p.matcher.debug('outer', r);
 
-  parse(): MessageCode {
-    const t = this.raw;
-    return this.outer({ t, s: 0, e: t.length });
-  }
+  const str = p.raw;
 
-  outer(r: MessageState, argsub?: Argument): MessageCode {
-    // this.matcher.debug('outer', r);
+  // Accumulate parsed instruction nodes
+  const n: MessageCode[] = [];
 
-    const str = this.raw;
+  // Accumulate plain text characters
+  let buf = '';
 
-    // Accumulate parsed instruction nodes
-    const n: MessageCode[] = [];
+  // Iterate until we reach the end of this range
+  while (r.s < r.e) {
+    const c = str[r.s];
 
-    // Accumulate plain text characters
-    let buf = '';
-
-    // Iterate until we reach the end of this range
-    while (r.s < r.e) {
-      const c = str[r.s];
-
-      // Look for characters which mark the start of a special section
-      switch (c) {
-        case Chars.LEFT: {
-          // Push non-empty buffer
-          if (buf) {
-            n.push(textarg(buf, argsub));
-            buf = '';
-          }
-          const hidden = str[r.s + 1] === Chars.MINUS;
-
-          const k = this.seek(r.s, r.e);
-          if (k === -1) {
-            n.push(textarg(str.substring(r.s, r.e), argsub));
-            r.s = r.e;
-          } else if (hidden) {
-            // Tag is hidden from processor, emit as text
-            n.push(text(Chars.LEFT + str.substring(r.s + 2, k + 1)));
-
-            // Skip over hidden tag
-            r.s = k;
-          } else {
-            // Process tag interior
-            const child = this.inner({ t: r.t, s: r.s + 1, e: k });
-            if (!child) {
-              // If we're not in the outermost scope, push text
-              if (argsub !== undefined && r.s + 1 !== k) {
-                n.push(textarg(str.substring(r.s + 1, k), argsub));
-              }
-            } else {
-              n.push(child);
-            }
-
-            // Skip over processed tag
-            r.s = k;
-          }
-          break;
+    // Look for characters which mark the start of a special section
+    switch (c) {
+      case Chars.LEFT: {
+        // Push non-empty buffer
+        if (buf) {
+          n.push(textarg(buf, argsub));
+          buf = '';
         }
+        const hidden = str[r.s + 1] === Chars.MINUS;
 
-        case Chars.APOS: {
-          if (this.disableEscapes) {
-            buf += c;
-          } else {
-            if (c === str[r.s + 1]) {
-              // Convert double apostrophe to single
-              buf += c;
-              r.s++;
-            } else {
-              // Skip over apostrophe
-              r.s++;
+        const k = seek(p.raw, r.s, r.e);
+        if (k === -1) {
+          n.push(textarg(str.substring(r.s, r.e), argsub));
+          r.s = r.e;
+        } else if (hidden) {
+          // Tag is hidden from processor, emit as text
+          n.push(text(Chars.LEFT + str.substring(r.s + 2, k + 1)));
 
-              // Capture string wrapped in apostrophes
-              let k = str.indexOf(c, r.s);
-              if (k === -1) {
-                k = r.e;
-              }
-
-              // Since this is escaped text, push text node without substituting '#'
-              buf += str.substring(r.s, k);
-
-              // Skip over escaped text
-              r.s = k;
+          // Skip over hidden tag
+          r.s = k;
+        } else {
+          // Process tag interior
+          const child = inner(p, { t: r.t, s: r.s + 1, e: k });
+          if (!child) {
+            // If we're not in the outermost scope, push text
+            if (argsub !== undefined && r.s + 1 !== k) {
+              n.push(textarg(str.substring(r.s + 1, k), argsub));
             }
+          } else {
+            n.push(child);
           }
-          break;
-        }
 
-        default:
-          // Append plain character to output buffer
-          buf += c;
-          break;
+          // Skip over processed tag
+          r.s = k;
+        }
+        break;
       }
-      r.s++;
-    }
 
-    // Push any trailing characters
-    if (buf) {
-      n.push(textarg(buf, argsub));
-    }
+      case Chars.APOS: {
+        if (p.disableEscapes) {
+          buf += c;
+        } else {
+          if (c === str[r.s + 1]) {
+            // Convert double apostrophe to single
+            buf += c;
+            r.s++;
+          } else {
+            // Skip over apostrophe
+            r.s++;
 
-    // Flatten blocks
-    return flatten(n);
-  }
+            // Capture string wrapped in apostrophes
+            let k = str.indexOf(c, r.s);
+            if (k === -1) {
+              k = r.e;
+            }
 
-  inner(r: MessageState): MessageCode | undefined {
-    // this.matcher.debug('inner', r);
+            // Since this is escaped text, push text node without substituting '#'
+            buf += str.substring(r.s, k);
 
-    const m = this.matcher;
-
-    // Skip any optional leading spaces
-    m.spaces(r);
-
-    // See if we have any arguments. we must have at least one or
-    // we fail this tag.
-    const args = m.arguments(r);
-    if (!args) {
-      return undefined;
-    }
-
-    // Check if we're done..
-    if (!m.spaces(r) || m.complete(r)) {
-      // We have a simple argument.
-      return [MessageOpType.ARG, args[0]];
-    }
-
-    // See if any of our known formatters are present
-    const name = m.formatter(r);
-    if (!name) {
-      return undefined;
-    }
-    m.spaces(r);
-
-    // Execute logic to parse instructions by type
-    switch (name) {
-      case 'plural':
-      case 'selectordinal':
-        const type = name === 'plural' ? PluralNumberType.CARDINAL : PluralNumberType.ORDINAL;
-        return this.plural(args, type, m, r);
-
-      case 'select':
-        return this.select(args, m, r);
+            // Skip over escaped text
+            r.s = k;
+          }
+        }
+        break;
+      }
 
       default:
-        return this.simple(args, name, m, r);
-    }
-
-    // This code should never be reached if the 'name' corresponds
-    // to a valid formatter.
-    /* istanbul ignore next -- @preserve */
-    return NOOP;
-  }
-
-  /**
-   * Parse a nested tag sequence '{' ... '}'
-   */
-  tag(m: MessageMatcher, r: MessageState, argsub?: Argument): MessageCode | undefined {
-    // m.debug('  tag', r);
-    m.spaces(r);
-
-    // Ensure we see a tag start next
-    if (m.char(r) !== Chars.LEFT) {
-      return undefined;
-    }
-
-    const hidden = this.raw[r.s + 1] === Chars.MINUS;
-
-    // Find matching end delimter
-    const k = this.seek(r.s, r.e);
-
-    // Note this can never be -1 since to get into
-    // this code we must have parsed balanced '{' and '}' above.
-    // if (k === -1) {
-    //   return undefined;
-    // }
-
-    // Parse nested block and skip over it
-    const node = hidden
-      ? text(Chars.LEFT + this.raw.substring(r.s + 2, k + 1))
-      : this.outer({ t: r.t, s: r.s + 1, e: k }, argsub);
-    r.s = k + 1;
-    return node;
-  }
-
-  /**
-   * Parse a plural instruction.
-   */
-  plural(args: Argument[], type: PluralNumberType, m: MessageMatcher, r: MessageState): MessageCode {
-    // m.debug('plural', r);
-
-    // See if we have an offset argument
-    const offset = m.pluralOffset(r);
-    m.spaces(r);
-
-    const choices: PluralChoice[] = [];
-    do {
-      // Parse a plural choice
-      const choice = m.pluralChoice(r);
-      if (!choice) {
+        // Append plain character to output buffer
+        buf += c;
         break;
-      }
-
-      // Parse a tag into a block of instructions
-      const block = this.tag(m, r, args[0]);
-      if (!block) {
-        return NOOP;
-      }
-
-      // Determine which choice node to construct
-      let node: PluralChoice;
-      if (choice[0] === '=') {
-        const num = choice.substring(1);
-        node = [PluralChoiceType.EXACT, num, block];
-      } else {
-        // Plural category match
-        node = [PluralChoiceType.CATEGORY, choice, block];
-      }
-
-      // Append and skip spaces
-      choices.push(node);
-      m.spaces(r);
-    } while (!m.complete(r));
-
-    // If we parsed no choices, emit a no-op
-    return choices.length ? [MessageOpType.PLURAL, args, offset, type, choices] : NOOP;
+    }
+    r.s++;
   }
 
-  /**
-   * Parse a select instruction.
-   */
-  select(args: Argument[], m: MessageMatcher, r: MessageState): MessageCode {
-    const choices: SelectChoice[] = [];
-    do {
-      // Parse an identifier to be used as the select choice
-      const ident = m.identifier(r);
-      if (!ident) {
-        break;
-      }
-
-      // Parse a tag into a block of instructions
-      const block = this.tag(m, r, args[0]);
-      if (!block) {
-        return NOOP;
-      }
-
-      // Append and skip to the next choice
-      choices.push([ident, block]);
-      m.spaces(r);
-    } while (!m.complete(r));
-
-    // If we parsed no choices, just emit a no-op
-    return choices.length ? [MessageOpType.SELECT, args, choices] : NOOP;
+  // Push any trailing characters
+  if (buf) {
+    n.push(textarg(buf, argsub));
   }
 
-  /**
-   * Simple single-argument formatter with zero or more options.
-   */
-  simple(args: Argument[], name: string, m: MessageMatcher, r: MessageState): MessageCode {
-    const options = m.options(r);
-    return [MessageOpType.SIMPLE, name, args, options];
+  // Flatten blocks
+  return flatten(n);
+};
+
+const inner = (p: ParseContext, r: MessageState): MessageCode | undefined => {
+  // p.matcher.debug('inner', r);
+
+  const m = p.matcher;
+
+  // Skip any optional leading spaces
+  m.spaces(r);
+
+  // See if we have any arguments. we must have at least one or
+  // we fail this tag.
+  const args = m.arguments(r);
+  if (!args) {
+    return undefined;
   }
 
-  /**
-   * Seek to the matching '}' character at the same nesting level,
-   * skipping over any apostrophes. This adds some redundant scanning
-   * of the string but simplifies some of the parsing logic in other
-   * areas. It ensures we're always dealing with a well-formed tag
-   * where all '{' have a corresponding '}'.
-   */
-  seek(i: number, j: number): number {
-    const r = this.raw;
-    let d = 0; // Track nesting depth
+  // Check if we're done..
+  if (!m.spaces(r) || m.complete(r)) {
+    // We have a simple argument.
+    return [MessageOpType.ARG, args[0]];
+  }
 
-    loop: while (i < j) {
-      const c = r[i];
-      switch (c) {
-        case Chars.LEFT:
-          // Increase depth
-          d++;
-          break;
+  // See if any of our known formatters are present
+  const name = m.formatter(r);
+  if (!name) {
+    return undefined;
+  }
+  m.spaces(r);
 
-        case Chars.RIGHT:
-          // Reduce depth
-          d--;
-          if (!d) {
-            // Depth is zero, we're done
-            break loop;
-          }
-          break;
+  // Execute logic to parse instructions by type
+  switch (name) {
+    case 'plural':
+    case 'selectordinal':
+      const type = name === 'plural' ? PluralNumberType.CARDINAL : PluralNumberType.ORDINAL;
+      return plural(p, args, type, m, r);
 
-        case Chars.APOS:
-          if (c === r[i + 1]) {
-            // Skip single escaped apostrophe
-            i++;
-          } else {
-            // Find matching apostrophe
-            const k = r.indexOf(c, i + 1);
-            if (k === -1) {
-              // No apostrophe, assume rest of string is escaped
-              return -1;
-            }
-            // Skip over matching apostrophe
-            i = k;
-          }
-          break;
-      }
+    case 'select':
+      return select(p, args, m, r);
 
-      i++;
+    default:
+      return simple(args, name, m, r);
+  }
+
+  // This code should never be reached if the 'name' corresponds
+  // to a valid formatter.
+  /* istanbul ignore next -- @preserve */
+  return NOOP;
+};
+
+/**
+ * Parse a nested tag sequence '{' ... '}'
+ */
+const tag = (p: ParseContext, m: MessageMatcher, r: MessageState, argsub?: Argument): MessageCode | undefined => {
+  // m.debug('  tag', r);
+  m.spaces(r);
+
+  // Ensure we see a tag start next
+  if (m.char(r) !== Chars.LEFT) {
+    return undefined;
+  }
+
+  const hidden = p.raw[r.s + 1] === Chars.MINUS;
+
+  // Find matching end delimter
+  const k = seek(p.raw, r.s, r.e);
+
+  // Note this can never be -1 since to get into
+  // this code we must have parsed balanced '{' and '}' above.
+  // if (k === -1) {
+  //   return undefined;
+  // }
+
+  // Parse nested block and skip over it
+  const node = hidden
+    ? text(Chars.LEFT + p.raw.substring(r.s + 2, k + 1))
+    : outer(p, { t: r.t, s: r.s + 1, e: k }, argsub);
+  r.s = k + 1;
+  return node;
+};
+
+/**
+ * Parse a plural instruction.
+ */
+const plural = (
+  p: ParseContext,
+  args: Argument[],
+  type: PluralNumberType,
+  m: MessageMatcher,
+  r: MessageState,
+): MessageCode => {
+  // m.debug('plural', r);
+
+  // See if we have an offset argument
+  const offset = m.pluralOffset(r);
+  m.spaces(r);
+
+  const choices: PluralChoice[] = [];
+  do {
+    // Parse a plural choice
+    const choice = m.pluralChoice(r);
+    if (!choice) {
+      break;
     }
 
-    // If we still have un-matched characters, return -1
-    return d ? -1 : i;
+    // Parse a tag into a block of instructions
+    const block = tag(p, m, r, args[0]);
+    if (!block) {
+      return NOOP;
+    }
+
+    // Determine which choice node to construct
+    let node: PluralChoice;
+    if (choice[0] === '=') {
+      const num = choice.substring(1);
+      node = [PluralChoiceType.EXACT, num, block];
+    } else {
+      // Plural category match
+      node = [PluralChoiceType.CATEGORY, choice, block];
+    }
+
+    // Append and skip spaces
+    choices.push(node);
+    m.spaces(r);
+  } while (!m.complete(r));
+
+  // If we parsed no choices, emit a no-op
+  return choices.length ? [MessageOpType.PLURAL, args, offset, type, choices] : NOOP;
+};
+
+/**
+ * Parse a select instruction.
+ */
+const select = (p: ParseContext, args: Argument[], m: MessageMatcher, r: MessageState): MessageCode => {
+  const choices: SelectChoice[] = [];
+  do {
+    // Parse an identifier to be used as the select choice
+    const ident = m.identifier(r);
+    if (!ident) {
+      break;
+    }
+
+    // Parse a tag into a block of instructions
+    const block = tag(p, m, r, args[0]);
+    if (!block) {
+      return NOOP;
+    }
+
+    // Append and skip to the next choice
+    choices.push([ident, block]);
+    m.spaces(r);
+  } while (!m.complete(r));
+
+  // If we parsed no choices, just emit a no-op
+  return choices.length ? [MessageOpType.SELECT, args, choices] : NOOP;
+};
+
+/**
+ * Simple single-argument formatter with zero or more options.
+ */
+const simple = (args: Argument[], name: string, m: MessageMatcher, r: MessageState): MessageCode => {
+  const options = m.options(r);
+  return [MessageOpType.SIMPLE, name, args, options];
+};
+
+/**
+ * Seek to the matching '}' character at the same nesting level,
+ * skipping over any apostrophes. This adds some redundant scanning
+ * of the string but simplifies some of the parsing logic in other
+ * areas. It ensures we're always dealing with a well-formed tag
+ * where all '{' have a corresponding '}'.
+ */
+const seek = (raw: string, i: number, j: number): number => {
+  const r = raw;
+  let d = 0; // Track nesting depth
+
+  loop: while (i < j) {
+    const c = r[i];
+    switch (c) {
+      case Chars.LEFT:
+        // Increase depth
+        d++;
+        break;
+
+      case Chars.RIGHT:
+        // Reduce depth
+        d--;
+        if (!d) {
+          // Depth is zero, we're done
+          break loop;
+        }
+        break;
+
+      case Chars.APOS:
+        if (c === r[i + 1]) {
+          // Skip single escaped apostrophe
+          i++;
+        } else {
+          // Find matching apostrophe
+          const k = r.indexOf(c, i + 1);
+          if (k === -1) {
+            // No apostrophe, assume rest of string is escaped
+            return -1;
+          }
+          // Skip over matching apostrophe
+          i = k;
+        }
+        break;
+    }
+
+    i++;
   }
-}
+
+  // If we still have un-matched characters, return -1
+  return d ? -1 : i;
+};
 
 const flatten = (n: MessageCode[]): MessageCode =>
   !n.length ? NOOP : n.length === 1 ? n[0] : [MessageOpType.BLOCK, n];

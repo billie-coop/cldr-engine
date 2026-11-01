@@ -14,6 +14,7 @@ import { RelativeTimeFieldFormatOptions } from '../../common';
 import { Bundle } from '../../resource';
 import { ContextTransformInfo, NumberParams } from '../../common/private';
 import { vectorGet } from '../../schema/schema/arrows';
+import { pluralCardinal } from '@phensley/plurals';
 
 // TODO: expose a method to calculate field difference with different options, e.g.
 // include weekdays
@@ -91,7 +92,7 @@ export class DateFieldInternalsImpl implements DateFieldInternals {
     }
 
     // Format a pluralized future / past.
-    const plural = bundle.plurals.cardinal(n) as PluralType;
+    const plural = pluralCardinal(bundle.plurals, n) as PluralType;
     const arrow = negative ? format.past : format.future;
     let raw = vectorGet(arrow, bundle, plural, field);
     if (options.context) {

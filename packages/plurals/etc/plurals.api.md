@@ -5,137 +5,79 @@
 ```ts
 
 // @public
-export class Decimal {
-    constructor(num: DecimalArg);
-    abs(): Decimal;
-    add(v: DecimalArg): Decimal;
-    protected addsub(u: Decimal, v: Decimal, vsign: number): Decimal;
-    alignexp(): number;
-    compare(v: DecimalArg, abs?: boolean): number;
-    // (undocumented)
-    protected data: number[];
-    decrement(): Decimal;
-    divide(v: DecimalArg, context?: MathContext): Decimal;
-    divmod(v: DecimalArg): [Decimal, Decimal];
-    exp(): number;
-    // (undocumented)
-    protected _exp: number;
+export interface Decimal {
+    readonly data: readonly number[];
+    readonly exp: number;
     // Warning: (ae-forgotten-export) The symbol "DecimalFlag" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    protected flag: DecimalFlag;
-    // Warning: (ae-forgotten-export) The symbol "DecimalFormatter" needs to be exported by the entry point index.d.ts
-    format<R>(formatter: DecimalFormatter<R>, decimal: string, group: string, minInt: number, minGroup: number, priGroup: number, secGroup: number, zeroScale: boolean, digits?: string[]): void;
-    // (undocumented)
-    protected formatFlags(): string;
-    // (undocumented)
-    protected formatFlagsParts(): Part[];
-    // (undocumented)
-    protected formatParts(d: Decimal, minInt: number): Part[];
-    // (undocumented)
-    protected formatString(d: Decimal, minInt: number): string;
-    // (undocumented)
-    protected static fromRaw(sign: number, _exp: number, data: number[], flag: DecimalFlag): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "Op" needs to be exported by the entry point index.d.ts
-    protected handleFlags(op: Op, v: Decimal): Decimal | undefined;
-    increment(): Decimal;
-    protected _increment(): void;
-    integerDigits(): number;
-    isFinite(): boolean;
-    isInfinity(): boolean;
-    isInteger(): boolean;
-    isNaN(): boolean;
-    isNegative(): boolean;
-    protected isodd(): boolean;
-    isZero(): boolean;
-    mod(v: DecimalArg): Decimal;
-    movePoint(n: number): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "MathContext" needs to be exported by the entry point index.d.ts
-    multiply(v: DecimalArg, context?: MathContext): Decimal;
-    negate(): Decimal;
-    protected parse(arg: string | number): void;
-    protected _parse(str: string): string | undefined;
-    precision(): number;
-    properties(): [number[], number, number, number];
-    protected round(rnd: number, rest: number, mode: RoundingModeType): number;
-    scale(): number;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    scientific(minIntDigits?: number): [Decimal, number];
-    // Warning: (ae-forgotten-export) The symbol "RoundingModeType" needs to be exported by the entry point index.d.ts
-    setScale(scale: number, roundingMode?: RoundingModeType): Decimal;
-    // (undocumented)
-    protected _setScale(scale: number, roundingMode?: RoundingModeType): void;
-    shiftleft(shift: number): Decimal;
-    protected _shiftleft(shift: number): void;
-    shiftright(shift: number, mode?: RoundingModeType): Decimal;
-    protected _shiftright(shift: number, mode: RoundingModeType): void;
-    // (undocumented)
-    protected sign: number;
-    signum(): number;
-    stripTrailingZeros(): Decimal;
-    // (undocumented)
-    protected _stripTrailingZeros(): void;
-    subtract(v: DecimalArg): Decimal;
-    toInteger(): Decimal;
-    // Warning: (ae-forgotten-export) The symbol "Part" needs to be exported by the entry point index.d.ts
-    toParts(): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificParts(minIntegers?: number): Part[];
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: A space is not allowed here
-    toScientificString(minIntegers?: number): string;
-    toString(): string;
-    trailingZeros(): number;
-    protected trim(): Decimal;
+    readonly flag: DecimalFlag;
+    readonly sign: number;
 }
 
 // @public
 export type DecimalArg = number | string | Decimal;
 
 // @public
-export class NumberOperands {
-    constructor(d: Decimal, c?: number);
+export const getPluralRules: (language: string, region?: string) => PluralRules;
+
+// @public
+export interface NumberOperands {
     // (undocumented)
-    c: number;
+    readonly c: number;
     // (undocumented)
-    f: number;
+    readonly f: number;
     // (undocumented)
-    i: number;
+    readonly i: number;
     // (undocumented)
-    n: number;
+    readonly n: number;
     // (undocumented)
-    t: number;
+    readonly t: number;
     // (undocumented)
-    toString(): string;
+    readonly v: number;
     // (undocumented)
-    v: number;
-    // (undocumented)
-    w: number;
+    readonly w: number;
 }
+
+// @public
+export const numberOperands: (d: Decimal, c?: number) => NumberOperands;
+
+// @public
+export const numberOperandsToString: (o: NumberOperands) => string;
+
+// @public
+export const pluralCardinal: (rules: PluralRules, n: DecimalArg, c?: number) => string;
+
+// @public
+export const pluralOperands: (_rules: PluralRules, d: Decimal) => NumberOperands;
+
+// @public
+export const pluralOrdinal: (rules: PluralRules, n: DecimalArg) => string;
+
+// @public
+export const pluralRange: (rules: PluralRules, start: DecimalArg, end: DecimalArg) => string;
 
 // @public
 export interface PluralRules {
     // (undocumented)
-    cardinal(n: DecimalArg, c?: number): string;
+    readonly cardinals: readonly Rule[];
     // (undocumented)
-    operands(d: Decimal): NumberOperands;
+    readonly ordinals: readonly Rule[];
     // (undocumented)
-    ordinal(n: DecimalArg): string;
-    // (undocumented)
-    range(start: DecimalArg, end: DecimalArg): string;
+    readonly ranges: RangeMap;
 }
 
 // @public
-export const pluralRules: Plurals;
+export type RangeMap = number | {
+    readonly [x: number]: number;
+};
 
-// @public
-export class Plurals {
-    get(language: string, region?: string): PluralRules;
+// Warning: (ae-missing-release-tag) "Rule" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface Rule {
+    // (undocumented)
+    [0]: number;
+    // (undocumented)
+    [1]: number[][];
 }
 
 // (No @packageDocumentation comment for this package)

@@ -1,8 +1,8 @@
 import { Cache } from '@phensley/cldr-utils';
-import { pluralRules, PluralRules } from '@phensley/plurals';
+import { PluralRules, getPluralRules } from '@phensley/plurals';
 import { buildMessageMatcher, parseMessagePattern, MessageCode, MessageMatcher } from './parser';
-import { MessageArg, MessageEngine, MessageFormatFuncMap, MessageNamedArgs } from './evaluation';
-import { DefaultMessageArgConverter, MessageArgConverter } from './evaluation/converter';
+import { evaluateMessage, MessageArg, MessageFormatFuncMap, MessageNamedArgs } from './evaluation';
+import { defaultMessageArgConverter, MessageArgConverter } from './evaluation/converter';
 
 const DEFAULT_CACHE_SIZE = 100;
 
@@ -51,39 +51,59 @@ export interface MessageFormatterOptions {
 }
 
 /**
- * Convenience class that caches parsed messages.
+ * Message formatter that caches parsed messages, as returned by
+ * `createMessageFormatter`.
  *
  * @public
  */
-export class MessageFormatter {
-  private plurals: PluralRules;
-  private converter: MessageArgConverter;
-  private formatters: MessageFormatFuncMap;
-  private matcher: MessageMatcher;
-  private cache: Cache<MessageCode>;
-
-  constructor(options: MessageFormatterOptions = {}) {
-    this.formatters = options.formatters || {};
-    this.converter = options.converter || new DefaultMessageArgConverter();
-    this.plurals = options.plurals || pluralRules.get(options.language || 'root', options.region);
-    const size = options.cacheSize || DEFAULT_CACHE_SIZE;
-    this.matcher = buildMessageMatcher(Object.keys(this.formatters));
-    this.cache = new Cache<MessageCode>((s) => parseMessagePattern(s, this.matcher, options.disableEscapes), size);
-  }
-
-  /**
-   * Parse and evaluate the message against the given argument. Internally caches parsed
-   * messages for reuse.
-   */
-  format(message: string, positional: MessageArg[], named: MessageNamedArgs): string {
-    const code = this.cache.get(message);
-    return new MessageEngine(this.plurals, this.converter, this.formatters, code).evaluate(positional, named);
-  }
-
-  /**
-   * String representation of this formatter.
-   */
-  toString(): string {
-    return `MessageFormatter(formatters=${JSON.stringify(Object.keys(this.formatters))} cached=${this.cache.size()})`;
-  }
+export interface MessageFormatter {
+  readonly plurals: PluralRules;
+  readonly converter: MessageArgConverter;
+  readonly formatters: MessageFormatFuncMap;
+  readonly matcher: MessageMatcher;
+  readonly cache: Cache<MessageCode>;
 }
+
+/**
+ * Create a message formatter that parses messages on demand and caches them.
+ *
+ * @public
+ */
+export const createMessageFormatter = (options: MessageFormatterOptions = {}): MessageFormatter => {
+  const formatters = options.formatters || {};
+  const converter = options.converter || defaultMessageArgConverter;
+  const plurals = options.plurals || getPluralRules(options.language || 'root', options.region);
+  const size = options.cacheSize || DEFAULT_CACHE_SIZE;
+  const matcher = buildMessageMatcher(Object.keys(formatters));
+  const cache = new Cache<MessageCode>((s) => parseMessagePattern(s, matcher, options.disableEscapes), size);
+  return { plurals, converter, formatters, matcher, cache };
+};
+
+/**
+ * Parse and evaluate the message against the given arguments. Parsed messages
+ * are cached in the formatter for reuse.
+ *
+ * @public
+ */
+export const formatMessage = (
+  formatter: MessageFormatter,
+  message: string,
+  positional: MessageArg[],
+  named: MessageNamedArgs,
+): string =>
+  evaluateMessage(
+    formatter.plurals,
+    formatter.converter,
+    formatter.formatters,
+    formatter.cache.get(message),
+    positional,
+    named,
+  );
+
+/**
+ * String representation of a message formatter.
+ *
+ * @public
+ */
+export const messageFormatterToString = (formatter: MessageFormatter): string =>
+  `MessageFormatter(formatters=${JSON.stringify(Object.keys(formatter.formatters))} cached=${formatter.cache.size()})`;

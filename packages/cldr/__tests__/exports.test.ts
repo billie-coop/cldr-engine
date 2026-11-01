@@ -2,7 +2,6 @@ import {
   BuddhistDate,
   CalendarDate,
   DecimalConstants,
-  DefaultMessageArgConverter,
   GregorianDate,
   ISO8601Date,
   JapaneseDate,
@@ -11,7 +10,6 @@ import {
   getCurrencyForRegion,
   getCurrencyFractions,
   parseMessagePattern,
-  pluralRules,
   decimal,
   decimalToString,
   rational,
@@ -22,6 +20,9 @@ import {
   tagScript,
   createLocaleMatcher,
   matchLocale,
+  getPluralRules,
+  pluralCardinal,
+  defaultMessageArgConverter,
 } from '../src';
 
 // These tests are simply to ensure that all top-level exported symbols are present and functional.
@@ -40,10 +41,10 @@ test('message matcher', () => {
 });
 
 test('plural rules', () => {
-  const rules = pluralRules.get('en', 'US');
+  const rules = getPluralRules('en', 'US');
 
-  expect(rules.cardinal(DecimalConstants.ONE)).toEqual('one');
-  expect(rules.cardinal(decimal('5'))).toEqual('other');
+  expect(pluralCardinal(rules, DecimalConstants.ONE)).toEqual('one');
+  expect(pluralCardinal(rules, decimal('5'))).toEqual('other');
 });
 
 test('currency fractions', () => {
@@ -102,6 +103,6 @@ test('locale matcher', () => {
 });
 
 test('messages', () => {
-  const converter = new DefaultMessageArgConverter();
+  const converter = defaultMessageArgConverter;
   expect(converter.asDecimal('1.23')).toEqual(decimal('1.23'));
 });

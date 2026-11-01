@@ -1,7 +1,7 @@
 import { DecimalConstants, decimal } from '@phensley/decimal';
-import { DefaultMessageArgConverter, MessageArg } from '../src';
+import { MessageArg, defaultMessageArgConverter } from '../src';
 
-const CONVERTER = new DefaultMessageArgConverter();
+const CONVERTER = defaultMessageArgConverter;
 
 const asstring = (arg: MessageArg | undefined) => CONVERTER.asString(arg);
 const asdecimal = (arg: MessageArg | undefined) => CONVERTER.asDecimal(arg);

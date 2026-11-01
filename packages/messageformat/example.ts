@@ -1,11 +1,12 @@
-import { pluralRules } from '@phensley/plurals';
+import { getPluralRules } from '@phensley/plurals';
 import {
   buildMessageMatcher,
+  createMessageFormatter,
+  defaultMessageArgConverter,
+  evaluateMessage,
+  formatMessage,
   parseMessagePattern,
-  DefaultMessageArgConverter,
   MessageArg,
-  MessageEngine,
-  MessageFormatter,
   MessageNamedArgs
 } from './src';
 
@@ -18,7 +19,7 @@ const FORMATTER_NAMES = Object.keys(FORMATTERS);
 
 const MATCHER = buildMessageMatcher(FORMATTER_NAMES);
 
-const CONVERTER = new DefaultMessageArgConverter();
+const CONVERTER = defaultMessageArgConverter;
 
 const parse = (message: string) => parseMessagePattern(message, MATCHER);
 
@@ -26,11 +27,10 @@ const dump = (message: string) =>
   console.log(JSON.stringify(parse(message)));
 
 const plurals = (language: string, region?: string) =>
-  pluralRules.get(language, region);
+  getPluralRules(language, region);
 
 const format = (message: string, positional: MessageArg[], named: MessageNamedArgs = {}) => {
-  const engine = new MessageEngine(plurals('en'), CONVERTER, FORMATTERS, parse(message));
-  console.log(engine.evaluate(positional, named));
+  console.log(evaluateMessage(plurals('en'), CONVERTER, FORMATTERS, parse(message), positional, named));
 };
 
 let msg: string;
@@ -46,9 +46,9 @@ dump('{word} uppercase = {word foo upper} lowercase = {word foo lower}');
 // Example 2 - MessageFormatter
 
 const rules = plurals('en');
-const formatter = new MessageFormatter({ plurals: rules, formatters: FORMATTERS, cacheSize: 100 });
+const formatter = createMessageFormatter({ plurals: rules, formatters: FORMATTERS, cacheSize: 100 });
 msg = '{0 select, male {his} female {her} other {their}} {item}';
-console.log(formatter.format(msg, ['female'], { item: 'parka' }));
+console.log(formatMessage(formatter, msg, ['female'], { item: 'parka' }));
 
 // Example 3 - plural cardinals
 

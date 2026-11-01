@@ -20,7 +20,7 @@ import {
   decimalToInteger,
   decimalToString,
 } from '@phensley/decimal';
-import { PluralRules } from '@phensley/plurals';
+import { PluralRules, pluralCardinal, pluralOrdinal } from '@phensley/plurals';
 import {
   ApplyLeft2NumFormatInst,
   ApplyLeft2RuleInst,
@@ -422,7 +422,7 @@ export class RBNFEngine {
   }
 
   protected plural(n: Decimal, cardinal: boolean): number {
-    const cat = cardinal ? this.plurals.cardinal(n) : this.plurals.ordinal(n);
+    const cat = cardinal ? pluralCardinal(this.plurals, n) : pluralOrdinal(this.plurals, n);
     return PLURALS[cat];
   }
 

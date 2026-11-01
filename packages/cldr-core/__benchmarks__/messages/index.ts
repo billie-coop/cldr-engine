@@ -1,13 +1,14 @@
 import { Suite } from 'benchmark';
 import { makeSuite } from '../../../cldr-utils/__benchmarks__/util';
-import { pluralRules } from '@phensley/plurals';
+import { getPluralRules } from '@phensley/plurals';
 import {
   buildMessageMatcher,
   parseMessagePattern,
-  DefaultMessageArgConverter,
   MessageArg,
-  MessageEngine,
-  MessageFormatter,
+  evaluateMessage,
+  defaultMessageArgConverter,
+  createMessageFormatter,
+  formatMessage,
 } from '@phensley/messageformat';
 
 export const messageSuite: Suite = makeSuite('message');
@@ -20,19 +21,19 @@ const FORMATTERS = {
 const MESSAGE = 'foo bar {0 plural one {# item} other {# items}} {1}';
 const MATCHER = buildMessageMatcher(Object.keys(FORMATTERS));
 const CODE = parseMessagePattern(MESSAGE, MATCHER);
-const CONVERTER = new DefaultMessageArgConverter();
-const FORMATTER = new MessageFormatter({ language: 'en', formatters: FORMATTERS });
+const CONVERTER = defaultMessageArgConverter;
+const FORMATTER = createMessageFormatter({ language: 'en', formatters: FORMATTERS });
 
-const PLURALS = pluralRules.get('en');
+const PLURALS = getPluralRules('en');
 
 messageSuite.add('parse', () => {
   parseMessagePattern(MESSAGE, MATCHER);
 });
 
 messageSuite.add('eval', () => {
-  new MessageEngine(PLURALS, CONVERTER, FORMATTERS, CODE).evaluate([12, 'hello']);
+  evaluateMessage(PLURALS, CONVERTER, FORMATTERS, CODE, [12, 'hello']);
 });
 
 messageSuite.add('formatter', () => {
-  FORMATTER.format(MESSAGE, [12, 'hello'], {});
+  formatMessage(FORMATTER, MESSAGE, [12, 'hello'], {});
 });

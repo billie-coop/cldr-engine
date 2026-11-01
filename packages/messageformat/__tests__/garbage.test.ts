@@ -1,8 +1,8 @@
-import { parseMessagePattern, stickyRegexp, StickyMatcher } from '../src';
+import { parseMessagePattern, stickyRegexp, stickyMatcher } from '../src';
 
 const NAMES = ['decimal', 'unit', 'currency', 'datetime', 'datetime-interval', 'number'];
 
-const matcher = () => new StickyMatcher(NAMES, stickyRegexp);
+const matcher = () => stickyMatcher(NAMES, stickyRegexp);
 
 const parse = (s: string) => parseMessagePattern(s, matcher());
 

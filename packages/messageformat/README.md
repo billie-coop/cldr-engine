@@ -29,14 +29,15 @@ Parsing can be done at build time -- read a YAML file, parse messages and embed 
 Custom formatting and argument conversion functions can be defined and plugged into the framework.
 
 ```typescript
-import { pluralRules } from '@phensley/plurals';
+import { getPluralRules } from '@phensley/plurals';
 import {
   buildMessageMatcher,
+  createMessageFormatter,
+  defaultMessageArgConverter,
+  evaluateMessage,
+  formatMessage,
   parseMessagePattern,
-  DefaultMessageArgConverter,
   MessageArg,
-  MessageEngine,
-  MessageFormatter,
   MessageNamedArgs
 } from '@phensley/messageformat';
 
@@ -49,27 +50,23 @@ const FORMATTER_NAMES = Object.keys(FORMATTERS);
 
 const MATCHER = buildMessageMatcher(FORMATTER_NAMES);
 
-const CONVERTER = new DefaultMessageArgConverter();
+const CONVERTER = defaultMessageArgConverter;
 
 const parse = (message: string) => parseMessagePattern(message, MATCHER);
 
 const dump = (message: string) => console.log(JSON.stringify(parse(message)));
 
 const plurals = (language: string, region?: string) =>
-  pluralRules.get(language, region);
+  getPluralRules(language, region);
 
 const format = (
   message: string,
   positional: MessageArg[],
   named: MessageNamedArgs = {}
 ) => {
-  const engine = new MessageEngine(
-    plurals('en'),
-    CONVERTER,
-    FORMATTERS,
-    parse(message)
+  console.log(
+    evaluateMessage(plurals('en'), CONVERTER, FORMATTERS, parse(message), positional, named)
   );
-  console.log(engine.evaluate(positional, named));
 };
 
 let msg: string;
@@ -95,19 +92,19 @@ dump('{word} uppercase = {word foo upper} lowercase = {word foo lower}');
 [4,[[1,"word"],[0," uppercase = "],[6,"foo",["word"],["upper"]],[0," lowercase = "],[6,"foo",["word"],["lower"]]]]
 ```
 
-#### Example 2 - MessageFormatter class
+#### Example 2 - MessageFormatter
 
-If you don't need to embed parsed messages into source code, the `MessageFormatter` can parse and cache messages at runtime. Internally it uses a least-recently-used cache whose size can be configured. There is no need for the elaborate setup in the first example.
+If you don't need to embed parsed messages into source code, a `MessageFormatter` created with `createMessageFormatter` can parse and cache messages at runtime. Internally it uses a least-recently-used cache whose size can be configured. There is no need for the elaborate setup in the first example.
 
 ```typescript
 const rules = plurals('en');
-const formatter = new MessageFormatter({
+const formatter = createMessageFormatter({
   plurals: rules,
   formatters: FORMATTERS,
   cacheSize: 100
 });
 msg = '{0 select, male {his} female {her} other {their}} {item}';
-console.log(formatter.format(msg, ['female'], { item: 'parka' }));
+console.log(formatMessage(formatter, msg, ['female'], { item: 'parka' }));
 ```
 
 ```

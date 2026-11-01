@@ -1,12 +1,11 @@
 import { decimal } from '@phensley/decimal';
-import { pluralRules, Plurals, PluralRules } from '../src';
+import { getPluralRules, PluralRules, pluralCardinal, pluralOperands } from '../src';
 
 test('basic', () => {
   const lang = 'en';
-  const plurals: Plurals = pluralRules;
-  const rules: PluralRules = plurals.get(lang);
+  const rules: PluralRules = getPluralRules(lang);
 
-  expect(rules.operands(decimal('123'))).toEqual({
+  expect(pluralOperands(rules, decimal('123'))).toEqual({
     f: 0,
     i: 123,
     n: 123,
@@ -16,11 +15,11 @@ test('basic', () => {
     c: 0,
   });
 
-  expect(rules.cardinal(0)).toEqual('other');
-  expect(rules.cardinal('0')).toEqual('other');
-  expect(rules.cardinal(decimal(0))).toEqual('other');
+  expect(pluralCardinal(rules, 0)).toEqual('other');
+  expect(pluralCardinal(rules, '0')).toEqual('other');
+  expect(pluralCardinal(rules, decimal(0))).toEqual('other');
 
-  expect(rules.cardinal(1)).toEqual('one');
-  expect(rules.cardinal('1')).toEqual('one');
-  expect(rules.cardinal(decimal(1))).toEqual('one');
+  expect(pluralCardinal(rules, 1)).toEqual('one');
+  expect(pluralCardinal(rules, '1')).toEqual('one');
+  expect(pluralCardinal(rules, decimal(1))).toEqual('one');
 });

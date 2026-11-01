@@ -70,139 +70,140 @@ export type Operand = 'n' | 'i' | 'v' | 'w' | 'f' | 't' | 'c';
  *
  * @public
  */
-export class NumberOperands {
-  n: number = 0;
-  i: number = 0;
-  v: number = 0;
-  w: number = 0;
-  f: number = 0;
-  t: number = 0;
-  c: number = 0;
-
-  /**
-   * Compute the plural operands for the Decimal `d` with optional compact
-   * exponent `c`.
-   */
-  constructor(d: Decimal, c: number = 0) {
-    const props = decimalProperties(d);
-    const flag = props[3];
-    if (flag) {
-      return;
-    }
-
-    const data = props[0];
-    let exp = props[2];
-
-    const len = data.length;
-    const last = len - 1;
-    const precision = last * Constants.RDIGITS + digitCount(data[last]);
-
-    // Local operands
-    let n = 0;
-    const v = exp < 0 ? -exp : 0;
-    let w = 0;
-    let f = 0;
-    let t = 0;
-
-    // Compact decimal exponent value
-    // See https://www.unicode.org/reports/tr35/tr35-numbers.html#Operands
-    if (c < 0) {
-      c = 0;
-    }
-
-    // Count trailing zeros
-    let trail = 0;
-
-    // Index of radix digit
-    let x = last;
-
-    // Index of decimal digit in radix digit
-    let y = 0;
-
-    let intdigits = precision + exp;
-
-    // Leading decimal zeros aren't part of the operands.
-    if (intdigits < 0) {
-      intdigits = 0;
-    }
-
-    // Start at most-significant digit to least
-    outer: while (x >= 0) {
-      let r = data[x];
-      const count = x !== last ? Constants.RDIGITS : digitCount(r);
-      y = count - 1;
-
-      // Scan each decimal digit of the radix number from
-      // most- to least- significant.
-      while (y >= 0) {
-        const p = POWERS10[y];
-        const q = (r / POWERS10[y]) | 0;
-
-        if (intdigits > 0) {
-          // Integer part
-          n = n * 10 + q;
-
-          // If the integer digits exceed the limit we apply modulus.
-          if (n > LIMIT) {
-            // Stay below the limit but preserve (a) the magnitude and (b) as
-            // many of the least-significant digits as possible
-            n = (n % LIMIT) + LIMIT;
-          }
-          intdigits--;
-        } else {
-          // Decimal part
-          if (q === 0) {
-            trail++;
-          } else {
-            trail = 0;
-          }
-          f = f * 10 + q;
-        }
-
-        // If the decimal digits exceed our limit we bail out early.
-        if (f > LIMIT) {
-          break outer;
-        }
-
-        r %= p;
-        y--;
-      }
-      x--;
-    }
-
-    // Trailing integer zeros
-    while (exp > 0) {
-      n *= 10;
-      if (n > LIMIT) {
-        // Stay below the limit but preserve (a) the magnitude and (b) as
-        // many of the least-significant digits as possible
-        n = (n % LIMIT) + LIMIT;
-      }
-      exp--;
-    }
-
-    // Special case for zero with exponent, e.g. '0.00'.
-    if (len === 1 && data[0] === 0 && exp < 0) {
-      w = 0;
-    } else {
-      w = v - trail;
-      t = f;
-      while (trail > 0) {
-        t /= 10;
-        trail--;
-      }
-    }
-
-    this.n = n;
-    this.i = n;
-    this.v = v;
-    this.w = w;
-    this.f = f;
-    this.t = t;
-    this.c = c;
-  }
-
-  toString(): string {
-    return FIELDS.map((f) => `${f}: ${this[f]}`).join(', ');
-  }
+export interface NumberOperands {
+  readonly n: number;
+  readonly i: number;
+  readonly v: number;
+  readonly w: number;
+  readonly f: number;
+  readonly t: number;
+  readonly c: number;
 }
+
+const ZERO_OPERANDS: NumberOperands = { n: 0, i: 0, v: 0, w: 0, f: 0, t: 0, c: 0 };
+
+/**
+ * Compute the plural operands for the Decimal `d` with optional compact
+ * exponent `c`.
+ *
+ * @public
+ */
+export const numberOperands = (d: Decimal, c: number = 0): NumberOperands => {
+  const props = decimalProperties(d);
+  const flag = props[3];
+  if (flag) {
+    return ZERO_OPERANDS;
+  }
+
+  const data = props[0];
+  let exp = props[2];
+
+  const len = data.length;
+  const last = len - 1;
+  const precision = last * Constants.RDIGITS + digitCount(data[last]);
+
+  // Local operands
+  let n = 0;
+  const v = exp < 0 ? -exp : 0;
+  let w = 0;
+  let f = 0;
+  let t = 0;
+
+  // Compact decimal exponent value
+  // See https://www.unicode.org/reports/tr35/tr35-numbers.html#Operands
+  if (c < 0) {
+    c = 0;
+  }
+
+  // Count trailing zeros
+  let trail = 0;
+
+  // Index of radix digit
+  let x = last;
+
+  // Index of decimal digit in radix digit
+  let y = 0;
+
+  let intdigits = precision + exp;
+
+  // Leading decimal zeros aren't part of the operands.
+  if (intdigits < 0) {
+    intdigits = 0;
+  }
+
+  // Start at most-significant digit to least
+  outer: while (x >= 0) {
+    let r = data[x];
+    const count = x !== last ? Constants.RDIGITS : digitCount(r);
+    y = count - 1;
+
+    // Scan each decimal digit of the radix number from
+    // most- to least- significant.
+    while (y >= 0) {
+      const p = POWERS10[y];
+      const q = (r / POWERS10[y]) | 0;
+
+      if (intdigits > 0) {
+        // Integer part
+        n = n * 10 + q;
+
+        // If the integer digits exceed the limit we apply modulus.
+        if (n > LIMIT) {
+          // Stay below the limit but preserve (a) the magnitude and (b) as
+          // many of the least-significant digits as possible
+          n = (n % LIMIT) + LIMIT;
+        }
+        intdigits--;
+      } else {
+        // Decimal part
+        if (q === 0) {
+          trail++;
+        } else {
+          trail = 0;
+        }
+        f = f * 10 + q;
+      }
+
+      // If the decimal digits exceed our limit we bail out early.
+      if (f > LIMIT) {
+        break outer;
+      }
+
+      r %= p;
+      y--;
+    }
+    x--;
+  }
+
+  // Trailing integer zeros
+  while (exp > 0) {
+    n *= 10;
+    if (n > LIMIT) {
+      // Stay below the limit but preserve (a) the magnitude and (b) as
+      // many of the least-significant digits as possible
+      n = (n % LIMIT) + LIMIT;
+    }
+    exp--;
+  }
+
+  // Special case for zero with exponent, e.g. '0.00'.
+  if (len === 1 && data[0] === 0 && exp < 0) {
+    w = 0;
+  } else {
+    w = v - trail;
+    t = f;
+    while (trail > 0) {
+      t /= 10;
+      trail--;
+    }
+  }
+
+  return { n, i: n, v, w, f, t, c };
+};
+
+/**
+ * String representation of the operands, e.g. `"n: 1, i: 1, v: 1, w: 1, f: 3, t: 3, c: 0"`.
+ *
+ * @public
+ */
+export const numberOperandsToString = (o: NumberOperands): string => FIELDS.map((f) => `${f}: ${o[f]}`).join(', ');

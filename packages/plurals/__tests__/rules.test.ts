@@ -1,23 +1,23 @@
 import { decimal } from '@phensley/decimal';
-import { pluralRules, Plurals, PluralRules } from '../src';
+import { PluralRules, getPluralRules, pluralCardinal, pluralOrdinal } from '../src';
 
 test('missing rules', () => {
-  const rules: PluralRules = pluralRules.get('xyz');
+  const rules: PluralRules = getPluralRules('xyz');
   const n = decimal('12345.678');
 
-  let cat = rules.cardinal(n);
+  let cat = pluralCardinal(rules, n);
   expect(cat).toEqual('other');
 
-  cat = rules.ordinal(n);
+  cat = pluralOrdinal(rules, n);
   expect(cat).toEqual('other');
 });
 
 test('constructor', () => {
-  const rules: PluralRules = new Plurals().get('en');
+  const rules: PluralRules = getPluralRules('en');
 
-  let cat = rules.cardinal(decimal('1'));
+  let cat = pluralCardinal(rules, decimal('1'));
   expect(cat).toEqual('one');
 
-  cat = rules.cardinal(decimal('5'));
+  cat = pluralCardinal(rules, decimal('5'));
   expect(cat).toEqual('other');
 });

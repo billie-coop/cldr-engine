@@ -3,12 +3,12 @@ import {
   stickyRegexp,
   MessageArg,
   MessageCode,
-  MessageEngine,
+  evaluateMessage,
   MessageNamedArgs,
-  StickyMatcher,
+  defaultMessageArgConverter,
+  stickyMatcher,
 } from '../src';
-import { pluralRules } from '@phensley/plurals';
-import { DefaultMessageArgConverter } from '../src/evaluation/converter';
+import { getPluralRules } from '@phensley/plurals';
 
 const CUSTOM = {
   foo: (args: MessageArg[], _options: string[]) => `foo args ${JSON.stringify(args)}`,
@@ -17,15 +17,15 @@ const CUSTOM = {
 
 const CUSTOM_NAMES = Object.keys(CUSTOM);
 
-const CONVERTER = new DefaultMessageArgConverter();
+const CONVERTER = defaultMessageArgConverter;
 
-const matcher = () => new StickyMatcher(CUSTOM_NAMES, stickyRegexp);
+const matcher = () => stickyMatcher(CUSTOM_NAMES, stickyRegexp);
 
 const parse = (s: string) => parseMessagePattern(s, matcher());
 
 const evaluate = (lang: string, code: MessageCode, positional: MessageArg[], named?: MessageNamedArgs) => {
-  const plurals = pluralRules.get(lang);
-  return new MessageEngine(plurals, CONVERTER, CUSTOM, code).evaluate(positional, named);
+  const plurals = getPluralRules(lang);
+  return evaluateMessage(plurals, CONVERTER, CUSTOM, code, positional, named);
 };
 
 test('basic message evaluation', () => {
@@ -65,11 +65,10 @@ test('hidden tags', () => {
 test('undefined formatter', () => {
   // Parser is given a formatter name that is not defined during evaluation
   const message = '{0 baz}';
-  const m = new StickyMatcher(['baz'], stickyRegexp);
+  const m = stickyMatcher(['baz'], stickyRegexp);
   const code = parseMessagePattern(message, m);
 
-  const engine = new MessageEngine(pluralRules.get('en'), CONVERTER, {}, code);
-  expect(engine.evaluate([123])).toEqual('');
+  expect(evaluateMessage(getPluralRules('en'), CONVERTER, {}, code, [123])).toEqual('');
 });
 
 test('plurals', () => {

@@ -1,5 +1,5 @@
 import { decimal, decimalToString } from '@phensley/decimal';
-import { pluralRules } from './src';
+import { getPluralRules, pluralCardinal } from './src';
 
 const LANGUAGES = ['en', 'fr', 'lt', 'pl', 'mt', 'pt', 'pt-PT'];
 const NUMBERS = [
@@ -33,8 +33,8 @@ let s = '';
 for (const n of NUMBERS) {
   s += `${decimalToString(decimal(n)).padStart(35)}  `;
   for (const lang of LANGUAGES) {
-    const plurals = pluralRules.get(lang);
-    const cat = plurals.cardinal(n);
+    const rules = getPluralRules(lang);
+    const cat = pluralCardinal(rules, n);
     s += `${lang} ${cat}`.padEnd(14);
   }
   s += '\n';

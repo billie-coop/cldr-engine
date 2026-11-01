@@ -16,6 +16,11 @@ export type AndCond = Array<Expr>;
 
 export type OrCond = Array<AndCond>;
 
+/**
+ * A plural rule: a category index and the indices of the expressions it ORs/ANDs together.
+ *
+ * @public
+ */
 export interface Rule {
   // plural category index
   [0]: number;

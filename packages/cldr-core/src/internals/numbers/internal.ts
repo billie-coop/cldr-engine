@@ -40,6 +40,7 @@ import { Bundle } from '../../resource';
 import { Internals, NumberInternals, NumberRenderer } from '../../internals/internals';
 import { PartsNumberFormatter, StringNumberFormatter } from './render';
 import { vectorGet, vectorValid, scopeGet, fieldGet, digitsGet } from '../../schema/schema/arrows';
+import { pluralCardinal } from '@phensley/plurals';
 
 const ADJUST_PATTERN = parseNumberPattern('0')[0];
 
@@ -159,7 +160,7 @@ export class NumberInternalsImpl implements NumberInternals {
         q2 = negzero(q2, options.negativeZero);
 
         // Compute the plural category for the final q2.
-        plural = plurals.cardinal(q2) as PluralType;
+        plural = pluralCardinal(plurals, q2) as PluralType;
 
         // Select the final pluralized compact pattern based on the integer
         // digits of n and the plural category of the rounded / shifted number q2.
@@ -199,7 +200,7 @@ export class NumberInternalsImpl implements NumberInternals {
         ctx.setPattern(pattern);
         n = ctx.adjust(n);
         n = negzero(n, options.negativeZero);
-        plural = plurals.cardinal(n) as PluralType;
+        plural = pluralCardinal(plurals, n) as PluralType;
 
         // Re-select pattern as number may have changed sign due to rounding.
         pattern = this.getNumberPattern(raw, decimalIsNegative(n));
@@ -216,7 +217,7 @@ export class NumberInternalsImpl implements NumberInternals {
         ctx.setPattern(pattern);
         n = ctx.adjust(n);
         n = negzero(n, options.negativeZero);
-        plural = plurals.cardinal(n) as PluralType;
+        plural = pluralCardinal(plurals, n) as PluralType;
 
         // Re-select pattern as number may have changed sign due to rounding.
         pattern = this.getNumberPattern(standardRaw, decimalIsNegative(n));
@@ -305,7 +306,7 @@ export class NumberInternalsImpl implements NumberInternals {
         const num = renderer.render(n, pattern, '', '', decimal, ctx.minInt, options.group);
 
         // Compute plural category and select pluralized unit.
-        const plural = plurals.cardinal(n) as PluralType;
+        const plural = pluralCardinal(plurals, n) as PluralType;
         const unit = style === 'code' ? code : this.getCurrencyPluralName(bundle, code, plural);
 
         // Wrap number and unit together.
@@ -335,7 +336,7 @@ export class NumberInternalsImpl implements NumberInternals {
         q2 = negzero(q2, false);
 
         // Compute the plural category for the final q2.
-        const plural = plurals.cardinal(q2) as PluralType;
+        const plural = pluralCardinal(plurals, q2) as PluralType;
 
         // Select the final pluralized compact pattern based on the integer
         // digits of n and the plural category of the rounded / shifted number q2.

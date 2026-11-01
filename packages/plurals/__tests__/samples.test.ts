@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as filepath from 'path';
 import { Decimal, decimal, decimalShiftleft } from '@phensley/decimal';
-import { pluralRules } from '../src';
+import { getPluralRules, pluralCardinal, pluralOrdinal } from '../src';
 
 const PATH = filepath.join(__dirname, 'samples.txt');
 const SAMPLES = fs.readFileSync(PATH).toString('utf-8').split('\n');
@@ -45,8 +45,8 @@ expect.extend({
     }
 
     const [language, region] = lang.split('-');
-    const rules = pluralRules.get(language, region);
-    const actual = typ === 'cardinals' ? rules.cardinal(n, c) : rules.ordinal(n);
+    const rules = getPluralRules(language, region);
+    const actual = typ === 'cardinals' ? pluralCardinal(rules, n, c) : pluralOrdinal(rules, n);
     const msg = (pass: boolean) => () =>
       `Expected language "${lang}" number "${sample}" ${pass ? 'not ' : ''}to have ` +
       `${typ} category "${expected}" but got "${actual}"`;

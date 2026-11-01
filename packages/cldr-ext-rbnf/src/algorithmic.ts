@@ -1,11 +1,11 @@
 import { Decimal } from '@phensley/decimal';
-import { pluralRules, PluralRules } from '@phensley/plurals';
+import { PluralRules, getPluralRules } from '@phensley/plurals';
 import { algorithmicNumbering } from './autogen.names';
 import { rbnfRulesets } from './autogen.rbnf';
 import { RBNF, RBNFDecimalFormatter, RBNFSet, RBNFSymbols } from './rbnf';
 
 const U = undefined;
-const ROOT = new RBNF(pluralRules.get('root'), rbnfRulesets);
+const ROOT = new RBNF(getPluralRules('root'), rbnfRulesets);
 const RBNFROOT = ROOT.get('root')!;
 
 export class AlgorithmicNumberingSystems {

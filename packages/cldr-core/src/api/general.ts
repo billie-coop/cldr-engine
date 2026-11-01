@@ -7,7 +7,7 @@ import {
   Vector2Arrow,
 } from '@phensley/cldr-types';
 
-import { MessageFormatter, MessageFormatterOptions } from '@phensley/messageformat';
+import { MessageFormatter, MessageFormatterOptions, createMessageFormatter } from '@phensley/messageformat';
 import { Part } from '@phensley/decimal';
 
 import {
@@ -88,7 +88,7 @@ export class GeneralImpl implements General {
 
   messageFormatter(options?: MessageFormatterOptions): MessageFormatter {
     const plurals = this._bundle.plurals;
-    return new MessageFormatter({ ...options, plurals });
+    return createMessageFormatter({ ...options, plurals });
   }
 
   measurementSystem(category?: MeasurementCategory): MeasurementSystem {

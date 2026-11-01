@@ -7,6 +7,7 @@ import { Quantity, UnitFormatOptions } from '../../common';
 import { NumberParams } from '../../common/private';
 import { Bundle } from '../../resource';
 import { vectorGet, fieldGet } from '../../schema/schema/arrows';
+import { pluralCardinal } from '@phensley/plurals';
 
 /**
  * @internal
@@ -37,7 +38,7 @@ export class UnitsInternalImpl implements UnitInternals {
     }
 
     // Compute plural category for the value '1'
-    const singular = bundle.plurals.cardinal(DecimalConstants.ONE);
+    const singular = pluralCardinal(bundle.plurals, DecimalConstants.ONE);
 
     // For default and "per" compound pattern, the {0} will use
     // the plural category and {1} will be singular. Examples:

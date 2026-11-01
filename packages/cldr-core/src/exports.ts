@@ -30,22 +30,8 @@ export * from '@phensley/locale';
 
 export * from '@phensley/locale-matcher';
 
-export {
-  buildMessageMatcher,
-  parseMessagePattern,
-  DefaultMessageArgConverter,
-  MessageArg,
-  MessageArgConverter,
-  MessageCode,
-  MessageEngine,
-  MessageFormatFunc,
-  MessageFormatFuncMap,
-  MessageFormatter,
-  MessageFormatterOptions,
-  MessageMatcher,
-  MessageNamedArgs,
-} from '@phensley/messageformat';
+export * from '@phensley/messageformat';
 
-export { pluralRules, NumberOperands, Plurals, PluralRules } from '@phensley/plurals';
+export * from '@phensley/plurals';
 
 export { ZoneInfo } from '@phensley/timezone';

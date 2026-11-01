@@ -5,12 +5,12 @@ import {
   MessageOpType,
   PluralChoiceType,
   PluralNumberType,
-  StickyMatcher,
+  stickyMatcher,
 } from '../src';
 
 const NAMES = ['decimal', 'number'];
 
-const matcher = () => new StickyMatcher(NAMES, stickyRegexp);
+const matcher = () => stickyMatcher(NAMES, stickyRegexp);
 
 const parse = (s: string, disableEscapes?: boolean) => parseMessagePattern(s, matcher(), disableEscapes);
 

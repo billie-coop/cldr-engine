@@ -9,6 +9,7 @@ import { CalendarDate } from '../../systems/calendars';
 import { timeData, timeStrings } from './autogen.timedata';
 import { DatePatternMatcher, DatePatternMatcherEntry, DateSkeleton, DateSkeletonParser } from './skeleton';
 import { vectorMapping, fieldGet } from '../../schema/schema/arrows';
+import { pluralCardinal } from '@phensley/plurals';
 
 export interface CachedSkeletonRequest {
   dateSkel?: DateSkeleton;
@@ -232,7 +233,7 @@ export class GregorianPatterns extends CalendarPatterns {
         case 'MMMMW':
         case 'yw': {
           const week = decimal(s.skeleton === 'yw' ? d.weekOfYear() : d.weekOfMonth());
-          plural = this.bundle.plurals.cardinal(week) as PluralType;
+          plural = pluralCardinal(this.bundle.plurals, week) as PluralType;
           pattern = this.rawPluralFormats[plural][s.skeleton];
           break;
         }

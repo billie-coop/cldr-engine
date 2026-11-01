@@ -12,6 +12,7 @@ import { Field } from './fields';
 import { CalendarPatterns, GregorianPatterns } from './patterns';
 import { DateSkeleton, SkeletonField } from './skeleton';
 import { DateFormatRequest, DateIntervalFormatRequest } from './types';
+import { pluralCardinal } from '@phensley/plurals';
 
 const maskedFOVDFields: Field[] = [
   Field.ERA,
@@ -115,8 +116,8 @@ export class CalendarManager {
     let pluralKey = '';
     if (!req.date && /[wW]/.test(skelKey)) {
       const p = this.bundle.plurals;
-      const wkM = p.cardinal(decimal(date.weekOfMonth()));
-      const wkY = p.cardinal(decimal(date.weekOfYear()));
+      const wkM = pluralCardinal(p, decimal(date.weekOfMonth()));
+      const wkY = pluralCardinal(p, decimal(date.weekOfYear()));
       pluralKey = `${wkM}\u0001${wkY}`;
     }
     const cacheKey = `${skelKey}\t${dateKey}\t${timeKey}\t${wrapKey}\t${pluralKey}\t${params.numberSystemName}`;
