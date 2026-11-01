@@ -35,6 +35,34 @@ Using Yarn:
 yarn add @phensley/cldr
 ```
 
+## Usage (2.x, functional API)
+
+> The `functional-rewrite` branch replaces the 1.x classes with plain data and functions, so
+> bundlers can drop what you don't use. See [notes/functional-rewrite.md](notes/functional-rewrite.md).
+
+```typescript
+import { createFramework, loadLocale, formatDecimal, formatDate, decimal, decimalAdd } from '@phensley/cldr';
+
+// Load locale data (a plain object) from a resource pack.
+const framework = createFramework({ loader: (language) => fetchPack(language) });
+const en = loadLocale(framework, 'en-US');
+
+formatDecimal(en, '1234.567', { maximumFractionDigits: 2 }); // "1,234.57"
+formatDate(en, { date: Date.now(), zoneId: 'America/New_York' }, { datetime: 'long' });
+
+// Value types are immutable plain data with functions.
+decimalAdd(decimal('0.1'), '0.2'); // { data: [3], sign: 1, exp: -1, flag: 0 }
+```
+
+The 1.x-style object is still available as a convenience layer (it includes everything):
+
+```typescript
+import { cldrFramework } from '@phensley/cldr';
+
+const cldr = cldrFramework({ loader }).get('en-US');
+cldr.Numbers.formatDecimal('1234.567');
+```
+
 ## Versioning
 
 This project follows [semantic versioning](https://semver.org/):

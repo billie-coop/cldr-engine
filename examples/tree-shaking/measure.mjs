@@ -111,6 +111,7 @@ const cases = [
   ['dates.js', repo, '2x-dates'],
   ['convenience.js', repo, '2x-convenience'],
   ['decimal.js', repo, '2x-decimal'],
+  ...(process.env.PROBE ? [['side-effects-probe.js', repo, 'side-effects-probe']] : []),
 ];
 if (v1Root) {
   cases.push(
