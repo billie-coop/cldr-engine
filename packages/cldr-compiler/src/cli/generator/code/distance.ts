@@ -1,6 +1,6 @@
-import { LanguageResolver } from '@phensley/cldr-core';
 import { pad, Code, HEADER, NOLINT_MAXLINE } from './util';
 import { buildPartitions, MapSet } from './partition';
+import { tagCompact, resolveLanguageTag } from '@phensley/cldr-core';
 
 // ANY character used to represent a wildcard in the distance table, so all
 // wildcards sort last when the table is rendered.
@@ -310,7 +310,7 @@ const paradigmLocales = (data: any) =>
   '{' +
   (data as string[])
     .reduce((p, c, i) => {
-      const k = LanguageResolver.resolve(c).compact();
+      const k = tagCompact(resolveLanguageTag(c));
       p.push(`'${k}':${i}`);
       return p;
     }, [] as string[])

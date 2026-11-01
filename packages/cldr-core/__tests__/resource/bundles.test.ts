@@ -1,12 +1,13 @@
 import { parseLanguageTag, Bundle, StringBundle } from '../../src';
 import { languageBundle } from '../_helpers';
+import { tagCompact } from '@phensley/language-tag';
 
 test('bundle loading', () => {
   let b: Bundle;
 
   b = languageBundle('en-u-nu-hant-ca-buddhist');
   expect(b.id()).toEqual('en-Latn-US-u-ca-buddhist-nu-hant');
-  expect(b.tag().compact()).toEqual('en-Latn-US-u-ca-buddhist-nu-hant');
+  expect(tagCompact(b.tag())).toEqual('en-Latn-US-u-ca-buddhist-nu-hant');
   expect(b.language()).toEqual('en');
   expect(b.region()).toEqual('US');
   expect(b.languageScript()).toEqual('en-Latn');

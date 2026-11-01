@@ -3,7 +3,7 @@ import { join } from 'path';
 import * as zlib from 'zlib';
 import { availableLocales, getSupplemental } from '../../../cldr';
 import { objectToString, Code, HEADER, NOLINT_MAXLINE } from './util';
-import { parseLanguageTag, LanguageTag } from '@phensley/cldr-core';
+import { parseLanguageTag, LanguageTag, tagHasLanguage, tagLanguage } from '@phensley/cldr-core';
 import { inspect } from 'util';
 
 const enum Tag {
@@ -48,13 +48,6 @@ const pruneRegion = (m: { [x: string]: string }): void =>
     }
   });
 
-// Helper to cast LanguageTag to access protected fields
-interface FakeLanguageTag {
-  core: (string | number)[];
-  _extensions?: string[];
-  _privateUse?: string;
-}
-
 /**
  * Omit keys whose value is empty.
  */
@@ -71,16 +64,11 @@ const filterSubtags = (likely: any) => {
 export type FastTag = (string | number)[];
 
 export const fastTag = (real: LanguageTag): FastTag => {
-  // Hack to get fast access to internal core fields without exposing them.
-  const fake = real as any as FakeLanguageTag;
-
   // The fast tag is used for indexing purposes. Since a field may be
   // undefined, and we don't want to use its string representation of
   // the undefined value (e.g. 'und', 'Zzzz', etc), we use the field's
   // index number to represent undefined.
-  const language = fake.core[Tag.LANGUAGE];
-  const script = fake.core[Tag.SCRIPT];
-  const region = fake.core[Tag.REGION];
+  const { language, script, region } = real;
   return [language || Tag.LANGUAGE, script || Tag.SCRIPT, region || Tag.REGION];
 };
 
@@ -103,7 +91,7 @@ const buildSubtags = (likely: any, languages: Set<string>) => {
       const dst = parseLanguageTag(likely[k]);
       // Skip all subtag patterns for unsupported languages. This prunes down
       // the mapping size.
-      if (dst.hasLanguage() && !languages.has(dst.language())) {
+      if (tagHasLanguage(dst) && !languages.has(tagLanguage(dst))) {
         console.log(`skipping ${likely[k]}`);
         return;
       }
@@ -172,8 +160,8 @@ export const getSubtags = (data: any): Code[] => {
   // Get list of supported languages and scripts
   for (const id of availableLocales()) {
     const tag = parseLanguageTag(id);
-    if (tag.hasLanguage()) {
-      languages.add(tag.language());
+    if (tagHasLanguage(tag)) {
+      languages.add(tagLanguage(tag));
     }
   }
 

@@ -6,8 +6,6 @@ import {
   GregorianDate,
   ISO8601Date,
   JapaneseDate,
-  LanguageTag,
-  LocaleMatcher,
   PersianDate,
   buildMessageMatcher,
   getCurrencyForRegion,
@@ -18,6 +16,12 @@ import {
   decimalToString,
   rational,
   rationalToDecimal,
+  languageTag,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+  createLocaleMatcher,
+  matchLocale,
 } from '../src';
 
 // These tests are simply to ensure that all top-level exported symbols are present and functional.
@@ -86,15 +90,15 @@ test('rational', () => {
 // test('message arg converter', () => {});
 
 test('language tag', () => {
-  const tag = new LanguageTag('en', undefined, 'US');
-  expect(tag.language()).toEqual('en');
-  expect(tag.script()).toEqual('Zzzz');
-  expect(tag.region()).toEqual('US');
+  const tag = languageTag('en', undefined, 'US');
+  expect(tagLanguage(tag)).toEqual('en');
+  expect(tagScript(tag)).toEqual('Zzzz');
+  expect(tagRegion(tag)).toEqual('US');
 });
 
 test('locale matcher', () => {
-  const matcher = new LocaleMatcher('en, fr-CA');
-  expect(matcher.match('fr').locale.id).toEqual('fr-CA');
+  const matcher = createLocaleMatcher('en, fr-CA');
+  expect(matchLocale(matcher, 'fr').locale.id).toEqual('fr-CA');
 });
 
 test('messages', () => {

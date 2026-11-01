@@ -19,9 +19,9 @@ import { Internals, InternalsImpl } from './internals';
 
 import { availableLocales } from './locale';
 
-import { parseLanguageTag, LanguageTag } from '@phensley/language-tag';
+import { parseLanguageTag, LanguageTag, tagCompact, tagLanguage } from '@phensley/language-tag';
 
-import { LanguageResolver, Locale } from '@phensley/locale';
+import { Locale, resolveLanguageTag } from '@phensley/locale';
 
 import { Bundle, Pack } from './resource';
 
@@ -281,8 +281,8 @@ export class CLDRFramework {
    * a resolved LanguageTag.
    */
   static resolveLocale(id: string | LanguageTag): Locale {
-    const _id = typeof id === 'string' ? id : id.compact();
-    const tag = LanguageResolver.resolve(id);
+    const _id = typeof id === 'string' ? id : tagCompact(id);
+    const tag = resolveLanguageTag(id);
     return { id: _id, tag };
   }
 
@@ -302,7 +302,7 @@ export class CLDRFramework {
     must(this.loader, Messages.NO_SYNC_LOADER);
     must(locale, Messages.LOCALE_UNDEFINED);
     const resolved = typeof locale === 'string' ? CLDRFramework.resolveLocale(locale) : locale;
-    const language = resolved.tag.language();
+    const language = tagLanguage(resolved.tag);
 
     let pack = this.packCache.get(language);
     if (pack === undefined) {
@@ -322,7 +322,7 @@ export class CLDRFramework {
     must(this.asyncLoader, Messages.NO_ASYNC_LOADER);
     must(locale, Messages.LOCALE_UNDEFINED);
     const resolved = typeof locale === 'string' ? CLDRFramework.resolveLocale(locale) : locale;
-    const language = resolved.tag.language();
+    const language = tagLanguage(resolved.tag);
 
     const promise = new Promise<CLDR>((resolve, reject) => {
       const pack = this.packCache.get(language);

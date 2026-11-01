@@ -1,4 +1,4 @@
-import { Locale } from '@phensley/cldr-core';
+import { Locale, tagLanguage } from '@phensley/cldr-core';
 import { fixJapaneseUnits } from './japanese';
 
 /**
@@ -8,7 +8,7 @@ import { fixJapaneseUnits } from './japanese';
  * unnecessary.
  */
 export const applyFixes = (locale: Locale, data: any) => {
-  if (locale.tag.language() === 'ja') {
+  if (tagLanguage(locale.tag) === 'ja') {
     fixJapaneseUnits(data);
   }
 };

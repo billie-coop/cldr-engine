@@ -1,4 +1,4 @@
-import { parseLanguageTag } from '@phensley/cldr-core';
+import { parseLanguageTag, tagHasLanguage, tagHasRegion, tagLanguage, tagRegion } from '@phensley/cldr-core';
 import { escapeString, Code, HEADER, NOLINT } from './util';
 
 export const getTimeData = (data: any): Code[] => {
@@ -6,13 +6,13 @@ export const getTimeData = (data: any): Code[] => {
 
   Object.keys(data.timeData).forEach((k) => {
     let tag = parseLanguageTag(k);
-    if (!tag.hasRegion()) {
+    if (!tagHasRegion(tag)) {
       tag = parseLanguageTag(`und-${k}`);
     }
 
     const { _allowed, _preferred } = data.timeData[k];
-    const language = tag.hasLanguage() ? tag.language() : '';
-    const region = tag.region();
+    const language = tagHasLanguage(tag) ? tagLanguage(tag) : '';
+    const region = tagRegion(tag);
     const record: { [y: string]: string } = timeData[language] || {};
     record[region] = `${_allowed}|${_preferred}`;
     timeData[language] = record;

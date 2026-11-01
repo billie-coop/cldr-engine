@@ -21,10 +21,12 @@ yarn add @phensley/language-tag
 ## Examples
 
 ```typescript
+import { languageTag, parseLanguageTag, tagCompact, tagExpanded } from '@phensley/language-tag';
+
 const IDS = ['en', 'es', 'es-419', 'und-AR', 'und-Hant', 'iw', 'i-klingon'];
 for (const id of IDS) {
   const tag = parseLanguageTag(id);
-  console.log(`${tag.compact().padStart(10)}  ${tag.expanded()}`);
+  console.log(`${tagCompact(tag).padStart(10)}  ${tagExpanded(tag)}`);
 }
 ```
 
@@ -39,10 +41,10 @@ for (const id of IDS) {
 ```
 
 ```typescript
-const t = new LanguageTag(undefined, 'latn', 'us', 'PoSiX', {
+const t = languageTag(undefined, 'latn', 'us', 'PoSiX', {
   u: ['ca-gregory']
 });
-console.log(t.expanded());
+console.log(tagExpanded(t));
 ```
 
 ```

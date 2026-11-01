@@ -1,5 +1,20 @@
-import { parseLanguageTag, LanguageTag } from '@phensley/language-tag';
-import { LanguageResolver, Locale } from '@phensley/locale';
+import {
+  isLanguageTag,
+  languageTag,
+  parseLanguageTag,
+  tagCompact,
+  tagExtensions,
+  tagHasLanguage,
+  tagHasRegion,
+  tagHasScript,
+  tagLanguage,
+  tagPrivateUse,
+  tagRegion,
+  tagScript,
+  tagVariant,
+  LanguageTag,
+} from '@phensley/language-tag';
+import { resolveLanguageTag, substituteAliases, Locale } from '@phensley/locale';
 
 import { getDistance, DEFAULT_THRESHOLD, MAX_DISTANCE } from './distance';
 import { paradigmLocales } from './autogen.distance';
@@ -11,15 +26,16 @@ const U = undefined;
 
 const numberCmp = (a: number, b: number) => (a === b ? 0 : a < b ? -1 : 1);
 
-class Entry implements Locale {
+/**
+ * A locale held by the matcher, paired with its compact tag string.
+ *
+ * @public
+ */
+export interface LocaleMatcherEntry extends Locale {
   readonly compact: string;
-  constructor(
-    readonly id: string,
-    readonly tag: LanguageTag,
-  ) {
-    this.compact = tag.compact();
-  }
 }
+
+const entry = (id: string, tag: LanguageTag): LocaleMatcherEntry => ({ id, tag, compact: tagCompact(tag) });
 
 type LangTag = Locale | LanguageTag | string;
 
@@ -28,7 +44,10 @@ type LangTag = Locale | LanguageTag | string;
  *
  * Visible for testing.
  */
-export const parse = (locales: string | (Locale | LangTag)[] = [], options: LocaleMatcherOptions = {}): Entry[] => {
+export const parse = (
+  locales: string | (Locale | LangTag)[] = [],
+  options: LocaleMatcherOptions = {},
+): LocaleMatcherEntry[] => {
   let raw: LangTag[];
   if (typeof locales === 'string') {
     raw = locales.split(TAG_SEP);
@@ -38,9 +57,9 @@ export const parse = (locales: string | (Locale | LangTag)[] = [], options: Loca
         const tmp = e.split(TAG_SEP);
         return a.concat(tmp);
       }
-      if ((e as Locale).tag instanceof LanguageTag) {
+      if (isLanguageTag((e as Locale).tag)) {
         a.push(e as Locale);
-      } else if (e instanceof LanguageTag) {
+      } else if (isLanguageTag(e)) {
         a.push(e);
       }
       return a;
@@ -48,15 +67,15 @@ export const parse = (locales: string | (Locale | LangTag)[] = [], options: Loca
   }
 
   const resolve = options.resolve !== false;
-  const result: Entry[] = [];
+  const result: LocaleMatcherEntry[] = [];
   const len = raw.length;
   for (let i = 0; i < len; i++) {
     const e = raw[i];
     let id: string;
     let tag: LanguageTag;
-    if (e instanceof LanguageTag) {
+    if (isLanguageTag(e)) {
       tag = e;
-      id = tag.compact();
+      id = tagCompact(tag);
     } else if (typeof e === 'string') {
       id = e.trim();
       tag = parseLanguageTag(id);
@@ -64,35 +83,33 @@ export const parse = (locales: string | (Locale | LangTag)[] = [], options: Loca
       // Have a full Locale object, so optionally substitute aliases and add it
       tag = e.tag;
       id = e.id;
-      result.push(new Entry(e.id, resolve ? LanguageResolver.substituteAliases(e.tag) : e.tag));
+      result.push(entry(e.id, resolve ? substituteAliases(e.tag) : e.tag));
       continue;
     }
 
     // This code preserves the 'und' undefined locale. If we resolve it, adding
     // likely subtags will expand it to 'en-Latn-US'.
 
-    const l = tag.hasLanguage();
-    const s = tag.hasScript();
-    const r = tag.hasRegion();
+    const l = tagHasLanguage(tag);
+    const s = tagHasScript(tag);
+    const r = tagHasRegion(tag);
 
     if (l && s && r) {
       // If all subtags are present, substitute aliases
-      result.push(new Entry(id, resolve ? LanguageResolver.substituteAliases(tag) : tag));
+      result.push(entry(id, resolve ? substituteAliases(tag) : tag));
     } else if (l || s || r) {
       // If at least one subtag is present, resolve
-      result.push(new Entry(id, resolve ? LanguageResolver.resolve(tag) : tag));
+      result.push(entry(id, resolve ? resolveLanguageTag(tag) : tag));
     } else {
       // Preserve undefined core fields, but include input's extensions
-      result.push(
-        new Entry(id, new LanguageTag(undefined, undefined, undefined, undefined, tag.extensions(), tag.privateUse())),
-      );
+      result.push(entry(id, languageTag(U, U, U, U, tagExtensions(tag), tagPrivateUse(tag))));
     }
   }
   return result;
 };
 
 /**
- * A result returned by the LocaleMatcher.
+ * A result returned by matchLocale.
  *
  * @public
  */
@@ -109,7 +126,7 @@ export interface LocaleMatch {
 }
 
 /**
- * Options for the LocaleMatcher.
+ * Options for createLocaleMatcher.
  *
  * @public
  */
@@ -130,8 +147,8 @@ export interface LocaleMatcherOptions {
  * Visible for testing.
  */
 export const sortEntries =
-  (d: Entry) =>
-  (a: Entry, b: Entry): number => {
+  (d: LocaleMatcherEntry) =>
+  (a: LocaleMatcherEntry, b: LocaleMatcherEntry): number => {
     // Check if entry is our default tag, to keep it at the front of the array.
     if (a.tag === d.tag) {
       return -1;
@@ -154,89 +171,116 @@ export const sortEntries =
   };
 
 /**
- * Given a list of supported locales, and a list of a user's desired locales
- * (sorted in the order of preference, descending), returns the supported
- * locale closest to the user preference. The first locale in the list will
- * be used as the default. The default will be selected if no match is within
- * the distance threshold.
+ * Locale matcher created by `createLocaleMatcher`. Plain readonly data;
+ * pass it to `matchLocale`.
+ *
+ * @public
+ */
+export interface LocaleMatcher {
+  /**
+   * Supported locales, sorted: default first, then paradigm locales, then all others.
+   */
+  readonly supported: readonly LocaleMatcherEntry[];
+
+  /**
+   * The default locale, i.e. the first supported locale given.
+   */
+  readonly defaultEntry: LocaleMatcherEntry;
+
+  /**
+   * Supported locales keyed by compact tag, for quick exact-match lookups.
+   */
+  readonly exactMap: { readonly [x: string]: readonly LocaleMatcherEntry[] };
+}
+
+/**
+ * Create a matcher for the given list of supported locales. Use `matchLocale`
+ * to find the supported locale closest to a user's desired locales. The first
+ * locale in the list will be used as the default. The default will be selected
+ * if no match is within the distance threshold.
  *
  * Implementation of CLDR enhanced language matching:
  * http://www.unicode.org/reports/tr35/tr35.html#EnhancedLanguageMatching
  *
  * @public
  */
-export class LocaleMatcher {
-  private supported: Entry[];
-  private count: number;
-  private default: Entry;
-  private exactMap: { [x: string]: Entry[] } = {};
-
-  constructor(supportedLocales: string | (Locale | LanguageTag | string)[], options: LocaleMatcherOptions = {}) {
-    this.supported = parse(supportedLocales, options);
-    this.count = this.supported.length;
-    if (!this.count) {
-      throw new Error('LocaleMatcher expects at least one supported locale');
-    }
-
-    // The first locale in the list is used as the default.
-    this.default = this.supported[0];
-    this.supported.sort(sortEntries(this.default));
-
-    // Wire up a map for quick lookups of exact matches. These have a
-    // distance of 0 and will short-circuit the matching loop.
-    this.supported.forEach((locale) => {
-      const key = locale.compact;
-      let bundles = this.exactMap[key];
-      if (bundles === U) {
-        bundles = [locale];
-        this.exactMap[key] = bundles;
-      } else {
-        bundles.push(locale);
-      }
-    });
+export const createLocaleMatcher = (
+  supportedLocales: string | (Locale | LanguageTag | string)[],
+  options: LocaleMatcherOptions = {},
+): LocaleMatcher => {
+  const supported = parse(supportedLocales, options);
+  if (!supported.length) {
+    throw new Error('LocaleMatcher expects at least one supported locale');
   }
 
-  /**
-   * Find the desired locale that is the closed match to a supported locale, within
-   * the given threshold. Any matches whose distance is greater than or equal to the
-   * threshold will be treated as having maximum distance.
-   */
-  match(desiredLocales: string | string[], threshold: number = DEFAULT_THRESHOLD): LocaleMatch {
-    const desireds = parse(desiredLocales);
-    const len = desireds.length;
-    let bestDistance = MAX_DISTANCE;
-    let bestMatch = undefined;
-    let bestDesired = len === 0 ? this.default : desireds[0];
-    for (let i = 0; i < len; i++) {
-      const desired = desireds[i];
+  // The first locale in the list is used as the default.
+  const defaultEntry = supported[0];
+  supported.sort(sortEntries(defaultEntry));
 
-      // Short-circuit if we find an exact match
-      const exact = this.exactMap[desired.compact];
-      if (exact !== undefined) {
-        bestMatch = exact[0];
-        bestDistance = 0;
+  // Wire up a map for quick lookups of exact matches. These have a
+  // distance of 0 and will short-circuit the matching loop.
+  const exactMap: { [x: string]: LocaleMatcherEntry[] } = {};
+  supported.forEach((locale) => {
+    const key = locale.compact;
+    const entries = exactMap[key];
+    if (entries === U) {
+      exactMap[key] = [locale];
+    } else {
+      entries.push(locale);
+    }
+  });
+
+  return { supported, defaultEntry, exactMap };
+};
+
+/**
+ * Find the desired locale that is the closest match to a supported locale, within
+ * the given threshold. Any matches whose distance is greater than or equal to the
+ * threshold will be treated as having maximum distance.
+ *
+ * @public
+ */
+export const matchLocale = (
+  matcher: LocaleMatcher,
+  desiredLocales: string | string[],
+  threshold: number = DEFAULT_THRESHOLD,
+): LocaleMatch => {
+  const { supported: supportedEntries, defaultEntry, exactMap } = matcher;
+  const count = supportedEntries.length;
+  const desireds = parse(desiredLocales);
+  const len = desireds.length;
+  let bestDistance = MAX_DISTANCE;
+  let bestMatch: LocaleMatcherEntry | undefined = undefined;
+  let bestDesired = len === 0 ? defaultEntry : desireds[0];
+  for (let i = 0; i < len; i++) {
+    const desired = desireds[i];
+
+    // Short-circuit if we find an exact match
+    const exact = exactMap[desired.compact];
+    if (exact !== undefined) {
+      bestMatch = exact[0];
+      bestDistance = 0;
+      bestDesired = desired;
+      break;
+    }
+
+    for (let j = 0; j < count; j++) {
+      const supported = supportedEntries[j];
+      const distance = getDistance(desired.tag, supported.tag, threshold);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestMatch = supported;
         bestDesired = desired;
-        break;
-      }
-
-      for (let j = 0; j < this.count; j++) {
-        const supported = this.supported[j];
-        const distance = getDistance(desired.tag, supported.tag, threshold);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          bestMatch = supported;
-          bestDesired = desired;
-        }
       }
     }
-
-    const extensions = bestDesired.tag.extensions();
-    const privateUse = bestDesired.tag.privateUse();
-    const { id, tag } = bestMatch === U ? this.default : bestMatch;
-    const result = new LanguageTag(tag.language(), tag.script(), tag.region(), tag.variant(), extensions, privateUse);
-    return {
-      locale: { id, tag: result },
-      distance: bestMatch === U ? MAX_DISTANCE : bestDistance,
-    };
   }
-}
+
+  const extensions = tagExtensions(bestDesired.tag);
+  const privateUse = tagPrivateUse(bestDesired.tag);
+  const { id, tag } = bestMatch === U ? defaultEntry : bestMatch;
+  const result = languageTag(tagLanguage(tag), tagScript(tag), tagRegion(tag), tagVariant(tag), extensions, privateUse);
+  return {
+    locale: { id, tag: result },
+    distance: bestMatch === U ? MAX_DISTANCE : bestDistance,
+  };
+};

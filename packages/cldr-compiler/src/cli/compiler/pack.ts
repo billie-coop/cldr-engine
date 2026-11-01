@@ -4,7 +4,7 @@ import { join } from 'path';
 import * as yargs from 'yargs';
 import * as zlib from 'zlib';
 
-import { checksumIndices, CodeBuilder } from '@phensley/cldr-core';
+import { checksumIndices, CodeBuilder, tagRegion } from '@phensley/cldr-core';
 import { getMain } from '../../cldr';
 import { Encoder, EncoderMachine } from '../../resource/machine';
 import { ResourcePack } from '../../resource/pack';
@@ -161,7 +161,7 @@ const runPackImpl = (argv: yargs.Arguments<PackArgs>, pkg: ProjectInfo) => {
     let locales = localeMap[lang];
 
     if (regions.size > 0) {
-      locales = locales.filter((l) => l.id === lang || regions.has(l.tag.region()));
+      locales = locales.filter((l) => l.id === lang || regions.has(tagRegion(l.tag)));
     }
 
     // Truncate the cldr version to the first 3 components.

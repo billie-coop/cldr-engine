@@ -4,7 +4,16 @@ import * as zlib from 'zlib';
 import { tzResolveId, tzZoneIds } from '@phensley/timezone';
 import { getSupplemental } from '../../../cldr';
 import { objectToString, Code, HEADER, NOLINT_MAXLINE } from './util';
-import { parseLanguageTag } from '@phensley/cldr-core';
+import {
+  parseLanguageTag,
+  tagExtlangs,
+  tagHasRegion,
+  tagHasScript,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+  tagVariant,
+} from '@phensley/cldr-core';
 
 /**
  * Split string into lines and split each line into a colon-delimited
@@ -32,18 +41,18 @@ const expand = (aliases: any) => {
     let flag = false;
 
     // We ignore variants in language alias substitution for now
-    if (tag.variant()) {
+    if (tagVariant(tag)) {
       return;
     }
-    if (flag || tag.hasRegion()) {
-      parts.push(tag.hasRegion() ? tag.region() : '');
+    if (flag || tagHasRegion(tag)) {
+      parts.push(tagHasRegion(tag) ? tagRegion(tag) : '');
       flag = true;
     }
-    if (flag || tag.hasScript()) {
-      parts.push(tag.hasScript() ? tag.script() : '');
+    if (flag || tagHasScript(tag)) {
+      parts.push(tagHasScript(tag) ? tagScript(tag) : '');
     }
-    let lang = tag.language();
-    const extlangs = tag.extlangs();
+    let lang = tagLanguage(tag);
+    const extlangs = tagExtlangs(tag);
     if (extlangs.length) {
       // Canonicalize step 3 https://tools.ietf.org/html/bcp47#section-4.5
       lang = extlangs[0];

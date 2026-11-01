@@ -1,6 +1,6 @@
 import { JSONRoot, RBNFCollector, RBNFEncoder, RBNFSymbolExtractor } from '../rbnf';
 import { FrequencySet } from '../utils';
-import { parseLanguageTag } from '@phensley/cldr-core';
+import { parseLanguageTag, tagLanguage } from '@phensley/cldr-core';
 
 /**
  * Collect and pack rules for the given locales.
@@ -56,7 +56,7 @@ export class RBNFPacker {
     for (const id of allids) {
       // Same rule are defined for each script and region of a language, so only
       // list rules at the language level.
-      const lang = id === 'root' ? 'root' : parseLanguageTag(id).language();
+      const lang = id === 'root' ? 'root' : tagLanguage(parseLanguageTag(id));
       if (seen.has(lang)) {
         continue;
       }

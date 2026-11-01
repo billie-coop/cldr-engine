@@ -1,8 +1,8 @@
-import { LanguageResolver } from '@phensley/locale';
+import { resolveLanguageTag } from '@phensley/locale';
 import { getDistance } from '../src/distance';
 import { loadDistanceCases, loadDistanceCasesNew } from './util';
 
-const { resolve } = LanguageResolver;
+const resolve = resolveLanguageTag;
 
 const distance = (a: string, b: string) => getDistance(resolve(a), resolve(b));
 

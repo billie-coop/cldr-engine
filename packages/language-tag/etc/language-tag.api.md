@@ -8,41 +8,25 @@
 export type FastTag = (string | number)[];
 
 // @public
-export class LanguageTag {
-    constructor(language?: string, script?: string, region?: string, variant?: string, extensions?: {
-        [x: string]: string[];
-    }, privateUse?: string, extlangs?: string[]);
-    compact(): string;
-    // (undocumented)
-    protected _compact?: string;
-    // (undocumented)
-    protected core: (undefined | string)[];
-    expanded(): string;
-    // (undocumented)
-    protected _expanded?: string;
-    extensions(): {
-        [x: string]: string[];
+export const isLanguageTag: (x: unknown) => x is LanguageTag;
+
+// @public
+export interface LanguageTag {
+    readonly extensions: {
+        readonly [x: string]: readonly string[];
     };
-    // (undocumented)
-    protected _extensions: {
-        [x: string]: string[];
-    };
-    extensionSubtags(key: string): string[];
-    extlangs(): string[];
-    // (undocumented)
-    protected _extlangs: string[];
-    hasLanguage(): boolean;
-    hasRegion(): boolean;
-    hasScript(): boolean;
-    language(): string;
-    privateUse(): string;
-    // (undocumented)
-    protected _privateUse: string;
-    region(): string;
-    script(): string;
-    toString(): string;
-    variant(): string;
+    readonly extlangs: readonly string[];
+    readonly language?: string;
+    readonly privateUse: string;
+    readonly region?: string;
+    readonly script?: string;
+    readonly variant?: string;
 }
+
+// @public
+export const languageTag: (language?: string, script?: string, region?: string, variant?: string, extensions?: {
+    readonly [x: string]: readonly string[];
+}, privateUse?: string, extlangs?: readonly string[]) => LanguageTag;
 
 // @public (undocumented)
 export enum LanguageTagField {
@@ -61,6 +45,50 @@ export const parseLanguageTag: (str: string) => LanguageTag;
 
 // @public
 export const substituteRegionAliases: (dst: FastTag) => void;
+
+// @public
+export const tagCompact: (t: LanguageTag) => string;
+
+// @public
+export const tagExpanded: (t: LanguageTag) => string;
+
+// @public
+export const tagExtensions: (t: LanguageTag) => {
+    [x: string]: readonly string[];
+};
+
+// @public
+export const tagExtensionSubtags: (t: LanguageTag, key: string) => readonly string[];
+
+// @public
+export const tagExtlangs: (t: LanguageTag) => readonly string[];
+
+// @public
+export const tagHasLanguage: (t: LanguageTag) => boolean;
+
+// @public
+export const tagHasRegion: (t: LanguageTag) => boolean;
+
+// @public
+export const tagHasScript: (t: LanguageTag) => boolean;
+
+// @public
+export const tagLanguage: (t: LanguageTag) => string;
+
+// @public
+export const tagPrivateUse: (t: LanguageTag) => string;
+
+// @public
+export const tagRegion: (t: LanguageTag) => string;
+
+// @public
+export const tagScript: (t: LanguageTag) => string;
+
+// @public
+export const tagToString: (t: LanguageTag) => string;
+
+// @public
+export const tagVariant: (t: LanguageTag) => string;
 
 // (No @packageDocumentation comment for this package)
 

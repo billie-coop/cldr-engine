@@ -1,6 +1,6 @@
 import { getSupplemental } from '../../../cldr';
 import { Code, HEADER, NOLINT_MAXLINE } from './util';
-import { LanguageResolver } from '@phensley/cldr-core';
+import { resolveLanguageTag, tagLanguage, tagScript } from '@phensley/cldr-core';
 
 const increasing = (s: string[]): boolean => {
   for (let i = 1; i < s.length; i++) {
@@ -48,8 +48,8 @@ export const getSystems = (_data: any): Code[] => {
       let parts = ['root', v];
       if (v.indexOf('/SpelloutRules') !== -1) {
         const tmp = v.split('/');
-        const tag = LanguageResolver.resolve(tmp[0]);
-        const id = `${tag.language()}-${tag.script()}`;
+        const tag = resolveLanguageTag(tmp[0]);
+        const id = `${tagLanguage(tag)}-${tagScript(tag)}`;
         parts = [id, tmp[2]];
       }
       algorithmic += `  ${k}: [${parts.map((p) => `'${p}'`).join(', ')}],\n`;

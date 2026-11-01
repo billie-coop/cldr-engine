@@ -1,5 +1,6 @@
 import { CLDRFramework, CurrencyFormatOptions, NumberSystemInfo, Quantity, SchemaConfig } from '../src';
 import { getCLDR } from './_helpers';
+import { tagCompact, tagExpanded } from '@phensley/language-tag';
 
 const { parseLanguageTag, resolveLocale } = CLDRFramework;
 
@@ -12,7 +13,7 @@ test('init framework', () => {
 
   expect(api.General.bundle().id()).toEqual('en-Latn-US');
   expect(api.General.locale().id).toEqual('en');
-  expect(api.General.resolveLocale('zh').tag.expanded()).toEqual('zh-Hans-CN');
+  expect(tagExpanded(api.General.resolveLocale('zh').tag)).toEqual('zh-Hans-CN');
 
   expect(api.General.characterOrder()).toEqual('ltr');
   expect(api.General.lineOrder()).toEqual('ttb');
@@ -62,16 +63,16 @@ test('init framework', () => {
 
 test('parsing language tags', () => {
   let r = parseLanguageTag('und-Zzzz-BR');
-  expect(r.compact()).toEqual('und-BR');
+  expect(tagCompact(r)).toEqual('und-BR');
 
   r = parseLanguageTag('und');
-  expect(r.compact()).toEqual('und');
+  expect(tagCompact(r)).toEqual('und');
 
   let l = resolveLocale('und-Zzzz-BR');
-  expect(l.tag.compact()).toEqual('pt-Latn-BR');
+  expect(tagCompact(l.tag)).toEqual('pt-Latn-BR');
 
   l = resolveLocale('und');
-  expect(l.tag.compact()).toEqual('en-Latn-US');
+  expect(tagCompact(l.tag)).toEqual('en-Latn-US');
 });
 
 test('enumerating locales', () => {
@@ -116,12 +117,12 @@ test('resolving locales', () => {
   let r = parseLanguageTag('und-Zzzz-US');
   let { id, tag } = resolveLocale(r);
   expect(id).toEqual('und-US');
-  expect(tag.compact()).toEqual('en-Latn-US');
+  expect(tagCompact(tag)).toEqual('en-Latn-US');
 
   r = parseLanguageTag('es');
   ({ id, tag } = resolveLocale(r));
   expect(id).toEqual('es');
-  expect(tag.compact()).toEqual('es-Latn-ES');
+  expect(tagCompact(tag)).toEqual('es-Latn-ES');
 });
 
 test('async loader', async () => {

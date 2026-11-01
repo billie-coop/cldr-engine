@@ -1,10 +1,18 @@
-import { LanguageTag, parseLanguageTag } from '../src';
+import {
+  parseLanguageTag,
+  languageTag,
+  tagCompact,
+  tagExpanded,
+  tagExtensions,
+  tagExtlangs,
+  tagPrivateUse,
+} from '../src';
 
-const compact = (s: string) => parseLanguageTag(s).compact();
-const expanded = (s: string) => parseLanguageTag(s).expanded();
-const privateUse = (s: string) => parseLanguageTag(s).privateUse();
-const extensions = (s: string) => parseLanguageTag(s).extensions();
-const extlangs = (s: string) => parseLanguageTag(s).extlangs();
+const compact = (s: string) => tagCompact(parseLanguageTag(s));
+const expanded = (s: string) => tagExpanded(parseLanguageTag(s));
+const privateUse = (s: string) => tagPrivateUse(parseLanguageTag(s));
+const extensions = (s: string) => tagExtensions(parseLanguageTag(s));
+const extlangs = (s: string) => tagExtlangs(parseLanguageTag(s));
 
 test('basics', () => {
   expect(compact('!+')).toEqual('und');
@@ -35,7 +43,7 @@ test('extlang subtags', () => {
   expect(compact('ar-aao')).toEqual('ar');
   expect(compact('en-abc-def-us')).toEqual('en-US');
 
-  expect(parseLanguageTag('arbv-arb')).toEqual(new LanguageTag('arbv', undefined, 'ARB'));
+  expect(parseLanguageTag('arbv-arb')).toEqual(languageTag('arbv', undefined, 'ARB'));
 });
 
 test('private use', () => {

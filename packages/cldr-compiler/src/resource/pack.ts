@@ -1,4 +1,17 @@
-import { LanguageResolver, LanguageTag, Locale, LocaleResolver } from '@phensley/cldr-core';
+import {
+  LanguageTag,
+  Locale,
+  removeLikelySubtags,
+  resolveLocaleId,
+  tagCompact,
+  tagExpanded,
+  tagHasRegion,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+  tagToString,
+  tagVariant,
+} from '@phensley/cldr-core';
 import { getOther } from '../cldr';
 import { RBNFPacker } from './rbnf';
 import { RBNFCollector } from '../rbnf';
@@ -8,8 +21,8 @@ const defaultContent = new Set();
 
 const loadDefaultContent = () =>
   getOther().DefaultContent.forEach((s: string) => {
-    const { tag } = LocaleResolver.resolve(s);
-    defaultContent.add(tag.expanded());
+    const { tag } = resolveLocaleId(s);
+    defaultContent.add(tagExpanded(tag));
   });
 
 // UNDERSCORE delimiter selected as it saves about 10% space vs the previous
@@ -27,7 +40,7 @@ class Layer {
     readonly tag: LanguageTag,
     readonly isDefault: boolean,
   ) {
-    this.localeId = tag.expanded();
+    this.localeId = tagExpanded(tag);
   }
 }
 
@@ -76,7 +89,7 @@ export class ResourcePack {
     }
 
     const { tag } = locale;
-    const script = tag.script();
+    const script = tagScript(tag);
     let layers = this.layers[script];
     if (layers === undefined) {
       layers = [];
@@ -84,14 +97,14 @@ export class ResourcePack {
     }
 
     // Determine the default region / script
-    const minimumTag = LanguageResolver.removeLikelySubtags(tag);
+    const minimumTag = removeLikelySubtags(tag);
 
     // Determine default layer for this language
-    if (minimumTag.compact() === minimumTag.language()) {
+    if (tagCompact(minimumTag) === tagLanguage(minimumTag)) {
       this.defaultLayer = tag;
     }
 
-    const layerIsDefault = defaultContent.has(tag.expanded());
+    const layerIsDefault = defaultContent.has(tagExpanded(tag));
     const layer = new Layer(tag, layerIsDefault);
     this.current = layer;
     layers.push(layer);
@@ -130,7 +143,7 @@ export class ResourcePack {
       `"cldr":"${this.cldrVersion}",` +
       `"checksum":"${checksum}",` +
       `"language":"${this.language}",` +
-      `"defaultTag":"${this.defaultLayer}",` +
+      `"defaultTag":"${tagToString(this.defaultLayer)}",` +
       `"scripts":{${scripts.join(',')}},` +
       `"spellout":${this.spellout}}`
     );
@@ -198,14 +211,14 @@ export class ResourcePack {
     const regions = layers.map((curr) => {
       const idx = curr.index.map((n) => n.toString(36)).join(' ');
 
-      let id = curr.tag.region();
+      let id = tagRegion(curr.tag);
       if (curr.isDefault) {
         defaultRegion = id;
       }
 
       // TODO: Revisit variant support. For now we append variant to region
       // to distinguish them.
-      const variant = curr.tag.variant();
+      const variant = tagVariant(curr.tag);
       if (variant !== '') {
         id += '-' + variant;
       }
@@ -214,8 +227,8 @@ export class ResourcePack {
 
     if (defaultRegion === '') {
       const def = this.defaultLayer;
-      if (def !== undefined && def.script() === script && def.hasRegion()) {
-        defaultRegion = def.region();
+      if (def !== undefined && tagScript(def) === script && tagHasRegion(def)) {
+        defaultRegion = tagRegion(def);
       } else {
         throw new Error(`Failed to set default region for ${this.language}-${script}`);
       }

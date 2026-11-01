@@ -5,40 +5,19 @@
 ```ts
 
 // @public
-export class LanguageTag {
-    constructor(language?: string, script?: string, region?: string, variant?: string, extensions?: {
-        [x: string]: string[];
-    }, privateUse?: string, extlangs?: string[]);
-    compact(): string;
-    // (undocumented)
-    protected _compact?: string;
-    // (undocumented)
-    protected core: (undefined | string)[];
-    expanded(): string;
-    // (undocumented)
-    protected _expanded?: string;
-    extensions(): {
-        [x: string]: string[];
+export const createLocaleMatcher: (supportedLocales: string | (Locale | LanguageTag | string)[], options?: LocaleMatcherOptions) => LocaleMatcher;
+
+// @public
+export interface LanguageTag {
+    readonly extensions: {
+        readonly [x: string]: readonly string[];
     };
-    // (undocumented)
-    protected _extensions: {
-        [x: string]: string[];
-    };
-    extensionSubtags(key: string): string[];
-    extlangs(): string[];
-    // (undocumented)
-    protected _extlangs: string[];
-    hasLanguage(): boolean;
-    hasRegion(): boolean;
-    hasScript(): boolean;
-    language(): string;
-    privateUse(): string;
-    // (undocumented)
-    protected _privateUse: string;
-    region(): string;
-    script(): string;
-    toString(): string;
-    variant(): string;
+    readonly extlangs: readonly string[];
+    readonly language?: string;
+    readonly privateUse: string;
+    readonly region?: string;
+    readonly script?: string;
+    readonly variant?: string;
 }
 
 // @public
@@ -54,15 +33,27 @@ export interface LocaleMatch {
 }
 
 // @public
-export class LocaleMatcher {
-    constructor(supportedLocales: string | (Locale | LanguageTag | string)[], options?: LocaleMatcherOptions);
-    match(desiredLocales: string | string[], threshold?: number): LocaleMatch;
+export interface LocaleMatcher {
+    readonly defaultEntry: LocaleMatcherEntry;
+    readonly exactMap: {
+        readonly [x: string]: readonly LocaleMatcherEntry[];
+    };
+    readonly supported: readonly LocaleMatcherEntry[];
+}
+
+// @public
+export interface LocaleMatcherEntry extends Locale {
+    // (undocumented)
+    readonly compact: string;
 }
 
 // @public
 export interface LocaleMatcherOptions {
     resolve?: boolean;
 }
+
+// @public
+export const matchLocale: (matcher: LocaleMatcher, desiredLocales: string | string[], threshold?: number) => LocaleMatch;
 
 // (No @packageDocumentation comment for this package)
 

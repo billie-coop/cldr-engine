@@ -1,4 +1,4 @@
-import { LanguageTag } from '@phensley/language-tag';
+import { languageTag } from '@phensley/language-tag';
 import { Locale } from '@phensley/locale';
 import { rawLocales } from './autogen.locales';
 
@@ -50,7 +50,7 @@ export const availableLocales = (): Locale[] => {
           }
           allLocales.push({
             id: x.join('-'),
-            tag: new LanguageTag(l, s, r, v),
+            tag: languageTag(l, s, r, v),
           });
         }
       });

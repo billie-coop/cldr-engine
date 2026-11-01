@@ -1,4 +1,4 @@
-import { LanguageTag } from './languagetag';
+import { languageTag, LanguageTag } from './languagetag';
 import { replaceRegion, stringToObject } from './util';
 import * as subtags from './autogen.subtags';
 
@@ -27,7 +27,7 @@ const PRIVATEUSE_PREFIX = /^x$/i;
 const PRIVATEUSE_SUBTAG = /^[\da-z]{1,8}$/i;
 
 // https://www.unicode.org/reports/tr35/tr35-33/tr35.html#Key_And_Type_Definitions_
-const UNICODE_EXTENSION_KEYS: Set<string> = new Set([
+const UNICODE_EXTENSION_KEYS: Set<string> = /*#__PURE__*/ new Set([
   'ca', // calendar
   'co', // collation
   'cu', // currency
@@ -68,177 +68,138 @@ const match = (parts: string[], pattern: RegExp): string | undefined => {
   return undefined;
 };
 
-/**
- * Parses a string into a series of language tag fields.
- */
-class LanguageTagParser {
-  private language?: string;
-  private script?: string;
-  private region?: string;
-  private extlangs: string[] = [];
-  private variants: string[] = [];
-  private extensions: { [x: string]: string[] } = {};
-  private privateUse: string = '';
-
-  private str: string;
-  // private errors: string[] = [];
-
-  constructor(str: string) {
-    this.str = str;
+const parseExtLangs = (parts: string[], extlangs: string[]): void => {
+  while (parts.length !== 0) {
+    const result = match(parts, EXTLANG);
+    if (!result) {
+      break;
+    }
+    extlangs.push(result);
   }
+};
 
-  /**
-   * Parse the string and return a language tag object.
-   */
-  parse(): LanguageTag {
-    if (!GRANDFATHERED_TAGS) {
-      init();
+const parseVariants = (parts: string[], variants: string[]): void => {
+  while (parts.length > 0) {
+    const result = match(parts, VARIANT);
+    if (!result) {
+      break;
     }
-    const str = this.str.indexOf('_') === -1 ? this.str : this.str.replace(UNDERSCORE, SEP);
-    const preferred = GRANDFATHERED_TAGS![str.toLowerCase()];
-    const parts = typeof preferred === 'string' ? preferred.split(SEP) : str.split(SEP);
+    variants.push(result);
+  }
+};
 
-    if (this.parseLanguage(parts)) {
-      if (this.language && this.language.length <= 3) {
-        this.parseExtLangs(parts);
-      }
-      this.parseScript(parts);
-      this.parseRegion(parts);
-      this.parseVariants(parts);
-      this.parseExtensions(parts);
-    }
-    this.parsePrivateUse(parts);
-
-    // If no region was parsed, check if one of the extlangs is actually a valid ISO 3166
-    if (!this.region) {
-      for (let i = 0; i < this.extlangs.length; i++) {
-        const replacement = replaceRegion(this.extlangs[i].toUpperCase());
-        if (replacement) {
-          this.region = replacement;
-          // Ignore the extlangs since we currently don't add them to the LanguageTag.
-          break;
-        }
-      }
+const parseExtensions = (parts: string[], extensions: { [x: string]: string[] }): void => {
+  while (parts.length > 0) {
+    const prefix = match(parts, EXTENSION_PREFIX);
+    if (!prefix) {
+      break;
     }
 
-    return new LanguageTag(
-      this.language,
-      this.script,
-      this.region,
-      this.variants.length === 0 ? undefined : this.variants[0],
-      this.extensions,
-      this.privateUse,
-      this.extlangs,
-    );
-  }
-
-  private parseLanguage(parts: string[]): boolean {
-    this.language = match(parts, LANGUAGE);
-    return !!this.language;
-  }
-
-  private parseExtLangs(parts: string[]): boolean {
-    while (parts.length !== 0) {
-      const result = match(parts, EXTLANG);
-      if (!result) {
-        break;
-      }
-      this.extlangs.push(result);
-    }
-    return this.extlangs.length !== 0;
-  }
-
-  private parseScript(parts: string[]): boolean {
-    this.script = match(parts, SCRIPT);
-    return !!this.script;
-  }
-
-  private parseRegion(parts: string[]): boolean {
-    this.region = match(parts, REGION);
-    return !!this.region;
-  }
-
-  private parseVariants(parts: string[]): boolean {
+    const subs: string[] = [];
+    let temp = '';
     while (parts.length > 0) {
-      const result = match(parts, VARIANT);
-      if (!result) {
-        break;
-      }
-      this.variants.push(result);
-    }
-    return this.variants.length !== 0;
-  }
-
-  private parseExtensions(parts: string[]): boolean {
-    let parsed = false;
-    while (parts.length > 0) {
-      const prefix = match(parts, EXTENSION_PREFIX);
-      if (!prefix) {
+      const subtag = match(parts, EXTENSION_SUBTAG);
+      if (!subtag) {
         break;
       }
 
-      const subs: string[] = [];
-      let temp = '';
-      while (parts.length > 0) {
-        const subtag = match(parts, EXTENSION_SUBTAG);
-        if (!subtag) {
-          break;
-        }
-
-        if (!UNICODE_EXTENSION_KEYS.has(subtag)) {
-          temp += temp ? SEP + subtag : subtag;
-          continue;
-        }
-
-        if (temp) {
-          subs.push(temp);
-        }
-        temp = subtag;
+      if (!UNICODE_EXTENSION_KEYS.has(subtag)) {
+        temp += temp ? SEP + subtag : subtag;
+        continue;
       }
 
       if (temp) {
         subs.push(temp);
       }
-
-      if (subs.length > 0) {
-        parsed = true;
-        subs.sort();
-        let curr = this.extensions[prefix];
-        curr = curr === undefined ? subs : curr.concat(subs);
-        this.extensions[prefix] = curr.sort();
-      }
+      temp = subtag;
     }
-    return parsed;
-  }
 
-  private parsePrivateUse(parts: string[]): boolean {
-    let parsed = false;
+    if (temp) {
+      subs.push(temp);
+    }
+
+    if (subs.length > 0) {
+      subs.sort();
+      let curr = extensions[prefix];
+      curr = curr === undefined ? subs : curr.concat(subs);
+      extensions[prefix] = curr.sort();
+    }
+  }
+};
+
+const parsePrivateUse = (parts: string[]): string => {
+  let privateUse = '';
+  while (parts.length > 0) {
+    const prefix = match(parts, PRIVATEUSE_PREFIX);
+    if (!prefix) {
+      break;
+    }
+    const subs = [];
     while (parts.length > 0) {
-      const prefix = match(parts, PRIVATEUSE_PREFIX);
-      if (!prefix) {
+      const subtag = match(parts, PRIVATEUSE_SUBTAG);
+      if (!subtag) {
         break;
       }
-      const subs = [];
-      while (parts.length > 0) {
-        const subtag = match(parts, PRIVATEUSE_SUBTAG);
-        if (!subtag) {
-          break;
-        }
-        subs.push(subtag);
-      }
-
-      if (subs.length > 0) {
-        this.privateUse += `${prefix}${SEP}${subs.join(SEP)}`;
-        parsed = true;
-      }
+      subs.push(subtag);
     }
-    return parsed;
+
+    if (subs.length > 0) {
+      privateUse += `${prefix}${SEP}${subs.join(SEP)}`;
+    }
   }
-}
+  return privateUse;
+};
 
 /**
  * Low-level parsing of a language tag. No resolution is performed.
  *
  * @public
  */
-export const parseLanguageTag = (str: string): LanguageTag => new LanguageTagParser(str).parse();
+export const parseLanguageTag = (str: string): LanguageTag => {
+  if (!GRANDFATHERED_TAGS) {
+    init();
+  }
+  str = str.indexOf('_') === -1 ? str : str.replace(UNDERSCORE, SEP);
+  const preferred = GRANDFATHERED_TAGS![str.toLowerCase()];
+  const parts = typeof preferred === 'string' ? preferred.split(SEP) : str.split(SEP);
+
+  let script: string | undefined;
+  let region: string | undefined;
+  const extlangs: string[] = [];
+  const variants: string[] = [];
+  const extensions: { [x: string]: string[] } = {};
+
+  const language = match(parts, LANGUAGE);
+  if (language) {
+    if (language.length <= 3) {
+      parseExtLangs(parts, extlangs);
+    }
+    script = match(parts, SCRIPT);
+    region = match(parts, REGION);
+    parseVariants(parts, variants);
+    parseExtensions(parts, extensions);
+  }
+  const privateUse = parsePrivateUse(parts);
+
+  // If no region was parsed, check if one of the extlangs is actually a valid ISO 3166
+  if (!region) {
+    for (let i = 0; i < extlangs.length; i++) {
+      const replacement = replaceRegion(extlangs[i].toUpperCase());
+      if (replacement) {
+        region = replacement;
+        // Ignore the extlangs since we currently don't add them to the LanguageTag.
+        break;
+      }
+    }
+  }
+
+  return languageTag(
+    language,
+    script,
+    region,
+    variants.length === 0 ? undefined : variants[0],
+    extensions,
+    privateUse,
+    extlangs,
+  );
+};

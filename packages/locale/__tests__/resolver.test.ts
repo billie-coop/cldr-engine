@@ -1,7 +1,7 @@
 import { parseLanguageTag } from '@phensley/language-tag';
-import { LanguageResolver } from '../src';
+import { addLikelySubtags, removeLikelySubtags, resolveLanguageTag, substituteAliases } from '../src';
 
-const { resolve, addLikelySubtags, removeLikelySubtags } = LanguageResolver;
+const resolve = resolveLanguageTag;
 
 const parse = parseLanguageTag;
 
@@ -70,11 +70,11 @@ test('remove likely subtags', () => {
 });
 
 test('aliases', () => {
-  expect(LanguageResolver.substituteAliases('eng-Latn-US')).toEqual(parse('en-Latn-US'));
-  expect(LanguageResolver.substituteAliases(parse('eng-Latn-US'))).toEqual(parse('en-Latn-US'));
-  expect(LanguageResolver.substituteAliases('cmn')).toEqual(parse('zh'));
-  expect(LanguageResolver.substituteAliases('cmn')).toEqual(parse('zh'));
+  expect(substituteAliases('eng-Latn-US')).toEqual(parse('en-Latn-US'));
+  expect(substituteAliases(parse('eng-Latn-US'))).toEqual(parse('en-Latn-US'));
+  expect(substituteAliases('cmn')).toEqual(parse('zh'));
+  expect(substituteAliases('cmn')).toEqual(parse('zh'));
 
-  expect(LanguageResolver.substituteAliases('aam')).toEqual(parse('aas'));
-  expect(LanguageResolver.substituteAliases('sgn-US')).toEqual(parse('ase-US'));
+  expect(substituteAliases('aam')).toEqual(parse('aas'));
+  expect(substituteAliases('sgn-US')).toEqual(parse('ase-US'));
 });

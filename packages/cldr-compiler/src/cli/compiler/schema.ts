@@ -4,6 +4,7 @@ import * as yargs from 'yargs';
 
 import { getMain } from '../../cldr';
 import { buildLocaleMap, checkLanguages, writeJSON } from '../compiler/util';
+import { tagRegion } from '@phensley/cldr-core';
 
 export interface SchemaArgs {
   out: string;
@@ -30,7 +31,7 @@ export const runSchema = (args: yargs.ArgumentsCamelCase<SchemaArgs>) => {
   const locales: string[] = [];
   langs.forEach((lang) => {
     localeMap[lang].forEach((r) => {
-      if (!regions || regions.has(r.tag.region())) {
+      if (!regions || regions.has(tagRegion(r.tag))) {
         locales.push(r.id);
       }
     });

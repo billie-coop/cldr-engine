@@ -1,4 +1,15 @@
-import { parseLanguageTag, LanguageResolver, LanguageTag } from '@phensley/cldr-core';
+import {
+  parseLanguageTag,
+  LanguageTag,
+  tagHasLanguage,
+  tagHasRegion,
+  tagHasScript,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+  tagVariant,
+  resolveLanguageTag,
+} from '@phensley/cldr-core';
 import { Code, HEADER, NOLINT_MAXLINE } from './util';
 import { availableLocales } from '../../../cldr';
 
@@ -12,16 +23,16 @@ const enum Flags {
 const computeFlags = (_id: string, tag: LanguageTag) => {
   let f = 0;
   const t = parseLanguageTag(_id);
-  if (t.hasLanguage() && t.language() === tag.language()) {
+  if (tagHasLanguage(t) && tagLanguage(t) === tagLanguage(tag)) {
     f |= Flags.LANG;
   }
-  if (t.hasScript() && t.script() === tag.script()) {
+  if (tagHasScript(t) && tagScript(t) === tagScript(tag)) {
     f |= Flags.SCRIPT;
   }
-  if (t.hasRegion() && t.region() === tag.region()) {
+  if (tagHasRegion(t) && tagRegion(t) === tagRegion(tag)) {
     f |= Flags.REGION;
   }
-  if (t.variant() && t.variant() === tag.variant()) {
+  if (tagVariant(t) && tagVariant(t) === tagVariant(tag)) {
     f |= Flags.VARIANT;
   }
   return f;
@@ -32,13 +43,13 @@ const computeLocales = (): string => {
   const raw = availableLocales().sort();
   for (let i = 0; i < raw.length; i++) {
     const id = raw[i];
-    const tag = LanguageResolver.resolve(id);
-    let region = tag.region();
-    if (tag.variant()) {
-      region += '-' + tag.variant();
+    const tag = resolveLanguageTag(id);
+    let region = tagRegion(tag);
+    if (tagVariant(tag)) {
+      region += '-' + tagVariant(tag);
     }
     const flags = computeFlags(id, tag);
-    const keys = [tag.language(), tag.script(), region + ':' + flags];
+    const keys = [tagLanguage(tag), tagScript(tag), region + ':' + flags];
 
     let o: any = root;
     let m: any;

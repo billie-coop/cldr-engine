@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import { availableLocales } from '../../cldr';
-import { LanguageResolver, Locale } from '@phensley/cldr-core';
+import { Locale, resolveLanguageTag, tagLanguage } from '@phensley/cldr-core';
 
 /**
  * Write data to a file.
@@ -34,7 +34,7 @@ export const getProjectInfo = (): ProjectInfo => {
 /**
  * Convert a string into a locale object.
  */
-const getLocale = (id: string): Locale => ({ id, tag: LanguageResolver.resolve(id) });
+const getLocale = (id: string): Locale => ({ id, tag: resolveLanguageTag(id) });
 
 export type LocaleMap = { [x: string]: Locale[] };
 
@@ -45,7 +45,7 @@ export const buildLocaleMap = (): LocaleMap =>
   availableLocales()
     .map(getLocale)
     .reduce((o: LocaleMap, c) => {
-      const lang = c.tag.language();
+      const lang = tagLanguage(c.tag);
       const values = o[lang] || [];
       values.push(c);
       o[lang] = values;

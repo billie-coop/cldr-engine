@@ -1,4 +1,4 @@
-import { LanguageTag } from '@phensley/language-tag';
+import { LanguageTag, tagLanguage, tagRegion, tagScript } from '@phensley/language-tag';
 import { getRegionPartition } from './partition';
 import { distanceMap, DistanceMap, DistanceNode } from './autogen.distance';
 
@@ -45,8 +45,8 @@ export const getDistance = (desired: LanguageTag, supported: LanguageTag, thresh
   // Compare the LANGUAGE subtag.
   let wildcard = false;
   let map = distanceMap;
-  let want = desired.language();
-  let have = supported.language();
+  let want = tagLanguage(desired);
+  let have = tagLanguage(supported);
 
   let node = get(map, want, have);
   if (node === undefined) {
@@ -62,8 +62,8 @@ export const getDistance = (desired: LanguageTag, supported: LanguageTag, thresh
 
   // Move to compare the SCRIPT subtag.
   map = (node as [number, DistanceMap])[1];
-  want = desired.script();
-  have = supported.script();
+  want = tagScript(desired);
+  have = tagScript(supported);
 
   node = get(map, want, have);
   if (node === undefined) {
@@ -80,8 +80,8 @@ export const getDistance = (desired: LanguageTag, supported: LanguageTag, thresh
   }
 
   // Move to compare the REGION subtag.
-  want = desired.region();
-  have = supported.region();
+  want = tagRegion(desired);
+  have = tagRegion(supported);
 
   // If regions are equal, we're done.
   if (want === have) {

@@ -1,5 +1,18 @@
-import { LanguageTag } from '@phensley/language-tag';
-import { LanguageResolver } from '@phensley/locale';
+import {
+  LanguageTag,
+  languageTag,
+  tagCompact,
+  tagExtensions,
+  tagHasLanguage,
+  tagHasRegion,
+  tagHasScript,
+  tagLanguage,
+  tagPrivateUse,
+  tagRegion,
+  tagScript,
+  tagVariant,
+} from '@phensley/language-tag';
+import { resolveLanguageTag } from '@phensley/locale';
 import { Bundle, ExceptionIndex, StringBundle } from './bundle';
 import { numarray } from '../utils/string';
 
@@ -35,14 +48,21 @@ export class PackScript {
   }
 
   get(tag: LanguageTag): Bundle {
-    let region = tag.region();
+    let region = tagRegion(tag);
     let index = this._cache[region] || this.decode(region);
     if (index === U) {
       region = this._defaultRegion;
-      tag = new LanguageTag(tag.language(), tag.script(), region, tag.variant(), tag.extensions(), tag.privateUse());
+      tag = languageTag(
+        tagLanguage(tag),
+        tagScript(tag),
+        region,
+        tagVariant(tag),
+        tagExtensions(tag),
+        tagPrivateUse(tag),
+      );
       index = this._cache[region] || this.decode(region);
     }
-    return new StringBundle(tag.compact(), tag, this._strings, this._exceptions, index, this._spellout);
+    return new StringBundle(tagCompact(tag), tag, this._strings, this._exceptions, index, this._spellout);
   }
 
   private decode(region: string): ExceptionIndex | undefined {
@@ -89,7 +109,7 @@ export class Pack {
     this.checksum = checksum;
     this.language = language;
     this.spellout = spellout;
-    this.defaultTag = LanguageResolver.resolve(raw.defaultTag);
+    this.defaultTag = resolveLanguageTag(raw.defaultTag);
 
     Object.keys(raw.scripts).forEach((k) => {
       const obj = raw.scripts[k];
@@ -100,23 +120,23 @@ export class Pack {
   get(tag: LanguageTag): Bundle {
     // We need the script and region to find the correct string layer. Caller should
     // ideally supply a resolved language tag to avoid the overhead of this call.
-    if (!tag.hasLanguage() || !tag.hasScript() || !tag.hasRegion()) {
-      tag = LanguageResolver.resolve(tag);
+    if (!tagHasLanguage(tag) || !tagHasScript(tag) || !tagHasRegion(tag)) {
+      tag = resolveLanguageTag(tag);
     }
 
     // Strings for a language are organized by script.
-    let script = this.scripts[tag.script()];
+    let script = this.scripts[tagScript(tag)];
     if (script === U) {
       // Swap in the default script
-      tag = new LanguageTag(
-        this.defaultTag.language(),
-        this.defaultTag.script(),
-        this.defaultTag.region(),
-        this.defaultTag.variant(),
-        tag.extensions(),
-        tag.privateUse(),
+      tag = languageTag(
+        tagLanguage(this.defaultTag),
+        tagScript(this.defaultTag),
+        tagRegion(this.defaultTag),
+        tagVariant(this.defaultTag),
+        tagExtensions(tag),
+        tagPrivateUse(tag),
       );
-      script = this.scripts[tag.script()];
+      script = this.scripts[tagScript(tag)];
     }
     return script.get(tag);
   }

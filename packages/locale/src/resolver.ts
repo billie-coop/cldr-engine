@@ -3,44 +3,34 @@ import {
   parseLanguageTag,
   substituteRegionAliases,
   LanguageTagField as Tag,
+  languageTag,
+  tagExtensions,
+  tagPrivateUse,
+  tagVariant,
 } from '@phensley/language-tag';
 
 import { languageAliasRaw } from './autogen.aliases';
 import { likelySubtags } from './autogen.subtags';
 import { FastTag, LanguageAliasMap, stringToObject } from './util';
 
-// Helper to cast LanguageTag to access protected fields
-interface FakeLanguageTag {
-  core: (string | number)[];
-  _extensions?: string[];
-  _privateUse?: string;
-  _extlangs?: string[];
-}
-
 /**
  * Since a lot of comparisons will be done, we need fast access to
- * core fields of LanguageTag without exposing the raw fields.
+ * core fields of LanguageTag.
  *
  * Visible for testing
  */
 export const fastTag = (real: LanguageTag): FastTag => {
-  // Hack to get fast access to internal core fields without exposing them.
-  const fake = real as any as FakeLanguageTag;
-
   // The fast tag is used for indexing purposes. Since a field may be
   // undefined, and we don't want to use its string representation of
   // the undefined value (e.g. 'und', 'Zzzz', etc), we use the field's
   // index number to represent undefined.
-  const fast = fake.core.slice(0, 3) as FastTag;
-  for (let i = 0; i < 3; i++) {
-    if (!fast[i]) {
-      fast[i] = i;
-    }
-  }
+  const fast: FastTag = [real.language || Tag.LANGUAGE, real.script || Tag.SCRIPT, real.region || Tag.REGION];
+
   // If an extlang subtag exists, replace the language subtag with the first
   // extlang value.
-  if (fake._extlangs && fake._extlangs.length) {
-    fast[0] = fake._extlangs[0];
+  const extlangs = real.extlangs;
+  if (extlangs && extlangs.length) {
+    fast[0] = extlangs[0];
   }
   return fast;
 };
@@ -128,7 +118,7 @@ const substituteLanguageAliases = (dst: FastTag): void => {
  * Add any missing subtags using the likely subtags mapping. For example,
  * this would convert "en" to "en-Latn-US".
  */
-const addLikelySubtags = (dst: FastTag): void => {
+const addLikelySubtagsFast = (dst: FastTag): void => {
   const tmp = dst.slice(0);
   for (let i = 0; i < MATCH_ORDER.length; i++) {
     const flags = MATCH_ORDER[i];
@@ -160,13 +150,13 @@ export const returnTag = (real: LanguageTag, fast: FastTag): LanguageTag => {
   const script = fast[Tag.SCRIPT];
   const region = fast[Tag.REGION];
 
-  return new LanguageTag(
+  return languageTag(
     typeof language === 'number' ? undefined : language,
     typeof script === 'number' ? undefined : script,
     typeof region === 'number' ? undefined : region,
-    real.variant(),
-    real.extensions(),
-    real.privateUse(),
+    tagVariant(real),
+    tagExtensions(real),
+    tagPrivateUse(real),
   );
 };
 
@@ -220,87 +210,90 @@ const initAlias = () => {
   LANGUAGE_ALIAS_MAP = buildLanguageAliasMap();
 };
 
+const toTag = (real: string | LanguageTag): LanguageTag => (typeof real === 'string' ? parseLanguageTag(real) : real);
+
 /**
- * Methods for substituting language and region aliases, adding likely subtags, etc.
+ * Substitute language and region aliases only.
  *
  * @public
  */
-export class LanguageResolver {
-  /**
-   * Substitute aliases only.
-   */
-  static substituteAliases(real: string | LanguageTag): LanguageTag {
-    const tag = typeof real === 'string' ? parseLanguageTag(real) : real;
-    const fast = fastTag(tag);
-    substituteLanguageAliases(fast);
-    substituteRegionAliases(fast);
-    return returnTag(tag, fast);
+export const substituteAliases = (real: string | LanguageTag): LanguageTag => {
+  const tag = toTag(real);
+  const fast = fastTag(tag);
+  substituteLanguageAliases(fast);
+  substituteRegionAliases(fast);
+  return returnTag(tag, fast);
+};
+
+/**
+ * Substitute all relevant aliases, and then add likely subtags.
+ *
+ * @public
+ */
+export const resolveLanguageTag = (real: string | LanguageTag): LanguageTag => {
+  const tag = toTag(real);
+  const fast = fastTag(tag);
+  // TODO: add flags to determine which operations to perform.
+  substituteLanguageAliases(fast);
+  substituteRegionAliases(fast);
+  addLikelySubtagsFast(fast);
+  return returnTag(tag, fast);
+};
+
+/**
+ * Add any missing subtags using the likely subtags mapping. For example,
+ * this would convert "en" to "en-Latn-US".
+ *
+ * @public
+ */
+export const addLikelySubtags = (real: string | LanguageTag): LanguageTag => {
+  const tag = toTag(real);
+  const fast = fastTag(tag);
+  addLikelySubtagsFast(fast);
+  return returnTag(tag, fast);
+};
+
+/**
+ * Remove any subtags that would be added by addLikelySubtags() above. For example,
+ * this would convert "en-Latn-US" to "en".
+ *
+ * @public
+ */
+export const removeLikelySubtags = (real: string | LanguageTag): LanguageTag => {
+  const tag = toTag(real);
+  const max = fastTag(tag);
+  if (max[Tag.LANGUAGE] === Tag.LANGUAGE || max[Tag.SCRIPT] === Tag.SCRIPT || max[Tag.REGION] === Tag.REGION) {
+    addLikelySubtagsFast(max);
+  }
+  const tmp = UNDEFINED.slice(0);
+
+  // Using "en-Latn-US" as an example...
+  // 1. Match "en-Zzzz-ZZ"
+  tmp[Tag.LANGUAGE] = max[Tag.LANGUAGE];
+  let match = tmp.slice(0);
+  addLikelySubtagsFast(match);
+  if (fastTagEquals(match, max)) {
+    return returnTag(tag, tmp);
   }
 
-  /**
-   * Substitute all relevant aliases, and then add likely subtags.
-   */
-  static resolve(real: string | LanguageTag): LanguageTag {
-    const tag = typeof real === 'string' ? parseLanguageTag(real) : real;
-    const fast = fastTag(tag);
-    // TODO: add flags to determine which operations to perform.
-    substituteLanguageAliases(fast);
-    substituteRegionAliases(fast);
-    addLikelySubtags(fast);
-    return returnTag(tag, fast);
-  }
-
-  /**
-   * Add any missing subtags using the likely subtags mapping. For example,
-   * this would convert "en" to "en-Latn-US".
-   */
-  static addLikelySubtags(real: string | LanguageTag): LanguageTag {
-    const tag = typeof real === 'string' ? parseLanguageTag(real) : real;
-    const fast = fastTag(tag);
-    addLikelySubtags(fast);
-    return returnTag(tag, fast);
-  }
-
-  /**
-   * Remove any subtags that would be added by addLikelySubtags() above. For example,
-   * this would convert "en-Latn-US" to "en".
-   */
-  static removeLikelySubtags(real: string | LanguageTag): LanguageTag {
-    const tag = typeof real === 'string' ? parseLanguageTag(real) : real;
-    const max = fastTag(tag);
-    if (max[Tag.LANGUAGE] === Tag.LANGUAGE || max[Tag.SCRIPT] === Tag.SCRIPT || max[Tag.REGION] === Tag.REGION) {
-      addLikelySubtags(max);
-    }
-    const tmp = UNDEFINED.slice(0);
-
-    // Using "en-Latn-US" as an example...
-    // 1. Match "en-Zzzz-ZZ"
+  // 2. Match "en-Zzzz-US"
+  tmp[Tag.REGION] = max[Tag.REGION];
+  match = tmp.slice(0);
+  addLikelySubtagsFast(match);
+  if (fastTagEquals(match, max)) {
     tmp[Tag.LANGUAGE] = max[Tag.LANGUAGE];
-    let match = tmp.slice(0);
-    addLikelySubtags(match);
-    if (fastTagEquals(match, max)) {
-      return returnTag(tag, tmp);
-    }
-
-    // 2. Match "en-Zzzz-US"
-    tmp[Tag.REGION] = max[Tag.REGION];
-    match = tmp.slice(0);
-    addLikelySubtags(match);
-    if (fastTagEquals(match, max)) {
-      tmp[Tag.LANGUAGE] = max[Tag.LANGUAGE];
-      return returnTag(tag, tmp);
-    }
-
-    // 3. Match "en-Latn-ZZ"
-    tmp[Tag.REGION] = Tag.REGION;
-    tmp[Tag.SCRIPT] = max[Tag.SCRIPT];
-    match = tmp.slice(0);
-    addLikelySubtags(match);
-    if (fastTagEquals(match, max)) {
-      return returnTag(tag, tmp);
-    }
-
-    // 4. Nothing matched, so return a copy of the original tag.
-    return returnTag(tag, max);
+    return returnTag(tag, tmp);
   }
-}
+
+  // 3. Match "en-Latn-ZZ"
+  tmp[Tag.REGION] = Tag.REGION;
+  tmp[Tag.SCRIPT] = max[Tag.SCRIPT];
+  match = tmp.slice(0);
+  addLikelySubtagsFast(match);
+  if (fastTagEquals(match, max)) {
+    return returnTag(tag, tmp);
+  }
+
+  // 4. Nothing matched, so return a copy of the original tag.
+  return returnTag(tag, max);
+};

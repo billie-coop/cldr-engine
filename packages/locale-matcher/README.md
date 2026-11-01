@@ -21,17 +21,17 @@ yarn add @phensley/locale-matcher
 ## Examples
 
 ```typescript
-import { LocaleMatch, LocaleMatcher } from '@phensley/locale-matcher';
+import { createLocaleMatcher, matchLocale, LocaleMatch } from '@phensley/locale-matcher';
 
 // Add supported locales to matcher
-const matcher = new LocaleMatcher('en, en_GB, zh, pt_AR, es-419');
+const matcher = createLocaleMatcher('en, en_GB, zh, pt_AR, es-419');
 let m: LocaleMatch;
 
 // Query desired locales to find the nearest match
-m = matcher.match('en-AU');
+m = matchLocale(matcher, 'en-AU');
 console.log(`distance ${m.distance} locale ${m.locale.id}`);
 
-m = matcher.match('es-MX');
+m = matchLocale(matcher, 'es-MX');
 console.log(`distance ${m.distance} locale ${m.locale.id}`);
 ```
 

@@ -6,15 +6,15 @@ import {
   scopemap,
   vector,
   KeyIndexImpl,
-  LanguageResolver,
   Origin,
   Scope,
+  resolveLanguageTag,
 } from '@phensley/cldr-core';
 
 import { Encoder, EncoderMachine } from '../../src/resource/machine';
 import { ResourcePack } from '../../src/resource/pack';
 
-const parseLocale = (id: string) => ({ id, tag: LanguageResolver.resolve(id) });
+const parseLocale = (id: string) => ({ id, tag: resolveLanguageTag(id) });
 
 const EN_US = parseLocale('en');
 const EN_DE = parseLocale('en-DE');

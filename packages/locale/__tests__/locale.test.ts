@@ -1,98 +1,109 @@
-import { LanguageTag } from '@phensley/language-tag';
-import { LocaleResolver } from '../src';
+import {
+  languageTag,
+  tagCompact,
+  tagExpanded,
+  tagExtensions,
+  tagLanguage,
+  tagPrivateUse,
+  tagRegion,
+  tagScript,
+  tagToString,
+  tagVariant,
+} from '@phensley/language-tag';
+import { resolveLocaleId } from '../src';
 
 test('basics', () => {
-  const tag = new LanguageTag('en', undefined, 'US');
+  const tag = languageTag('en', undefined, 'US');
 
-  expect(tag.language()).toEqual('en');
-  expect(tag.script()).toEqual('Zzzz');
-  expect(tag.region()).toEqual('US');
-  expect(tag.variant()).toEqual('');
-  expect(tag.extensions()).toEqual({});
-  expect(tag.privateUse()).toEqual('');
+  expect(tagLanguage(tag)).toEqual('en');
+  expect(tagScript(tag)).toEqual('Zzzz');
+  expect(tagRegion(tag)).toEqual('US');
+  expect(tagVariant(tag)).toEqual('');
+  expect(tagExtensions(tag)).toEqual({});
+  expect(tagPrivateUse(tag)).toEqual('');
 
-  expect(tag.compact()).toEqual('en-US');
-  expect(tag.expanded()).toEqual('en-Zzzz-US');
+  expect(tagCompact(tag)).toEqual('en-US');
+  expect(tagExpanded(tag)).toEqual('en-Zzzz-US');
 });
 
 test('canonicalization', () => {
   // NOTE: we may add deeper validation later, but for now
   // only basic subtag canonicalization is done.
-  const tag = new LanguageTag('en', 'US');
-  expect(tag.script()).toEqual('Us');
+  const tag = languageTag('en', 'US');
+  expect(tagScript(tag)).toEqual('Us');
 });
 
 test('defaults', () => {
-  let tag = new LanguageTag();
-  expect(tag.compact()).toEqual('und');
-  expect(tag.compact()).toEqual(tag.toString());
-  expect(tag.language()).toEqual('und');
-  expect(tag.script()).toEqual('Zzzz');
-  expect(tag.region()).toEqual('ZZ');
+  let tag = languageTag();
+  expect(tagCompact(tag)).toEqual('und');
+  expect(tagCompact(tag)).toEqual(tagToString(tag));
+  expect(tagLanguage(tag)).toEqual('und');
+  expect(tagScript(tag)).toEqual('Zzzz');
+  expect(tagRegion(tag)).toEqual('ZZ');
 
-  tag = new LanguageTag('und', 'Zzzz', 'ZZ');
-  expect(tag.compact()).toEqual('und');
-  expect(tag.compact()).toEqual(tag.toString());
-  expect(tag.language()).toEqual('und');
-  expect(tag.script()).toEqual('Zzzz');
-  expect(tag.region()).toEqual('ZZ');
+  tag = languageTag('und', 'Zzzz', 'ZZ');
+  expect(tagCompact(tag)).toEqual('und');
+  expect(tagCompact(tag)).toEqual(tagToString(tag));
+  expect(tagLanguage(tag)).toEqual('und');
+  expect(tagScript(tag)).toEqual('Zzzz');
+  expect(tagRegion(tag)).toEqual('ZZ');
 
-  tag = new LanguageTag('root', undefined, 'US');
-  expect(tag.compact()).toEqual('und-US');
-  expect(tag.compact()).toEqual(tag.toString());
-  expect(tag.language()).toEqual('und');
-  expect(tag.script()).toEqual('Zzzz');
-  expect(tag.region()).toEqual('US');
+  tag = languageTag('root', undefined, 'US');
+  expect(tagCompact(tag)).toEqual('und-US');
+  expect(tagCompact(tag)).toEqual(tagToString(tag));
+  expect(tagLanguage(tag)).toEqual('und');
+  expect(tagScript(tag)).toEqual('Zzzz');
+  expect(tagRegion(tag)).toEqual('US');
 });
 
 test('parse locale', () => {
-  expect(LocaleResolver.resolve('en')).toEqual({
+  expect(resolveLocaleId('en')).toEqual({
     id: 'en',
-    tag: new LanguageTag('en', 'Latn', 'US'),
+    tag: languageTag('en', 'Latn', 'US'),
   });
-  expect(LocaleResolver.resolve('en-Latn-XY')).toEqual({
+  expect(resolveLocaleId('en-Latn-XY')).toEqual({
     id: 'en-Latn-XY',
-    tag: new LanguageTag('en', 'Latn', 'XY'),
+    tag: languageTag('en', 'Latn', 'XY'),
   });
-  expect(LocaleResolver.resolve('fr-CA')).toEqual({
+  expect(resolveLocaleId('fr-CA')).toEqual({
     id: 'fr-CA',
-    tag: new LanguageTag('fr', 'Latn', 'CA'),
+    tag: languageTag('fr', 'Latn', 'CA'),
   });
-  expect(LocaleResolver.resolve('iw')).toEqual({
+  expect(resolveLocaleId('iw')).toEqual({
     id: 'iw',
-    tag: new LanguageTag('he', 'Hebr', 'IL'),
+    tag: languageTag('he', 'Hebr', 'IL'),
   });
-  expect(LocaleResolver.resolve('und')).toEqual({
+  expect(resolveLocaleId('und')).toEqual({
     id: 'und',
-    tag: new LanguageTag('und', 'Zzzz', 'ZZ'),
+    tag: languageTag('und', 'Zzzz', 'ZZ'),
   });
 });
 
 test('parse extensions', () => {
-  expect(LocaleResolver.resolve('en-US-u-nu-thai')).toEqual({
+  expect(resolveLocaleId('en-US-u-nu-thai')).toEqual({
     id: 'en-US-u-nu-thai',
-    tag: new LanguageTag('en', 'Latn', 'US', '', { u: ['nu-thai'] }),
+    tag: languageTag('en', 'Latn', 'US', '', { u: ['nu-thai'] }),
   });
 
-  expect(LocaleResolver.resolve('en-US-u-nu-thai-ca-gregory')).toEqual({
+  expect(resolveLocaleId('en-US-u-nu-thai-ca-gregory')).toEqual({
     id: 'en-US-u-nu-thai-ca-gregory',
-    tag: new LanguageTag('en', 'Latn', 'US', '', { u: ['ca-gregory', 'nu-thai'] }),
+    tag: languageTag('en', 'Latn', 'US', '', { u: ['ca-gregory', 'nu-thai'] }),
   });
 
-  expect(LocaleResolver.resolve('en-US-u-nu-thai-u-foo-u-ca-gregory')).toEqual({
+  expect(resolveLocaleId('en-US-u-nu-thai-u-foo-u-ca-gregory')).toEqual({
     id: 'en-US-u-nu-thai-u-foo-u-ca-gregory',
-    tag: new LanguageTag('en', 'Latn', 'US', '', { u: ['ca-gregory', 'foo', 'nu-thai'] }),
+    tag: languageTag('en', 'Latn', 'US', '', { u: ['ca-gregory', 'foo', 'nu-thai'] }),
   });
 });
 
 test('parse and render', () => {
-  let { id, tag } = LocaleResolver.resolve('en-US-u-nu-thai-ca-buddhist-u-co-search');
+  let { id, tag } = resolveLocaleId('en-US-u-nu-thai-ca-buddhist-u-co-search');
   expect(id).toEqual('en-US-u-nu-thai-ca-buddhist-u-co-search');
-  expect(tag.extensions()).toEqual({ u: ['ca-buddhist', 'co-search', 'nu-thai'] });
-  expect(tag.expanded()).toEqual('en-Latn-US-u-ca-buddhist-co-search-nu-thai');
+  expect(tagExtensions(tag)).toEqual({ u: ['ca-buddhist', 'co-search', 'nu-thai'] });
+  expect(tagExpanded(tag)).toEqual('en-Latn-US-u-ca-buddhist-co-search-nu-thai');
 
-  ({ id, tag } = LocaleResolver.resolve('en-u-bar-nu-hant-co-standard-ca-islamic-umalqura'));
+  ({ id, tag } = resolveLocaleId('en-u-bar-nu-hant-co-standard-ca-islamic-umalqura'));
   expect(id).toEqual('en-u-bar-nu-hant-co-standard-ca-islamic-umalqura');
-  expect(tag.extensions()).toEqual({ u: ['bar', 'ca-islamic-umalqura', 'co-standard', 'nu-hant'] });
-  expect(tag.expanded()).toEqual('en-Latn-US-u-bar-ca-islamic-umalqura-co-standard-nu-hant');
+  expect(tagExtensions(tag)).toEqual({ u: ['bar', 'ca-islamic-umalqura', 'co-standard', 'nu-hant'] });
+  expect(tagExpanded(tag)).toEqual('en-Latn-US-u-bar-ca-islamic-umalqura-co-standard-nu-hant');
 });

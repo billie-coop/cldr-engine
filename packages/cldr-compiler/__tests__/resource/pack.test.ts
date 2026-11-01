@@ -1,7 +1,7 @@
 import { ResourcePack } from '../../src/resource/pack';
-import { LanguageResolver } from '@phensley/cldr-core';
+import { resolveLanguageTag } from '@phensley/cldr-core';
 
-const parseLocale = (id: string) => ({ id, tag: LanguageResolver.resolve(id) });
+const parseLocale = (id: string) => ({ id, tag: resolveLanguageTag(id) });
 
 const EN_US = parseLocale('en');
 const EN_CA = parseLocale('en-CA');

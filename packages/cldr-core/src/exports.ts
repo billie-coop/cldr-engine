@@ -46,11 +46,11 @@ export {
 
 export * from '@phensley/decimal';
 
-export { parseLanguageTag, LanguageTag } from '@phensley/language-tag';
+export * from '@phensley/language-tag';
 
-export { LanguageResolver, Locale, LocaleResolver } from '@phensley/locale';
+export * from '@phensley/locale';
 
-export { LocaleMatch, LocaleMatcher, LocaleMatcherOptions } from '@phensley/locale-matcher';
+export * from '@phensley/locale-matcher';
 
 export {
   buildMessageMatcher,

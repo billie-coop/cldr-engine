@@ -10,8 +10,18 @@ import {
 import { MessageFormatter, MessageFormatterOptions } from '@phensley/messageformat';
 import { Part } from '@phensley/decimal';
 
-import { parseLanguageTag, LanguageTag } from '@phensley/language-tag';
-import { LanguageResolver, Locale } from '@phensley/locale';
+import {
+  parseLanguageTag,
+  LanguageTag,
+  tagCompact,
+  tagHasLanguage,
+  tagHasRegion,
+  tagHasScript,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+} from '@phensley/language-tag';
+import { Locale, resolveLanguageTag } from '@phensley/locale';
 import { DisplayNameOptions, ListPatternType, MeasurementCategory, MeasurementSystem } from '../common';
 import { Bundle } from '../resource';
 import { GeneralInternals, Internals } from '../internals';
@@ -25,10 +35,10 @@ const DEFAULT_NAME_OPTIONS: DisplayNameOptions = { context: 'begin-sentence' };
 // Compound fields for language display name
 type LanguageTagFunc = (t: LanguageTag) => string;
 
-const F_LANG_REGION = (t: LanguageTag): string => `${t.language()}-${t.region()}`;
-const F_LANG_SCRIPT = (t: LanguageTag): string => `${t.language()}-${t.script()}`;
+const F_LANG_REGION = (t: LanguageTag): string => `${tagLanguage(t)}-${tagRegion(t)}`;
+const F_LANG_SCRIPT = (t: LanguageTag): string => `${tagLanguage(t)}-${tagScript(t)}`;
 
-const LANGUAGE_FUNCS: LanguageTagFunc[] = [F_LANG_REGION, F_LANG_SCRIPT, (t: LanguageTag): string => t.language()];
+const LANGUAGE_FUNCS: LanguageTagFunc[] = [F_LANG_REGION, F_LANG_SCRIPT, (t: LanguageTag): string => tagLanguage(t)];
 
 /**
  * @internal
@@ -66,8 +76,8 @@ export class GeneralImpl implements General {
   }
 
   resolveLocale(id: string | LanguageTag): Locale {
-    const _id = typeof id === 'string' ? id : id.compact();
-    const tag = LanguageResolver.resolve(id);
+    const _id = typeof id === 'string' ? id : tagCompact(id);
+    const tag = resolveLanguageTag(id);
     return { id: _id, tag };
   }
 
@@ -128,16 +138,16 @@ export class GeneralImpl implements General {
       s = this._getVectorAlt(arrow, code, type);
     }
     // Try language + region
-    if (!s && tag.hasLanguage() && tag.hasRegion()) {
+    if (!s && tagHasLanguage(tag) && tagHasRegion(tag)) {
       s = this._getVectorAlt(arrow, F_LANG_REGION(tag), type);
     }
     // Try language + script
-    if (!s && tag.hasLanguage() && tag.hasScript()) {
+    if (!s && tagHasLanguage(tag) && tagHasScript(tag)) {
       s = this._getVectorAlt(arrow, F_LANG_SCRIPT(tag), type);
     }
     // Try language if script and region are empty
-    if (!s && !tag.hasScript() && !tag.hasRegion()) {
-      s = this._getVectorAlt(arrow, tag.language(), type);
+    if (!s && !tagHasScript(tag) && !tagHasRegion(tag)) {
+      s = this._getVectorAlt(arrow, tagLanguage(tag), type);
     }
 
     // Resolve to fill in unknown subtags, then attempt combinations
@@ -166,13 +176,13 @@ export class GeneralImpl implements General {
       // If language is blank or we have an explicit script subtag, use the
       // script subtag as-is. This will resolve "und-Zzzz" to "Unknown" but
       // "en-Zzzz" will fall through to resolve "Latin"
-    } else if (!code.hasLanguage() || code.hasScript()) {
-      s = this._getVectorAlt(arrow, code.script(), type);
+    } else if (!tagHasLanguage(code) || tagHasScript(code)) {
+      s = this._getVectorAlt(arrow, tagScript(code), type);
     }
     if (!s) {
       // Resolve to populate the script
       const locale = this.resolveLocale(code);
-      s = this._getVectorAlt(arrow, locale.tag.script(), type);
+      s = this._getVectorAlt(arrow, tagScript(locale.tag), type);
     }
     return this.general.contextTransform(s, this.transform, _ctx(options), 'script');
   }
@@ -187,13 +197,13 @@ export class GeneralImpl implements General {
       // If language is blank or we have an explicit region subtag, use
       // the region subtag as-is. This will resolve "und-ZZ" to "Unknown" but
       // "en-Zzzz" will fall through to resolve "United States"
-    } else if (!code.hasLanguage() || code.hasRegion()) {
-      s = this._getVectorAlt(arrow, code.region(), type);
+    } else if (!tagHasLanguage(code) || tagHasRegion(code)) {
+      s = this._getVectorAlt(arrow, tagRegion(code), type);
     }
     if (!s) {
       // Resolve to populate the region
       const { tag } = this.resolveLocale(code);
-      s = this._getVectorAlt(arrow, tag.region(), type);
+      s = this._getVectorAlt(arrow, tagRegion(tag), type);
     }
     // No context transform for region
     return s;

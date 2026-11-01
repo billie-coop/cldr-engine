@@ -4,6 +4,7 @@ import * as yargs from 'yargs';
 
 import { getMain, getSupplemental } from '../../../cldr';
 import { buildLocaleMap, checkLanguages, writeJSON } from '../../compiler/util';
+import { tagRegion } from '@phensley/cldr-core';
 
 const isObject = (o: any): boolean => (typeof o === 'object' ? o !== null && !Array.isArray(o) : false);
 
@@ -75,7 +76,7 @@ const run = (args: yargs.Arguments<SchemaOptions>): void => {
   const locales: string[] = [];
   langs.forEach((lang) => {
     localeMap[lang].forEach((r) => {
-      if (!regions || regions.has(r.tag.region())) {
+      if (!regions || regions.has(tagRegion(r.tag))) {
         locales.push(r.id);
       }
     });

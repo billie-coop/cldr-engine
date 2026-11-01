@@ -1,6 +1,6 @@
 import { loadPack } from '../_helpers';
 import { Pack } from '../../src/resource/pack';
-import { LanguageTag } from '../../src';
+import { languageTag } from '@phensley/language-tag';
 
 test('error bad format', () => {
   expect(() => new Pack({})).toThrowError('Severe error');
@@ -10,6 +10,6 @@ test('error bad format', () => {
 
 test('resolve tag', () => {
   const pack = loadPack('en');
-  const b = pack.get(new LanguageTag(undefined));
+  const b = pack.get(languageTag(undefined));
   expect(b.id()).toEqual('en-Latn-US');
 });

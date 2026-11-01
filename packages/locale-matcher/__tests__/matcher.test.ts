@@ -1,24 +1,24 @@
-import { parseLanguageTag } from '@phensley/language-tag';
-import { LanguageTag, Locale, LocaleMatch, LocaleMatcher } from '../src';
+import { parseLanguageTag, languageTag, tagExpanded, tagExtensions, tagRegion } from '@phensley/language-tag';
+import { LanguageTag, Locale, LocaleMatch, LocaleMatcher, createLocaleMatcher, matchLocale } from '../src';
 import { loadMatchCases } from './util';
 import { parse, sortEntries } from '../src/matcher';
 
 test('basics', () => {
-  const matcher = new LocaleMatcher('en, en_GB, zh, pt_AR, es-419');
+  const matcher = createLocaleMatcher('en, en_GB, zh, pt_AR, es-419');
   let m: LocaleMatch;
 
-  m = matcher.match('en-AU');
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('en_GB');
 
   // Unknown languages match default supported locale with max. distance
-  m = matcher.match(['xx', 'yy']);
+  m = matchLocale(matcher, ['xx', 'yy']);
   expect(m.distance).toEqual(100);
   expect(m.locale.id).toEqual('en');
 
   // Distance 100 indicates none of the desired locales match (since the
   // argument is empty) and default supported locale was returned
-  m = matcher.match([]);
+  m = matchLocale(matcher, []);
   expect(m.distance).toEqual(100);
   expect(m.locale.id).toEqual('en');
 });
@@ -41,112 +41,112 @@ test('entry sort', () => {
 });
 
 test('threshold', () => {
-  const matcher = new LocaleMatcher('en, en_GB, zh, pt_AR, es-419');
+  const matcher = createLocaleMatcher('en, en_GB, zh, pt_AR, es-419');
   let m: LocaleMatch;
 
-  m = matcher.match('en-AU', 10);
+  m = matchLocale(matcher, 'en-AU', 10);
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('en_GB');
 
   // Distance 100 indicates match wasn't within threshold and default
   // supported locale was returned
-  m = matcher.match('en-AU', 1);
+  m = matchLocale(matcher, 'en-AU', 1);
   expect(m.distance).toEqual(100);
   expect(m.locale.id).toEqual('en');
 });
 
 test('no resolve', () => {
-  let matcher = new LocaleMatcher('en en_GB', { resolve: false });
+  let matcher = createLocaleMatcher('en en_GB', { resolve: false });
   let m: LocaleMatch;
 
   // Missing subtags cause matcher to fail
-  m = matcher.match('en-AU');
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(100);
   expect(m.locale.id).toEqual('en');
 
   // Supported locales have all relevant subtags so matcher has enough
   // information for proper distance computation
-  matcher = new LocaleMatcher('en-Latn-US en-Latn-GB', { resolve: false });
-  m = matcher.match('en-AU');
+  matcher = createLocaleMatcher('en-Latn-US en-Latn-GB', { resolve: false });
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('en-Latn-GB');
 
   // A Locale instance can be passed in to ensure the locale's id matches the
   // exact input tag form, assuming the language tags have all relevant
   const supported: Locale[] = [
-    { id: 'en', tag: new LanguageTag('en', 'Latn', 'US') },
-    { id: 'en_GB', tag: new LanguageTag('en', 'Latn', 'GB') },
+    { id: 'en', tag: languageTag('en', 'Latn', 'US') },
+    { id: 'en_GB', tag: languageTag('en', 'Latn', 'GB') },
   ];
-  matcher = new LocaleMatcher(supported, { resolve: false });
-  m = matcher.match('en-AU');
+  matcher = createLocaleMatcher(supported, { resolve: false });
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('en_GB');
 });
 
 test('bad args', () => {
-  expect(() => new LocaleMatcher(undefined as unknown as string)).toThrowError('at least');
+  expect(() => createLocaleMatcher(undefined as unknown as string)).toThrowError('at least');
 });
 
 test('constructor args', () => {
   let matcher: LocaleMatcher;
   let m: LocaleMatch;
 
-  matcher = new LocaleMatcher('en \t en_GB \n , zh');
-  m = matcher.match('en-AU');
+  matcher = createLocaleMatcher('en \t en_GB \n , zh');
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('en_GB');
 
-  matcher = new LocaleMatcher([' en, pt_AR ', '\t en_GB']);
-  m = matcher.match('en-AU');
+  matcher = createLocaleMatcher([' en, pt_AR ', '\t en_GB']);
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('en_GB');
 
-  m = matcher.match('pt');
+  m = matchLocale(matcher, 'pt');
   expect(m.distance).toEqual(4);
 
   // Parsing will correct the subtag separator
-  matcher = new LocaleMatcher([parseLanguageTag('en_GB'), parseLanguageTag('pt_AR')]);
-  m = matcher.match('en-AU');
+  matcher = createLocaleMatcher([parseLanguageTag('en_GB'), parseLanguageTag('pt_AR')]);
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('en-GB');
 
   // Only substitute aliases
-  matcher = new LocaleMatcher([parseLanguageTag('eng-Latn-US'), parseLanguageTag('eng-Latn-GB')]);
-  m = matcher.match('en-AU');
+  matcher = createLocaleMatcher([parseLanguageTag('eng-Latn-US'), parseLanguageTag('eng-Latn-GB')]);
+  m = matchLocale(matcher, 'en-AU');
   expect(m.distance).toEqual(3);
   expect(m.locale.id).toEqual('eng-Latn-GB');
 
   // Invalid args
-  matcher = new LocaleMatcher(['en', new Date() as unknown as LanguageTag]);
-  m = matcher.match('de');
+  matcher = createLocaleMatcher(['en', new Date() as unknown as LanguageTag]);
+  m = matchLocale(matcher, 'de');
   expect(m.distance).toEqual(100);
   expect(m.locale.id).toEqual('en');
 
   // Aliases will be substituted automatically
-  matcher = new LocaleMatcher([{ id: 'en', tag: parseLanguageTag('eng-Latn-US') }]);
-  m = matcher.match('en');
-  expect(m.locale.tag.expanded()).toEqual('en-Latn-US');
+  matcher = createLocaleMatcher([{ id: 'en', tag: parseLanguageTag('eng-Latn-US') }]);
+  m = matchLocale(matcher, 'en');
+  expect(tagExpanded(m.locale.tag)).toEqual('en-Latn-US');
 
   // Disable alias substitution
-  matcher = new LocaleMatcher([{ id: 'en', tag: parseLanguageTag('eng-Latn-US') }], { resolve: false });
-  m = matcher.match('en');
-  expect(m.locale.tag.expanded()).toEqual('eng-Latn-US');
+  matcher = createLocaleMatcher([{ id: 'en', tag: parseLanguageTag('eng-Latn-US') }], { resolve: false });
+  m = matchLocale(matcher, 'en');
+  expect(tagExpanded(m.locale.tag)).toEqual('eng-Latn-US');
 });
 
 test('extensions', () => {
-  const m = new LocaleMatcher('en, fr, fa, es');
-  const r = m.match('en-AU-u-ca-persian');
+  const m = createLocaleMatcher('en, fr, fa, es');
+  const r = matchLocale(m, 'en-AU-u-ca-persian');
   expect(r.distance).toEqual(5);
   const { id, tag } = r.locale;
   expect(id).toEqual('en');
-  expect(tag.region()).toEqual('US');
-  expect(tag.extensions()).toEqual({ u: ['ca-persian'] });
+  expect(tagRegion(tag)).toEqual('US');
+  expect(tagExtensions(tag)).toEqual({ u: ['ca-persian'] });
 });
 
 loadMatchCases().forEach((c) => {
   test(c.testname, () => {
-    const m = new LocaleMatcher(c.supported);
-    const result = m.match(c.desired);
+    const m = createLocaleMatcher(c.supported);
+    const result = matchLocale(m, c.desired);
     expect(result.locale.id).toEqual(c.result);
   });
 });

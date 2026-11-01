@@ -4,11 +4,12 @@ import * as fs from 'fs';
 import { join } from 'path';
 
 import { LRU } from '@phensley/cldr-utils';
-import { LanguageResolver } from '@phensley/locale';
+import { resolveLanguageTag } from '@phensley/locale';
 
 import { CLDRFramework, SchemaConfig } from '../../src';
 import { Bundle, Pack } from '../../src/resource';
 import { VERSION } from '../../src/utils/version';
+import { tagLanguage } from '@phensley/language-tag';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../../package.json');
@@ -51,8 +52,8 @@ export const customFramework = (path: string, config: SchemaConfig): CLDRFramewo
  * Ensure a custom resource pack is created and return its filesystem path.
  */
 export const customPack = (tag: string, config: SchemaConfig): string => {
-  const locale = LanguageResolver.resolve(tag);
-  const language = locale.language();
+  const locale = resolveLanguageTag(tag);
+  const language = tagLanguage(locale);
   const json = JSON.stringify(config);
   const hash = createHash('sha256').update(json).update(VERSION).digest('hex');
   return buildPack(language, { hash, config: json });
@@ -101,8 +102,8 @@ export const loadPack = (language: string, spec?: PackSpec): Pack => {
  * not exist it is generated.
  */
 export const languageBundle = (tag: string, config?: SchemaConfig): Bundle => {
-  const locale = LanguageResolver.resolve(tag);
-  const language = locale.language();
+  const locale = resolveLanguageTag(tag);
+  const language = tagLanguage(locale);
   let spec: PackSpec | undefined;
   let key = tag;
   if (config !== undefined) {

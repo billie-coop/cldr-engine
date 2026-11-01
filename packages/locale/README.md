@@ -21,12 +21,13 @@ yarn add @phensley/locale
 ## Examples
 
 ```typescript
-import { LanguageResolver } from '@phensley/locale-resolver';
+import { tagExpanded } from '@phensley/language-tag';
+import { resolveLanguageTag } from '@phensley/locale';
 
 const IDS = ['en', 'es', 'es-419', 'und-AR', 'und-Hant', 'iw', 'i-klingon'];
 for (const id of IDS) {
-  const r = LanguageResolver.resolve(id);
-  console.log(r.expanded());
+  const r = resolveLanguageTag(id);
+  console.log(tagExpanded(r));
 }
 ```
 

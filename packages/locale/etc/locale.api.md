@@ -5,48 +5,19 @@
 ```ts
 
 // @public
-export class LanguageResolver {
-    static addLikelySubtags(real: string | LanguageTag): LanguageTag;
-    static removeLikelySubtags(real: string | LanguageTag): LanguageTag;
-    static resolve(real: string | LanguageTag): LanguageTag;
-    static substituteAliases(real: string | LanguageTag): LanguageTag;
-}
+export const addLikelySubtags: (real: string | LanguageTag) => LanguageTag;
 
 // @public
-export class LanguageTag {
-    constructor(language?: string, script?: string, region?: string, variant?: string, extensions?: {
-        [x: string]: string[];
-    }, privateUse?: string, extlangs?: string[]);
-    compact(): string;
-    // (undocumented)
-    protected _compact?: string;
-    // (undocumented)
-    protected core: (undefined | string)[];
-    expanded(): string;
-    // (undocumented)
-    protected _expanded?: string;
-    extensions(): {
-        [x: string]: string[];
+export interface LanguageTag {
+    readonly extensions: {
+        readonly [x: string]: readonly string[];
     };
-    // (undocumented)
-    protected _extensions: {
-        [x: string]: string[];
-    };
-    extensionSubtags(key: string): string[];
-    extlangs(): string[];
-    // (undocumented)
-    protected _extlangs: string[];
-    hasLanguage(): boolean;
-    hasRegion(): boolean;
-    hasScript(): boolean;
-    language(): string;
-    privateUse(): string;
-    // (undocumented)
-    protected _privateUse: string;
-    region(): string;
-    script(): string;
-    toString(): string;
-    variant(): string;
+    readonly extlangs: readonly string[];
+    readonly language?: string;
+    readonly privateUse: string;
+    readonly region?: string;
+    readonly script?: string;
+    readonly variant?: string;
 }
 
 // @public
@@ -56,9 +27,16 @@ export interface Locale {
 }
 
 // @public
-export class LocaleResolver {
-    static resolve(id: string): Locale;
-}
+export const removeLikelySubtags: (real: string | LanguageTag) => LanguageTag;
+
+// @public
+export const resolveLanguageTag: (real: string | LanguageTag) => LanguageTag;
+
+// @public
+export const resolveLocaleId: (id: string) => Locale;
+
+// @public
+export const substituteAliases: (real: string | LanguageTag) => LanguageTag;
 
 // (No @packageDocumentation comment for this package)
 

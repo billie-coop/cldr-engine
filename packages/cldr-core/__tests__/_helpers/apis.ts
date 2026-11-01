@@ -6,7 +6,6 @@ import {
   CalendarsImpl,
   GeneralImpl,
   InternalsImpl,
-  LocaleResolver,
   NumbersImpl,
   PrivateApiImpl,
   SchemaConfig,
@@ -14,6 +13,7 @@ import {
 } from '../../src';
 
 import { VERSION as _VERSION } from '../../src/utils/version';
+import { resolveLocaleId } from '@phensley/locale';
 
 export const VERSION = _VERSION;
 
@@ -34,7 +34,7 @@ export const calendarsApi = (tag: string, config?: SchemaConfig): CalendarsImpl 
 export const generalApi = (tag: string, config?: SchemaConfig): GeneralImpl => {
   const bundle = languageBundle(tag, config);
   const internals = new InternalsImpl(config || defaultconfig, VERSION);
-  return new GeneralImpl(bundle, LocaleResolver.resolve(tag), internals, privateApi(bundle, config));
+  return new GeneralImpl(bundle, resolveLocaleId(tag), internals, privateApi(bundle, config));
 };
 
 export const numbersApi = (tag: string, config?: SchemaConfig): NumbersImpl => {

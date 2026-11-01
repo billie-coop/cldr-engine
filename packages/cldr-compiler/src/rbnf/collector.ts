@@ -2,7 +2,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { getSupplemental } from '../cldr';
-import { availableLocales, parseLanguageTag, LanguageResolver } from '@phensley/cldr-core';
+import {
+  availableLocales,
+  parseLanguageTag,
+  resolveLanguageTag,
+  tagHasRegion,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+} from '@phensley/cldr-core';
 import { JSONRoot, JSONRootKey } from './json';
 
 // collect and organize rbnf rules
@@ -62,10 +70,10 @@ export class RBNFCollector {
       if (name !== 'root') {
         // compact each tag to language-script with region if specified
         const tag = parseLanguageTag(name);
-        const max = LanguageResolver.resolve(name);
-        id = `${max.language()}-${max.script()}`;
-        if (tag.hasRegion()) {
-          id = `${id}-${max.region()}`;
+        const max = resolveLanguageTag(name);
+        id = `${tagLanguage(max)}-${tagScript(max)}`;
+        if (tagHasRegion(tag)) {
+          id = `${id}-${tagRegion(max)}`;
         }
       }
       res.set(id, data);
@@ -77,7 +85,7 @@ export class RBNFCollector {
     // Fill in the locales that have no RBNF mapping.
     for (const locale of availableLocales()) {
       const { tag } = locale;
-      const id = `${tag.language()}-${tag.script()}`;
+      const id = `${tagLanguage(tag)}-${tagScript(tag)}`;
       if (res.has(id)) {
         continue;
       }
@@ -102,8 +110,8 @@ export class RBNFCollector {
         return;
       }
       const parts = sys._rules.split('/');
-      const tag = LanguageResolver.resolve(parts[0]);
-      const id = `${tag.language()}-${tag.script()}`;
+      const tag = resolveLanguageTag(parts[0]);
+      const id = `${tagLanguage(tag)}-${tagScript(tag)}`;
 
       if (!this.core.includes(id)) {
         this.core.push(id);
@@ -120,7 +128,7 @@ export class RBNFCollector {
       this.locales.set(id, res.get(id)!);
 
       this.locales.set(id, res.get(id)!);
-      const lang = id === 'root' || this.core.includes(id) ? 'root' : parseLanguageTag(id).language();
+      const lang = id === 'root' || this.core.includes(id) ? 'root' : tagLanguage(parseLanguageTag(id));
       const map = this.langs.get(lang) || [];
       map.push(id);
       this.langs.set(lang, map);
@@ -141,8 +149,8 @@ export class RBNFCollector {
       const parents = ['root'];
       const rulesets = group[key];
       if (rulesets === undefined) {
-        if (tag.hasRegion()) {
-          parents.unshift(`${tag.language()}-${tag.script()}`);
+        if (tagHasRegion(tag)) {
+          parents.unshift(`${tagLanguage(tag)}-${tagScript(tag)}`);
         }
 
         // Patch in the rulesets from a parent

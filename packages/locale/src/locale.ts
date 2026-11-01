@@ -1,7 +1,14 @@
-import { parseLanguageTag, LanguageTag } from '@phensley/language-tag';
-import { LanguageResolver } from './resolver';
+import {
+  parseLanguageTag,
+  languageTag,
+  tagHasLanguage,
+  tagHasRegion,
+  tagHasScript,
+  LanguageTag,
+} from '@phensley/language-tag';
+import { resolveLanguageTag } from './resolver';
 
-const UNDEFINED = new LanguageTag();
+const UNDEFINED = /*#__PURE__*/ languageTag();
 
 /**
  * Wrapper pairing an application's opaque locale identifier with a
@@ -27,22 +34,17 @@ export interface Locale {
 }
 
 /**
- * Merged declaration to add a resolve() method to Locale interface.
+ * Parses a language tag and resolves it, substituting aliases and
+ * adding likely subtags.
  *
  * @public
  */
-export class LocaleResolver {
-  /**
-   * Parses a language tag and resolves it, substituting aliases and
-   * adding likely subtags.
-   */
-  static resolve(id: string): Locale {
-    let tag = parseLanguageTag(id);
-    if (tag.hasLanguage() || tag.hasScript() || tag.hasRegion()) {
-      tag = LanguageResolver.resolve(tag);
-    } else {
-      tag = UNDEFINED;
-    }
-    return { id, tag };
+export const resolveLocaleId = (id: string): Locale => {
+  let tag = parseLanguageTag(id);
+  if (tagHasLanguage(tag) || tagHasScript(tag) || tagHasRegion(tag)) {
+    tag = resolveLanguageTag(tag);
+  } else {
+    tag = UNDEFINED;
   }
-}
+  return { id, tag };
+};

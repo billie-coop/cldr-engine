@@ -1,6 +1,6 @@
 import { PrimitiveBundle } from '@phensley/cldr-types';
 import { pluralRules, PluralRules } from '@phensley/plurals';
-import { LanguageTag } from '@phensley/language-tag';
+import { LanguageTag, tagExtensionSubtags, tagLanguage, tagRegion, tagScript } from '@phensley/language-tag';
 
 /**
  * @internal
@@ -45,14 +45,14 @@ export class StringBundle implements Bundle {
     private index: ExceptionIndex,
     private _spellout: any,
   ) {
-    const language = _tag.language();
-    this._languageRegion = `${language}-${_tag.region()}`;
-    this._languageScript = `${language}-${_tag.script()}`;
-    this._plurals = pluralRules.get(language, _tag.region());
+    const language = tagLanguage(_tag);
+    this._languageRegion = `${language}-${tagRegion(_tag)}`;
+    this._languageScript = `${language}-${tagScript(_tag)}`;
+    this._plurals = pluralRules.get(language, tagRegion(_tag));
 
     // When bundle is constructed, see if there are unicode extensions for
     // number and calendar systems.
-    for (const subtag of _tag.extensionSubtags('u')) {
+    for (const subtag of tagExtensionSubtags(_tag, 'u')) {
       if (subtag.startsWith('nu-')) {
         this._numberSystem = subtag.substring(3);
       } else if (subtag.startsWith('ca-')) {
@@ -70,11 +70,11 @@ export class StringBundle implements Bundle {
   }
 
   language(): string {
-    return this._tag.language();
+    return tagLanguage(this._tag);
   }
 
   region(): string {
-    return this._tag.region();
+    return tagRegion(this._tag);
   }
 
   languageScript(): string {
