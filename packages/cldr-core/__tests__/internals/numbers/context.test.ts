@@ -1,11 +1,16 @@
 import { Decimal, decimal } from '@phensley/decimal';
-import { NumberContext } from '../../../src/internals/numbers/context';
 import { parseNumberPattern } from '../../../src/parsing/number';
+import {
+  numberContext,
+  numberContextAdjust,
+  numberContextSetCompact,
+  numberContextSetPattern,
+} from '../../../src/internals/numbers/context';
 
 test('standard', () => {
   const pat = parseNumberPattern('#,##0.00#')[0];
-  const ctx = new NumberContext({ minimumSignificantDigits: 1 }, 'half-even', false, false);
-  ctx.setPattern(pat, false);
+  const ctx = numberContext({ minimumSignificantDigits: 1 }, 'half-even', false, false);
+  numberContextSetPattern(ctx, pat, false);
 
   expect(ctx.minInt).toEqual(1);
   expect(ctx.minFrac).toEqual(2);
@@ -16,16 +21,16 @@ test('standard', () => {
 
   let n: Decimal;
 
-  n = ctx.adjust(decimal('0.1000'));
+  n = numberContextAdjust(ctx, decimal('0.1000'));
   expect(n).toEqual(decimal('0.1'));
 
-  n = ctx.adjust(decimal('0.00000'));
+  n = numberContextAdjust(ctx, decimal('0.00000'));
   expect(n).toEqual(decimal('0'));
 });
 
 test('standard min/max significant', () => {
   const pat = parseNumberPattern('#,##0.00#')[0];
-  const ctx = new NumberContext(
+  const ctx = numberContext(
     {
       minimumSignificantDigits: 2,
       maximumSignificantDigits: 1,
@@ -34,7 +39,7 @@ test('standard min/max significant', () => {
     false,
     false,
   );
-  ctx.setPattern(pat, false);
+  numberContextSetPattern(ctx, pat, false);
 
   expect(ctx.minInt).toEqual(1);
   expect(ctx.minFrac).toEqual(2);
@@ -46,8 +51,8 @@ test('standard min/max significant', () => {
 
 test('compact', () => {
   const pat = parseNumberPattern('#,##0.00#')[0];
-  const ctx = new NumberContext({ minimumSignificantDigits: 2 }, 'half-even', true, false);
-  ctx.setCompact(pat, 1, -1, 0);
+  const ctx = numberContext({ minimumSignificantDigits: 2 }, 'half-even', true, false);
+  numberContextSetCompact(ctx, pat, 1, -1, 0);
 
   expect(ctx.minFrac).toEqual(0);
   expect(ctx.maxFrac).toEqual(0);

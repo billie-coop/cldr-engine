@@ -1,132 +1,48 @@
-import { add } from './add';
-import { CalendarDate } from './calendar';
 import { CalendarConstants } from './constants';
+import { dateFromFields, dateFromUnixEpoch, isCalendarDate } from './core';
 import { DateField } from './fields';
-import { TimePeriod } from './interval';
-import { CalendarDateFields } from './types';
+import { unixEpochFromJD, wallTimeToMillis } from './math';
+import { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
 import { floorDiv } from './util';
 
 /**
- * Construct a date using the rules of the Persian calendar.
- *
- * type: persian
+ * A date in the Persian calendar.
  *
  * @public
  */
-export class PersianDate extends CalendarDate {
-  protected constructor(firstDay: number, minDays: number) {
-    super('persian', firstDay, minDays);
-  }
+export type PersianDate = CalendarDate;
 
-  relatedYear(): number {
-    return this._fields[DateField.EXTENDED_YEAR] + 622;
-  }
+/**
+ * Construct a Persian date from the given fields.
+ *
+ * Note: as in 1.x, the 'zoneId' field is ignored and the date is constructed in UTC.
+ *
+ * @public
+ */
+export const persianDateFromFields = (
+  fields: Partial<CalendarDateFields>,
+  firstDay: number,
+  minDays: number,
+): PersianDate => dateFromFields(persianCalendar, fields, firstDay, minDays);
 
-  set(fields: Partial<CalendarDateFields>): PersianDate {
-    const f = { ...this.fields(), ...fields };
-    const jd = this._ymdToJD(f.year!, f.month!, f.day!);
-    const ms = this._timeToMs(f) - this.timeZoneOffset();
-    return this._new().initFromJD(jd, ms, this.timeZoneId());
-  }
+/**
+ * Construct a Persian date from the given UNIX epoch.
+ *
+ * @public
+ */
+export const persianDateFromUnixEpoch = (
+  epoch: number,
+  zoneId: string,
+  firstDay: number,
+  minDays: number,
+): PersianDate => dateFromUnixEpoch(persianCalendar, epoch, zoneId, firstDay, minDays);
 
-  add(fields: Partial<TimePeriod>): PersianDate {
-    const [jd, ms] = add(this, fields);
-    return this._new().initFromJD(jd, ms, this.timeZoneId());
-  }
-
-  subtract(fields: Partial<TimePeriod>): PersianDate {
-    return this.add(this._negatePeriod(fields));
-  }
-
-  withZone(zoneId: string): PersianDate {
-    return this._new().initFromUnixEpoch(this.unixEpoch(), zoneId);
-  }
-
-  toString(): string {
-    return this._toString('Persian');
-  }
-
-  static fromFields(fields: Partial<CalendarDateFields>, firstDay: number, minDays: number): PersianDate {
-    return new PersianDate(firstDay, minDays).set({ year: 1, month: 1, day: 1, ...fields });
-  }
-
-  static fromUnixEpoch(epoch: number, zoneId: string, firstDay: number, minDays: number): PersianDate {
-    return new PersianDate(firstDay, minDays).initFromUnixEpoch(epoch, zoneId);
-  }
-
-  protected _new(): PersianDate {
-    return new PersianDate(this._firstDay, this._minDays);
-  }
-
-  protected initFromUnixEpoch(epoch: number, zoneId: string): PersianDate {
-    super.initFromUnixEpoch(epoch, zoneId);
-    computePersianFields(this._fields);
-    return this;
-  }
-
-  protected initFromJD(jd: number, msDay: number, zoneId: string): PersianDate {
-    super.initFromJD(jd, msDay, zoneId);
-    computePersianFields(this._fields);
-    return this;
-  }
-
-  // TODO: reorganize calendar-specific methods
-  protected monthCount(): number {
-    return 12;
-  }
-
-  // TODO: reorganize calendar-specific methods
-  protected daysInMonth(y: number, m: number): number {
-    return MONTH_COUNT[m][leapPersian(y) ? 1 : 0];
-  }
-
-  // TODO: reorganize calendar-specific methods
-  protected daysInYear(y: number): number {
-    return leapPersian(y) ? 366 : 365;
-  }
-
-  protected monthStart(eyear: number, month: number, _useMonth: boolean): number {
-    let jd = CalendarConstants.JD_PERSIAN_EPOCH - 1 + 365 * (eyear - 1) + floor((8 * eyear + 21) / 33);
-    if (month !== 0) {
-      const mc = MONTH_COUNT;
-      const m = floor(month);
-      const d = month - m;
-
-      jd += mc[m][2];
-
-      // TODO: we never reach the block below since all internal uses of monthStart
-      // pass in an integer
-
-      // Check if there is a fractional month part, and if so add the number
-      // of the days in the next month multiplied by the fraction
-      /* istanbul ignore if -- @preserve */
-      if (d !== 0) {
-        // number of days in Esfand determined by:
-        // "number of days between two vernal equinoxes"
-        const isLeap = leapPersian(eyear);
-
-        // note: the 'month' parameter must always be <= # months in the calendar
-        // year, so <= 12 in this case.
-        jd += d * mc[m + 1][isLeap ? 1 : 0];
-      }
-    }
-    return jd;
-  }
-
-  private _ymdToJD(y: number, m: number, d: number): number {
-    y |= 0;
-    const leap = leapPersian(y);
-    const mc = this.monthCount();
-    m = m < 1 ? 1 : m > mc ? mc : m;
-    const dc = MONTH_COUNT[m - 1][leap ? 1 : 0];
-    d = d < 1 ? 1 : d > dc ? dc : d;
-
-    const favardin1 = 365 * (y - 1) + floor((8 * y + 21) / 33);
-    const mdays = MONTH_COUNT[m - 1][2];
-    const days = favardin1 + d + mdays - 1;
-    return days + CalendarConstants.JD_PERSIAN_EPOCH;
-  }
-}
+/**
+ * Returns true if the argument is a date in the Persian calendar.
+ *
+ * @public
+ */
+export const isPersianDate = (x: any): x is PersianDate => isCalendarDate(x) && x.calendar.type === 'persian';
 
 const floor = Math.floor;
 
@@ -171,4 +87,80 @@ const leapPersian = (y: number): boolean => {
   const rem: [number] = [0];
   floorDiv(25 * y + 11, 33, rem);
   return rem[0] < 8;
+};
+
+const persianDaysInMonth = (y: number, m: number): number => MONTH_COUNT[m][leapPersian(y) ? 1 : 0];
+
+const persianDaysInYear = (y: number): number => (leapPersian(y) ? 366 : 365);
+
+const persianMonthStart = (eyear: number, month: number, _useMonth: boolean): number => {
+  let jd = CalendarConstants.JD_PERSIAN_EPOCH - 1 + 365 * (eyear - 1) + floor((8 * eyear + 21) / 33);
+  if (month !== 0) {
+    const mc = MONTH_COUNT;
+    const m = floor(month);
+    const d = month - m;
+
+    jd += mc[m][2];
+
+    // TODO: we never reach the block below since all internal uses of monthStart
+    // pass in an integer
+
+    // Check if there is a fractional month part, and if so add the number
+    // of the days in the next month multiplied by the fraction
+    /* istanbul ignore if -- @preserve */
+    if (d !== 0) {
+      // number of days in Esfand determined by:
+      // "number of days between two vernal equinoxes"
+      const isLeap = leapPersian(eyear);
+
+      // note: the 'month' parameter must always be <= # months in the calendar
+      // year, so <= 12 in this case.
+      jd += d * mc[m + 1][isLeap ? 1 : 0];
+    }
+  }
+  return jd;
+};
+
+const persianYmdToJD = (y: number, m: number, d: number): number => {
+  y |= 0;
+  const leap = leapPersian(y);
+  const mc = 12;
+  m = m < 1 ? 1 : m > mc ? mc : m;
+  const dc = MONTH_COUNT[m - 1][leap ? 1 : 0];
+  d = d < 1 ? 1 : d > dc ? dc : d;
+
+  const favardin1 = 365 * (y - 1) + floor((8 * y + 21) / 33);
+  const mdays = MONTH_COUNT[m - 1][2];
+  const days = favardin1 + d + mdays - 1;
+  return days + CalendarConstants.JD_PERSIAN_EPOCH;
+};
+
+/**
+ * Persian dates are set in the date's own time zone using its current offset; the
+ * 'zoneId' field is ignored (1.x behaviour).
+ */
+const persianResolveFields = (f: Partial<CalendarDateFields>, zoneId: string, offset: number): [number, string] => {
+  const jd = persianYmdToJD(f.year!, f.month!, f.day!);
+  const ms = wallTimeToMillis(f) - offset;
+  return [unixEpochFromJD(jd, ms), zoneId];
+};
+
+/**
+ * Rules of the Persian calendar.
+ *
+ * type: persian
+ *
+ * @public
+ */
+export const persianCalendar: CalendarSystem = {
+  type: 'persian',
+  name: 'Persian',
+  monthCount: 12,
+  relatedYearOffset: 622,
+  defaultFields: { year: 1, month: 1, day: 1 },
+  daysInMonth: persianDaysInMonth,
+  daysInYear: persianDaysInYear,
+  monthStart: persianMonthStart,
+  computeFields: computePersianFields,
+  resolveFields: persianResolveFields,
 };

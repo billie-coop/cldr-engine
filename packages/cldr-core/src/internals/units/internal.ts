@@ -1,106 +1,92 @@
-import { PluralType, UnitsSchema, UnitInfo, UnitType } from '@phensley/cldr-types';
-
+import { PluralType, UnitInfo } from '@phensley/cldr-types';
 import { DecimalConstants, decimal } from '@phensley/decimal';
-
-import { Internals, NumberRenderer, UnitInternals } from '../internals';
-import { Quantity, UnitFormatOptions } from '../../common';
-import { NumberParams } from '../../common/private';
-import { Bundle } from '../../resource';
-import { vectorGet, fieldGet } from '../../schema/schema/arrows';
 import { pluralCardinal } from '@phensley/plurals';
 
+import { NumberRenderer } from '../internals';
+import { Quantity, UnitFormatOptions } from '../../common';
+import { NumberParams } from '../../common/private';
+import { LocaleData } from '../../locale-data';
+import { vectorGet, fieldGet } from '../../schema/schema/arrows';
+import { renderDecimal } from '../numbers/internal';
+
 /**
+ * Format a quantity: the number, its pluralized unit pattern, and an optional
+ * 'per' or 'times' unit.
+ *
  * @internal
  */
-export class UnitsInternalImpl implements UnitInternals {
-  private unitsSchema: UnitsSchema;
-
-  constructor(private internals: Internals) {
-    const schema = internals.schema;
-    this.unitsSchema = schema.Units;
+export const renderUnit = <T>(
+  data: LocaleData,
+  renderer: NumberRenderer<T>,
+  q: Quantity,
+  options: UnitFormatOptions,
+  params: NumberParams,
+): T => {
+  const n = decimal(q.value);
+  const [num, plural] = renderDecimal(data, renderer, n, options, params);
+  if (q.unit === undefined) {
+    return num;
   }
 
-  getDisplayName(bundle: Bundle, name: UnitType, length: string): string {
-    return vectorGet(this.getUnitInfo(length).displayName, bundle, name);
+  // Compute plural category for the value '1'
+  const singular = pluralCardinal(data.plurals, DecimalConstants.ONE);
+
+  // For default and "per" compound pattern, the {0} will use
+  // the plural category and {1} will be singular. Examples:
+  //   1 meter per second
+  //  10 meters per second
+  //
+  // For the "times" compound pattern, the {0} will be singular,
+  // and the {1} will use the plural category. Examples:
+  //   1 newton-meter
+  //  10 newton-meters
+  const plural0 = q.times ? singular : plural;
+  const plural1 = q.times ? plural : singular;
+
+  const info = getUnitInfo(data, options.length || '');
+  let pattern = vectorGet(info.unitPattern, data, plural0 as PluralType, q.unit);
+  if (!pattern) {
+    pattern = vectorGet(info.unitPattern, data, 'other', q.unit);
   }
 
-  format<T>(
-    bundle: Bundle,
-    renderer: NumberRenderer<T>,
-    q: Quantity,
-    options: UnitFormatOptions,
-    params: NumberParams,
-  ): T {
-    const n = decimal(q.value);
-    const [num, plural] = this.internals.numbers.formatDecimal(bundle, renderer, n, options, params);
-    if (q.unit === undefined) {
-      return num;
-    }
-
-    // Compute plural category for the value '1'
-    const singular = pluralCardinal(bundle.plurals, DecimalConstants.ONE);
-
-    // For default and "per" compound pattern, the {0} will use
-    // the plural category and {1} will be singular. Examples:
-    //   1 meter per second
-    //  10 meters per second
-    //
-    // For the 'times' compound pattern, the {0} will be singular,
-    // and the {1} will use the plural category. Examples:
-    //   1 newton-meter
-    //  10 newton-meters
-
-    const plural0 = q.times ? singular : plural;
-    const plural1 = q.times ? plural : singular;
-
-    const { general } = this.internals;
-    const info = this.getUnitInfo(options.length || '');
-    let pattern = vectorGet(info.unitPattern, bundle, plural0 as PluralType, q.unit);
-    if (!pattern) {
-      // Fallback to other. Some locales don't break out a pattern per category
-      // when the patterns are identical
-      pattern = vectorGet(info.unitPattern, bundle, 'other', q.unit);
-    }
-
-    // Format argument '{0}' here. If no 'per' unit is defined, we
-    // return it. Otherwise we join it with the denominator unit below.
-    const zero = renderer.wrap(general, pattern, num);
-    if (q.per) {
-      // Check if the 'per' unit has a perUnitPattern defined and use it.
-      const perPattern = vectorGet(info.perUnitPattern, bundle, q.per);
-      if (perPattern) {
-        return renderer.wrap(general, perPattern, zero);
-      }
-    }
-
-    // If per or times are specified, use use the corresponding compound pattern.
-    // See notes here:
-    // https://www.unicode.org/reports/tr35/tr35-general.html#perUnitPatterns
-    const compound = q.per ? fieldGet(info.perPattern, bundle) : q.times ? fieldGet(info.timesPattern, bundle) : '';
-
-    const perunit = q.per || q.times;
-    if (perunit) {
-      // Fetch the denominator's unit pattern, strip off the '{0}'
-      // and any surrounding whitespace.
-      let denom = vectorGet(info.unitPattern, bundle, plural1 as PluralType, perunit);
-      denom = denom.replace(/\s*\{0\}\s*/, '');
-      const one = renderer.make('per', denom);
-
-      // Wrap the numerator and denominator together
-      return renderer.wrap(general, compound, zero, one);
-    }
-
-    return zero;
-  }
-
-  getUnitInfo(length: string): UnitInfo {
-    switch (length) {
-      case 'narrow':
-        return this.unitsSchema.narrow;
-      case 'short':
-        return this.unitsSchema.short;
-      default:
-        return this.unitsSchema.long;
+  const zero = renderer.wrap(pattern, num);
+  if (q.per) {
+    // Check if the per unit has its own pattern
+    const perPattern = vectorGet(info.perUnitPattern, data, q.per);
+    if (perPattern) {
+      return renderer.wrap(perPattern, zero);
     }
   }
-}
+
+  // Compound pattern to combine the two units, if any
+  const compound = q.per ? fieldGet(info.perPattern, data) : q.times ? fieldGet(info.timesPattern, data) : '';
+
+  const perunit = q.per || q.times;
+  if (perunit) {
+    // Fetch the pattern for the denominator unit and strip the placeholder
+    let denom = vectorGet(info.unitPattern, data, plural1 as PluralType, perunit);
+    denom = denom.replace(/\s*\{0\}\s*/, '');
+    const one = renderer.make('per', denom);
+
+    return renderer.wrap(compound, zero, one);
+  }
+
+  return zero;
+};
+
+/**
+ * Unit patterns for a length ('long', 'short' or 'narrow').
+ *
+ * @internal
+ */
+export const getUnitInfo = (data: LocaleData, length: string): UnitInfo => {
+  const units = data.schema.Units;
+  switch (length) {
+    case 'narrow':
+      return units.narrow;
+    case 'short':
+      return units.short;
+    default:
+      return units.long;
+  }
+};

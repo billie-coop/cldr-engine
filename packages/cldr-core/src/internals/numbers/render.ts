@@ -9,17 +9,23 @@ import {
 
 import { CurrencySpacingPatterns, NumberParams } from '../../common/private';
 import { NumberField, NumberPattern } from '../../parsing/number';
-import { GeneralInternals, NumberRenderer } from '../internals';
+import { NumberRenderer } from '../internals';
 import { fastFormatDecimal } from '../../systems/numbering';
-import { AbstractValue, PartsValue, StringValue } from '../../utils/render';
+import { AbstractValue, partsValue, stringValue } from '../../utils/render';
+import { parseWrapper } from '../general/internal';
 
 /**
+ * Renders formatted numbers as strings or parts. The two kinds differ only in how values are
+ * accumulated (`value`) and how the digits are split (`formatter`).
+ *
  * @internal
  */
-export abstract class NumberFormatter<R> implements NumberRenderer<R> {
-  constructor(private params: NumberParams) {}
-
-  render(
+const numberRenderer = <R>(
+  params: NumberParams,
+  value: () => AbstractValue<R>,
+  formatter: (decimal: string, group: string) => DecimalFormatter<R>,
+): NumberRenderer<R> => {
+  const render = (
     n: Decimal,
     pattern: NumberPattern,
     currencySymbol: string,
@@ -28,8 +34,8 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
     minInt: number,
     grouping: boolean = true,
     exponent?: number,
-  ): R {
-    const { symbols } = this.params;
+  ): R => {
+    const { symbols } = params;
     const currency: boolean = currencySymbol !== '';
 
     const decimal = decimalSymbol
@@ -47,28 +53,28 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
 
     let { priGroup, secGroup } = pattern;
     if (priGroup <= 0) {
-      priGroup = this.params.primaryGroupingSize;
+      priGroup = params.primaryGroupingSize;
     }
     if (secGroup <= 0) {
-      secGroup = this.params.secondaryGroupingSize;
+      secGroup = params.secondaryGroupingSize;
     }
 
-    const formatter = this.formatter(decimal, group);
+    const fmt = formatter(decimal, group);
     decimalFormat(
       n,
-      formatter,
+      fmt,
       decimal,
       group,
       minInt,
-      this.params.minimumGroupingDigits,
+      params.minimumGroupingDigits,
       priGroup,
       secGroup,
       true,
-      this.params.digits,
+      params.digits,
     );
-    const formatted = formatter.render();
+    const formatted = fmt.render();
 
-    const res: AbstractValue<R> = this.value();
+    const res: AbstractValue<R> = value();
 
     let haveNumber = false;
     let currencyBefore = false;
@@ -114,7 +120,7 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
               } else {
                 res.add('plus', symbols.plusSign);
               }
-              const exp = fastFormatDecimal(`${exponent}`, this.params.digits, 1);
+              const exp = fastFormatDecimal(`${exponent}`, params.digits, 1);
               res.add('integer', exp);
               break;
             }
@@ -124,7 +130,7 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
 
     // Adjust spacing between currency symbol based on surrounding characters.
     if (currencyIdx !== -1) {
-      const spacing = this.params.currencySpacing;
+      const spacing = params.currencySpacing;
       const curr = res.get(currencyIdx);
       if (currencyBefore) {
         if (insertBetween(spacing.after, currencySymbol[currencySymbol.length - 1], curr[0])) {
@@ -138,30 +144,24 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
     }
 
     return res.render();
-  }
+  };
 
-  empty(): R {
-    return this.value().render();
-  }
+  const empty = (): R => value().render();
 
-  make(type: string, value: string): R {
-    const v = this.value();
-    v.add(type, value);
+  const make = (type: string, val: string): R => {
+    const v = value();
+    v.add(type, val);
     return v.render();
-  }
+  };
 
-  wrap(internal: GeneralInternals, raw: string, ...args: R[]): R {
-    const res: AbstractValue<R> = this.value();
-    const pattern = internal.parseWrapper(raw);
+  const wrap = (raw: string, ...args: R[]): R => {
+    const res: AbstractValue<R> = value();
+    const pattern = parseWrapper(raw);
     for (const n of pattern) {
       if (typeof n === 'string') {
         res.add('literal', n);
       } else {
         const v = args[n];
-        // The only way the else branch could be taken is if there
-        // is a mismatch between the CLDR wrapper pattern and the
-        // number of arguments passed in, e.g. "{0} {1} {2}" with
-        // only 2 arguments.
         /* istanbul ignore else -- @preserve */
         if (v !== undefined) {
           res.append(v);
@@ -169,45 +169,22 @@ export abstract class NumberFormatter<R> implements NumberRenderer<R> {
       }
     }
     return res.render();
-  }
+  };
 
-  abstract value(): AbstractValue<R>;
-  abstract formatter(decimal: string, group: string): DecimalFormatter<R>;
-}
-
-/**
- * @internal
- */
-export class StringNumberFormatter extends NumberFormatter<string> {
-  value(): AbstractValue<string> {
-    return new StringValue();
-  }
-  formatter(_decimal: string, _group: string): DecimalFormatter<string> {
-    return stringDecimalFormatter();
-  }
-}
+  return { render, empty, make, wrap };
+};
 
 /**
  * @internal
  */
-export class PartsNumberFormatter extends NumberFormatter<Part[]> {
-  value(): AbstractValue<Part[]> {
-    return new PartsValue();
-  }
-  formatter(decimal: string, group: string): DecimalFormatter<Part[]> {
-    return partsDecimalFormatter(decimal, group);
-  }
-}
+export const stringRenderer = (params: NumberParams): NumberRenderer<string> =>
+  numberRenderer(params, stringValue, () => stringDecimalFormatter());
 
-// Unicode ranges generated in Java from general categories, and translating the
-// corresponding Unicode sets.
-// https://www.unicode.org/reports/tr18/#General_Category_Property
-// https://www.unicode.org/reports/tr44/#General_Category_Values
-// https://www.unicode.org/reports/tr18/#digit
-// https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
-
-// See Nd general category here:
-// https://www.unicode.org/Public/UCD/latest/ucd/extracted/DerivedNumericType.txt
+/**
+ * @internal
+ */
+export const partsRenderer = (params: NumberParams): NumberRenderer<Part[]> =>
+  numberRenderer(params, partsValue, partsDecimalFormatter);
 
 /* eslint-disable max-len */
 const DECIMAL_DIGIT_NUMBER =

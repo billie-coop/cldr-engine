@@ -1,174 +1,191 @@
-import { CalendarSchema, DayPeriodType, Schema } from '@phensley/cldr-types';
+import { CalendarSchema } from '@phensley/cldr-types';
 import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
-import { DateTimeNode, intervalPatternBoundary, parseDatePattern } from '../../parsing/date';
-import { Bundle } from '../../resource';
+import { DateTimeNode, intervalPatternBoundary, parseDatePattern as parseDatePatternRaw } from '../../parsing/date';
+import { LocaleData } from '../../locale-data';
 import { CalendarDate, CalendarType } from '../../systems/calendars';
 import { AbstractValue } from '../../utils/render';
-import { CalendarInternals, Internals } from '../internals';
 import { calendarIds, calendarPrefData } from './autogen.calprefs';
-import { weekFirstDay, weekMinDays } from './autogen.weekdata';
+import { weekFirstDay as weekFirstDayData, weekMinDays as weekMinDaysData } from './autogen.weekdata';
 import { CalendarContext, CalendarFormatter } from './formatter';
-import { CalendarFormatterImpl } from './formatterimpl';
-import { DayPeriodRules } from './rules';
+import { calendarFormat } from './formatterimpl';
+import { parseWrapper, PATTERN_CACHE_SIZE } from '../general/internal';
+
+export { flexDayPeriod } from './rules';
+
+let patternCache: Cache<DateTimeNode[]> | undefined;
+let hourPatternCache: Cache<[DateTimeNode[], DateTimeNode[]]> | undefined;
 
 /**
- * Framework scoped calendar functions.
+ * Parse a date pattern (cached).
  *
  * @internal
  */
-export class CalendarInternalsImpl implements CalendarInternals {
-  private schema: Schema;
-  private dayPeriodRules: DayPeriodRules;
-  private patternCache: Cache<DateTimeNode[]>;
-  private hourPatternCache: Cache<[DateTimeNode[], DateTimeNode[]]>;
-  private calendarFormatterCache: Cache<CalendarFormatter<CalendarDate>>;
-  private availableCalendars: Set<string>;
+export const parseDatePattern = (raw: string): DateTimeNode[] =>
+  cacheGet(patternCache || (patternCache = createCache(parseDatePatternRaw, PATTERN_CACHE_SIZE)), raw);
 
-  constructor(
-    private internals: Internals,
-    cacheSize: number,
-  ) {
-    this.schema = internals.schema;
-    this.dayPeriodRules = new DayPeriodRules(cacheSize);
-    this.patternCache = createCache(parseDatePattern, cacheSize);
-    this.availableCalendars = new Set(internals.config.calendars || []);
-    this.hourPatternCache = createCache((raw: string): [DateTimeNode[], DateTimeNode[]] => {
-      const parts = raw.split(';');
-      return [cacheGet(this.patternCache, parts[0]), cacheGet(this.patternCache, parts[1])];
-    }, cacheSize);
+const parseHourPattern = (raw: string): [DateTimeNode[], DateTimeNode[]] => {
+  const parts = raw.split(';');
+  return [parseDatePattern(parts[0]), parseDatePattern(parts[1])];
+};
 
-    this.calendarFormatterCache = createCache((calendar: string) => {
-      let s: CalendarSchema | undefined;
-      if (this.availableCalendars.has(calendar)) {
-        switch (calendar) {
-          case 'buddhist':
-            s = this.schema.Buddhist;
-            break;
-          case 'japanese':
-            s = this.schema.Japanese;
-            break;
-          case 'persian':
-            s = this.schema.Persian;
-            break;
-        }
-      }
-      if (s === undefined) {
-        s = this.schema.Gregorian;
-      }
-      return new CalendarFormatterImpl(this.internals, s);
-    }, cacheSize);
-  }
+/**
+ * Positive or negative part of an hour pattern like '+HH:mm;-HH:mm' (cached).
+ *
+ * @internal
+ */
+export const getHourPattern = (raw: string, negative: boolean): DateTimeNode[] => {
+  const patterns = cacheGet(
+    hourPatternCache || (hourPatternCache = createCache(parseHourPattern, PATTERN_CACHE_SIZE)),
+    raw,
+  );
+  return patterns[negative ? 1 : 0];
+};
 
-  flexDayPeriod(bundle: Bundle, minutes: number): DayPeriodType | undefined {
-    return this.dayPeriodRules.get(bundle, minutes);
-  }
+/**
+ * First day of the week for a region (1 = Sunday).
+ *
+ * @internal
+ */
+export const weekFirstDay = (region: string): number => weekFirstDayData[region] || weekFirstDayData['001'];
 
-  getCalendarFormatter(type: CalendarType): CalendarFormatter<CalendarDate> {
-    return cacheGet(this.calendarFormatterCache, type);
-  }
+/**
+ * Minimum days in the first week of the year for a region.
+ *
+ * @internal
+ */
+export const weekMinDays = (region: string): number => weekMinDaysData[region] || weekMinDaysData['001'];
 
-  parseDatePattern(raw: string): DateTimeNode[] {
-    return cacheGet(this.patternCache, raw);
-  }
-
-  getHourPattern(raw: string, negative: boolean): DateTimeNode[] {
-    const patterns = cacheGet(this.hourPatternCache, raw);
-    return patterns[negative ? 1 : 0];
-  }
-
-  weekFirstDay(region: string): number {
-    return weekFirstDay[region] || weekFirstDay['001'];
-  }
-
-  weekMinDays(region: string): number {
-    return weekMinDays[region] || weekMinDays['001'];
-  }
-
-  formatDateTime<R>(
-    calendar: CalendarType,
-    ctx: CalendarContext<CalendarDate>,
-    value: AbstractValue<R>,
-    first: boolean,
-    date?: DateTimeNode[],
-    time?: DateTimeNode[],
-    wrapper?: string,
-  ): R {
-    const formatter = this.getCalendarFormatter(calendar);
-    let _date: R | undefined;
-    let _time: R | undefined;
-    if (date) {
-      formatter.format(value, ctx, date, first);
-      _date = value.render();
+/**
+ * Schema parts used to format dates in the given calendar. Calendars not enabled in the schema
+ * config use the Gregorian fields.
+ *
+ * @internal
+ */
+export const getCalendarFormatter = (data: LocaleData, calendar: CalendarType): CalendarFormatter => {
+  const schema = data.schema;
+  let s: CalendarSchema | undefined;
+  if (calendarAvailable(data, calendar)) {
+    switch (calendar) {
+      case 'buddhist':
+        s = schema.Buddhist;
+        break;
+      case 'japanese':
+        s = schema.Japanese;
+        break;
+      case 'persian':
+        s = schema.Persian;
+        break;
     }
-    if (time) {
-      formatter.format(value, ctx, time, !!date && first);
-      _time = value.render();
-    }
-    if (_date && _time && wrapper) {
-      const pattern = this.internals.general.parseWrapper(wrapper);
-      value.wrap(pattern, [_time, _date]);
-      return value.render();
-    }
-    return _date ? _date : _time ? _time : value.empty();
   }
-
-  formatInterval<R>(
-    calendar: CalendarType,
-    ctx: CalendarContext<CalendarDate>,
-    value: AbstractValue<R>,
-    first: boolean,
-    end: CalendarDate,
-    pattern: DateTimeNode[],
-  ): R {
-    const idx = intervalPatternBoundary(pattern);
-    const s = this.formatDateTime(calendar, ctx, value, first, pattern.slice(0, idx));
-    ctx.date = end;
-    const e = this.formatDateTime(calendar, ctx, value, false, pattern.slice(idx));
-    return value.join(s, e);
+  if (s === undefined) {
+    s = schema.Gregorian;
   }
+  return { cal: s, tz: schema.TimeZones };
+};
 
-  selectCalendar(bundle: Bundle, ca?: CalendarType): CalendarType {
-    let calendar = this.supportedCalendar(ca) || this.supportedCalendar(bundle.calendarSystem);
-    if (!calendar) {
-      const prefs = calendarPrefData[bundle.region] || [];
-      for (const id of prefs) {
-        // The calendar preference data current as of CLDR 48) will always choose
-        // a calendar that is supported, so the else will never fire.
-        calendar = this.supportedCalendar(calendarIds[id]);
-        /* istanbul ignore else -- @preserve */
-        if (calendar) {
-          return calendar;
-        }
-      }
-      // Fallback to World supported calendars, which will select Gregorian
-      const index = calendarPrefData['001'][0];
-      return calendarIds[index] as CalendarType;
-    }
-    return calendar;
+/**
+ * Format a date and/or time pattern, joining them with the wrapper pattern when both are given.
+ *
+ * @internal
+ */
+export const renderDateTime = <R>(
+  calendar: CalendarType,
+  ctx: CalendarContext<CalendarDate>,
+  value: AbstractValue<R>,
+  first: boolean,
+  date?: DateTimeNode[],
+  time?: DateTimeNode[],
+  wrapper?: string,
+): R => {
+  const formatter = getCalendarFormatter(ctx.bundle, calendar);
+  let _date: R | undefined;
+  let _time: R | undefined;
+  if (date) {
+    calendarFormat(formatter, value, ctx, date, first);
+    _date = value.render();
   }
+  if (time) {
+    calendarFormat(formatter, value, ctx, time, !!date && first);
+    _time = value.render();
+  }
+  if (_date && _time && wrapper) {
+    const pattern = parseWrapper(wrapper);
+    value.wrap(pattern, [_time, _date]);
+    return value.render();
+  }
+  return _date ? _date : _time ? _time : value.empty();
+};
 
-  /**
-   * Translates a string into a supported calendar type, or undefined if none match.
-   */
-  private supportedCalendar(c: string | undefined): CalendarType | undefined {
-    // NOTE: cldr constrains identifiers to have segments that are 8 characters in length,
-    // so "gregorian" is invalid. instead, "gregory" is used. "islamic-umalqura" is valid since
-    // each segment is <= 8 characters. check for "gregorian" here.
-    if (c === 'gregorian') {
-      c = 'gregory';
-    }
+/**
+ * Format an interval pattern: the part before the boundary with the start date, the rest
+ * with the end date.
+ *
+ * @internal
+ */
+export const renderDateInterval = <R>(
+  calendar: CalendarType,
+  ctx: CalendarContext<CalendarDate>,
+  value: AbstractValue<R>,
+  first: boolean,
+  end: CalendarDate,
+  pattern: DateTimeNode[],
+): R => {
+  const idx = intervalPatternBoundary(pattern);
+  const s = renderDateTime(calendar, ctx, value, first, pattern.slice(0, idx));
+  ctx.date = end;
+  const e = renderDateTime(calendar, ctx, value, false, pattern.slice(idx));
+  return value.join(s, e);
+};
 
-    if (c && this.availableCalendars.has(c)) {
-      switch (c) {
-        case 'buddhist':
-        case 'iso8601':
-        case 'japanese':
-        case 'persian':
-        case 'gregory':
-          return c;
+/**
+ * Choose the calendar to use: the requested one, the locale's 'u-ca' extension, or the region's
+ * preferred calendar, limited to calendars enabled in the schema config.
+ *
+ * @internal
+ */
+export const selectCalendar = (data: LocaleData, ca?: CalendarType): CalendarType => {
+  let calendar = supportedCalendar(data, ca) || supportedCalendar(data, data.calendarSystem);
+  if (!calendar) {
+    const prefs = calendarPrefData[data.region] || [];
+    for (const id of prefs) {
+      // The calendar preference data current as of CLDR 48) will always choose
+      // a calendar that is supported, so the else will never fire.
+      calendar = supportedCalendar(data, calendarIds[id]);
+      /* istanbul ignore else -- @preserve */
+      if (calendar) {
+        return calendar;
       }
     }
-    return undefined;
+    // Fallback to World supported calendars, which will select Gregorian
+    const index = calendarPrefData['001'][0];
+    return calendarIds[index] as CalendarType;
   }
-}
+  return calendar;
+};
+
+const calendarAvailable = (data: LocaleData, c: string): boolean => (data.config.calendars || []).indexOf(c) !== -1;
+
+/**
+ * Translates a string into a supported calendar type, or undefined if none match.
+ */
+const supportedCalendar = (data: LocaleData, c: string | undefined): CalendarType | undefined => {
+  // NOTE: cldr constrains identifiers to have segments that are 8 characters in length,
+  // so "gregorian" is invalid. instead, "gregory" is used. "islamic-umalqura" is valid since
+  // each segment is <= 8 characters. check for "gregorian" here.
+  if (c === 'gregorian') {
+    c = 'gregory';
+  }
+
+  if (c && calendarAvailable(data, c)) {
+    switch (c) {
+      case 'buddhist':
+      case 'iso8601':
+      case 'japanese':
+      case 'persian':
+      case 'gregory':
+        return c;
+    }
+  }
+  return undefined;
+};

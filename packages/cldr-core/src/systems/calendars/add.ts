@@ -1,6 +1,8 @@
 import { tzFromWall } from '@phensley/timezone';
-import { CalendarDate } from './calendar';
+import { dateSet, negatePeriod } from './calendar';
 import { CalendarConstants } from './constants';
+import { newDateFromJD } from './core';
+import { DateField } from './fields';
 import { timePeriod, TimePeriod } from './interval';
 import {
   adjustTime,
@@ -13,7 +15,25 @@ import {
   unixEpochFromJD,
   YearMonthDay,
 } from './math';
-import { CalendarDateInternals } from './types';
+import { CalendarDate } from './types';
+
+/**
+ * Add the fields to this date, returning a new date.
+ *
+ * @public
+ */
+export const dateAdd = (d: CalendarDate, fields: Partial<TimePeriod>): CalendarDate => {
+  const [jd, ms] = add(d, fields);
+  return newDateFromJD(d.calendar, jd, ms, d.zoneInfo.zoneid, d.firstDay, d.minDays);
+};
+
+/**
+ * Subtract the fields from this date, returning a new date.
+ *
+ * @public
+ */
+export const dateSubtract = (d: CalendarDate, fields: Partial<TimePeriod>): CalendarDate =>
+  dateAdd(d, negatePeriod(fields));
 
 /**
  * Add years, days, hours, etc, to dates. This function always returns
@@ -40,9 +60,9 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
   // 5. Finally add the time to the new epoch.
 
   // Get Julian day and milliseconds in UTC
-  let jd = orig.modifiedJulianDay();
-  let millis = orig.millisecondsInDay();
-  let offset = orig.timeZoneOffset();
+  let jd = orig.fields[DateField.JULIAN_DAY];
+  let millis = orig.fields[DateField.MILLIS_IN_DAY];
+  let offset = orig.zoneInfo.offset;
 
   // If nothing is being added, return the original date.
   if (!hasDate && !hasTime) {
@@ -61,8 +81,7 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
   }
 
   // Work in UTC then translate back later
-  const date = orig.set({ zoneId: 'UTC' });
-  const internal = date as any as CalendarDateInternals;
+  const date = dateSet(orig, { zoneId: 'UTC' });
 
   // Add years and months directly to the date fields.
   let { year, month, day } = toYMD(date);
@@ -71,10 +90,10 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
   const time = millisToTimePeriod(millis);
 
   // Add date fields
-  ({ year, month, day } = dateAdd({ year, month, day }, truncated));
+  ({ year, month, day } = addYMD({ year, month, day }, truncated));
 
   // Compute the Julian day of the year, month, and add days.
-  jd = internal.monthStart(year, month - 1, false) + day + time.day;
+  jd = date.calendar.monthStart(year, month - 1, false) + day + time.day;
 
   // Convert Julian day and milliseconds to Unix epoch to find timezone offset.
   let epoch = unixEpochFromJD(jd, millis);
@@ -82,7 +101,7 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
   // Get the wall clock timezone offset. We use the CalendarDate's timezoneId
   // knowing it will always resolve to a valid timezone record, since constructing
   // an instance must pass through the timezone resolution process.
-  const wall = tzFromWall(orig.timeZoneId(), epoch)!;
+  const wall = tzFromWall(orig.zoneInfo.zoneid, epoch)!;
   epoch = wall[0];
 
   // Add the time components.
@@ -93,9 +112,9 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
 };
 
 /**
- * Add the date parts of a TimePeriod to a date.
+ * Add the date parts of a TimePeriod to a year, month and day.
  */
-export const dateAdd = (
+export const addYMD = (
   date: YearMonthDay,
   added: Pick<TimePeriod, 'year' | 'month' | 'week' | 'day'>,
 ): YearMonthDay => {

@@ -1,8 +1,9 @@
-import { CalendarsImpl } from '../../../src/api/calendars';
+import { LocaleData } from '../../../src';
 import { calendarsApi } from '../../_helpers';
+import { timeZoneInfo } from '../../../src';
 
 test('timezone exemplar cities', () => {
-  let api: CalendarsImpl;
+  let api: LocaleData;
   const utc = 'Etc/UTC';
   const unk = 'Factory';
   const invalid = 'Invalid';
@@ -11,7 +12,7 @@ test('timezone exemplar cities', () => {
 
   api = calendarsApi('en');
 
-  tz = api.timeZoneInfo(newyork);
+  tz = timeZoneInfo(api, newyork);
   expect(tz.id).toEqual(newyork);
   expect(tz.city).toEqual({ name: 'New York' });
   expect(tz.metazone).toEqual('America_Eastern');
@@ -30,7 +31,7 @@ test('timezone exemplar cities', () => {
     daylight: 'EDT',
   });
 
-  tz = api.timeZoneInfo(utc);
+  tz = timeZoneInfo(api, utc);
   expect(tz.id).toEqual(utc);
   expect(tz.city).toEqual({ name: 'Unknown Location' });
   expect(tz.metazone).toEqual('GMT');
@@ -49,7 +50,7 @@ test('timezone exemplar cities', () => {
     daylight: '',
   });
 
-  tz = api.timeZoneInfo(unk);
+  tz = timeZoneInfo(api, unk);
   expect(tz.id).toEqual(unk);
   expect(tz.city).toEqual({ name: 'Unknown Location' });
   expect(tz.metazone).toEqual('');
@@ -64,7 +65,7 @@ test('timezone exemplar cities', () => {
     daylight: '',
   });
 
-  tz = api.timeZoneInfo(invalid);
+  tz = timeZoneInfo(api, invalid);
   expect(tz.id).toEqual(unk);
   expect(tz.city).toEqual({ name: 'Unknown Location' });
   expect(tz.names.long).toEqual({
@@ -80,7 +81,7 @@ test('timezone exemplar cities', () => {
 
   api = calendarsApi('es');
 
-  tz = api.timeZoneInfo(newyork);
+  tz = timeZoneInfo(api, newyork);
   expect(tz.id).toEqual(newyork);
   expect(tz.city).toEqual({ name: 'Nueva York' });
   expect(tz.names.long).toEqual({
@@ -94,7 +95,7 @@ test('timezone exemplar cities', () => {
     daylight: '',
   });
 
-  tz = api.timeZoneInfo(utc);
+  tz = timeZoneInfo(api, utc);
   expect(tz.id).toEqual(utc);
   expect(tz.city).toEqual({ name: 'Ciudad desconocida' });
   expect(tz.names.long).toEqual({
@@ -108,7 +109,7 @@ test('timezone exemplar cities', () => {
     daylight: '',
   });
 
-  tz = api.timeZoneInfo(unk);
+  tz = timeZoneInfo(api, unk);
   expect(tz.id).toEqual(unk);
   expect(tz.city).toEqual({ name: 'Ciudad desconocida' });
   expect(tz.names.long).toEqual({

@@ -1,32 +1,19 @@
-import { Bundle } from '../../resource';
-import { Internals } from '../../internals';
-import { NumberSystemType } from '../../common';
-import { ContextTransformInfo, NumberParams } from '../../common/private';
-import { NumberParamsCache } from './numbers';
+import { ContextTransformInfo } from '../../common/private';
+import { LocaleData } from '../../locale-data';
 import { vectorMapping } from '../../schema/schema/arrows';
 
+const CONTEXT_TRANSFORMS = /*#__PURE__*/ new WeakMap<LocaleData, ContextTransformInfo>();
+
 /**
- * Private API only visible internally.
+ * Context transform flags of the locale (capitalization rules per field).
  *
  * @internal
  */
-export class PrivateApiImpl {
-  private numberParamsCache: NumberParamsCache;
-  private contextTransforms: ContextTransformInfo;
-
-  constructor(
-    private bundle: Bundle,
-    private internals: Internals,
-  ) {
-    this.numberParamsCache = new NumberParamsCache(bundle, internals);
-    this.contextTransforms = vectorMapping(this.internals.schema.ContextTransforms.contextTransforms, this.bundle);
+export const getContextTransformInfo = (data: LocaleData): ContextTransformInfo => {
+  let info = CONTEXT_TRANSFORMS.get(data);
+  if (info === undefined) {
+    info = vectorMapping(data.schema.ContextTransforms.contextTransforms, data);
+    CONTEXT_TRANSFORMS.set(data, info);
   }
-
-  getNumberParams(numberSystem?: NumberSystemType, defaultSystem?: NumberSystemType): NumberParams {
-    return this.numberParamsCache.getNumberParams(numberSystem, defaultSystem);
-  }
-
-  getContextTransformInfo(): ContextTransformInfo {
-    return this.contextTransforms;
-  }
-}
+  return info;
+};

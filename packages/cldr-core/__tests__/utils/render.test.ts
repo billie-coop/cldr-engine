@@ -1,8 +1,8 @@
-import { PartsValue, StringValue } from '../../src/utils/render';
 import { parseWrapperPattern } from '../../src/parsing/wrapper';
+import { partsValue, stringValue } from '../../src/utils/render';
 
 test('string', () => {
-  const v = new StringValue();
+  const v = stringValue();
   v.add('literal', 'A');
   v.add('literal', 'B');
   v.add('foo', 'C');
@@ -35,7 +35,7 @@ test('string', () => {
 });
 
 test('parts', () => {
-  const v = new PartsValue();
+  const v = partsValue();
   v.add('literal', 'A');
   v.add('literal', 'B');
   v.add('foo', 'C');

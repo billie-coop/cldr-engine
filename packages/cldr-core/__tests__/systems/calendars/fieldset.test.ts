@@ -1,5 +1,19 @@
 import { RNG } from '../../../../cldr-utils/__tests__/rng';
-import { BuddhistDate, GregorianDate, PersianDate } from '../../../src';
+import {
+  BuddhistDate,
+  GregorianDate,
+  PersianDate,
+  buddhistDateFromUnixEpoch,
+  dateCompare,
+  dateFields,
+  dateSet,
+  dateToISOString,
+  dateToString,
+  dateWithZone,
+  gregorianDateFromFields,
+  gregorianDateFromUnixEpoch,
+  persianDateFromUnixEpoch,
+} from '../../../src';
 
 // Fri Apr 3 2020 18:08:52.123 UTC
 const APR_03_2020 = 1585937332123;
@@ -18,24 +32,24 @@ const NEW_YORK = 'America/New_York';
 
 test('leap', () => {
   // February 29, 2024 8:30:00 AM GMT-05:00
-  let s = GregorianDate.fromUnixEpoch(1709213400000, NEW_YORK);
-  let q = s.set({ year: 2025 });
-  expect(q.toString()).toEqual('Gregorian 2025-02-28 08:30:00.000 America/New_York');
+  let s = gregorianDateFromUnixEpoch(1709213400000, NEW_YORK);
+  let q = dateSet(s, { year: 2025 });
+  expect(dateToString(q)).toEqual('Gregorian 2025-02-28 08:30:00.000 America/New_York');
 
   // January 31, 2024 8:30:00 AM GMT-05:00
-  s = GregorianDate.fromUnixEpoch(1706707800000, NEW_YORK);
-  q = s.set({ month: 2 });
-  expect(q.toString()).toEqual('Gregorian 2024-02-29 08:30:00.000 America/New_York');
+  s = gregorianDateFromUnixEpoch(1706707800000, NEW_YORK);
+  q = dateSet(s, { month: 2 });
+  expect(dateToString(q)).toEqual('Gregorian 2024-02-29 08:30:00.000 America/New_York');
 
-  q = s.set({ year: 2025, month: 2 });
-  expect(q.toString()).toEqual('Gregorian 2025-02-28 08:30:00.000 America/New_York');
+  q = dateSet(s, { year: 2025, month: 2 });
+  expect(dateToString(q)).toEqual('Gregorian 2025-02-28 08:30:00.000 America/New_York');
 });
 
 test('gregorian fields', () => {
-  let d1 = GregorianDate.fromUnixEpoch(APR_03_2020, 'America/New_York');
-  expect(d1.toString()).toEqual('Gregorian 2020-04-03 14:08:52.123 America/New_York');
-  expect(d1.toISOString()).toEqual('2020-04-03T18:08:52.123Z');
-  expect(d1.fields()).toEqual({
+  let d1 = gregorianDateFromUnixEpoch(APR_03_2020, 'America/New_York');
+  expect(dateToString(d1)).toEqual('Gregorian 2020-04-03 14:08:52.123 America/New_York');
+  expect(dateToISOString(d1)).toEqual('2020-04-03T18:08:52.123Z');
+  expect(dateFields(d1)).toEqual({
     year: 2020,
     month: 4,
     day: 3,
@@ -47,73 +61,77 @@ test('gregorian fields', () => {
   });
 
   // Round-trip from fields to obtain idential value
-  let d2 = GregorianDate.fromFields(d1.fields());
-  expect(d2.toString()).toEqual('Gregorian 2020-04-03 14:08:52.123 America/New_York');
-  expect(d2.toISOString()).toEqual('2020-04-03T18:08:52.123Z');
+  let d2 = gregorianDateFromFields(dateFields(d1));
+  expect(dateToString(d2)).toEqual('Gregorian 2020-04-03 14:08:52.123 America/New_York');
+  expect(dateToISOString(d2)).toEqual('2020-04-03T18:08:52.123Z');
 });
 
 test('gregorian set field', () => {
   let d: GregorianDate;
 
-  d = GregorianDate.fromUnixEpoch(APR_03_2020, 'America/New_York');
-  expect(d.set({ year: 1997, day: 20 }).toString()).toEqual('Gregorian 1997-04-20 14:08:52.123 America/New_York');
-  expect(d.set({ year: 1997, day: 20 }).toString()).toEqual('Gregorian 1997-04-20 14:08:52.123 America/New_York');
+  d = gregorianDateFromUnixEpoch(APR_03_2020, 'America/New_York');
+  expect(dateToString(dateSet(d, { year: 1997, day: 20 }))).toEqual(
+    'Gregorian 1997-04-20 14:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { year: 1997, day: 20 }))).toEqual(
+    'Gregorian 1997-04-20 14:08:52.123 America/New_York',
+  );
 
   // Moving month backwards into DST
-  expect(d.set({ month: 2 }).toString()).toEqual('Gregorian 2020-02-03 14:08:52.123 America/New_York');
-  expect(d.set({ month: 0 }).toString()).toEqual('Gregorian 2020-01-03 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: 2 }))).toEqual('Gregorian 2020-02-03 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: 0 }))).toEqual('Gregorian 2020-01-03 14:08:52.123 America/New_York');
 
   // Clamp invalid month to 1 <= m <= 12
-  expect(d.set({ month: -5 }).toString()).toEqual('Gregorian 2020-01-03 14:08:52.123 America/New_York');
-  expect(d.set({ month: 24 }).toString()).toEqual('Gregorian 2020-12-03 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: -5 }))).toEqual('Gregorian 2020-01-03 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: 24 }))).toEqual('Gregorian 2020-12-03 14:08:52.123 America/New_York');
 
   // Clamp invalid day to 1 <= day <= (days in month)
-  expect(d.set({ day: -60 }).toString()).toEqual('Gregorian 2020-04-01 14:08:52.123 America/New_York');
-  expect(d.set({ day: 60 }).toString()).toEqual('Gregorian 2020-04-30 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { day: -60 }))).toEqual('Gregorian 2020-04-01 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { day: 60 }))).toEqual('Gregorian 2020-04-30 14:08:52.123 America/New_York');
 
   // Clamp hour, minute, second, millis to 0 <= n <= 60
-  expect(d.set({ hour: 10 }).toString()).toEqual('Gregorian 2020-04-03 10:08:52.123 America/New_York');
-  expect(d.set({ hour: -10 }).toString()).toEqual('Gregorian 2020-04-03 00:08:52.123 America/New_York');
-  expect(d.set({ hour: 0 }).toString()).toEqual('Gregorian 2020-04-03 00:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { hour: 10 }))).toEqual('Gregorian 2020-04-03 10:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { hour: -10 }))).toEqual('Gregorian 2020-04-03 00:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { hour: 0 }))).toEqual('Gregorian 2020-04-03 00:08:52.123 America/New_York');
 
   // Gregorian cutover
-  expect(d.set({ year: 1582, month: 10, day: 3 }).toString()).toEqual(
+  expect(dateToString(dateSet(d, { year: 1582, month: 10, day: 3 }))).toEqual(
     'Gregorian 1582-10-03 14:08:52.123 America/New_York',
   );
-  expect(d.set({ year: 1582, month: 10, day: 16 }).toString()).toEqual(
+  expect(dateToString(dateSet(d, { year: 1582, month: 10, day: 16 }))).toEqual(
     'Gregorian 1582-10-16 14:08:52.123 America/New_York',
   );
 
   // Set zone concurrently
-  expect(d.set({ zoneId: 'America/Los_Angeles' }).toString()).toEqual(
+  expect(dateToString(dateSet(d, { zoneId: 'America/Los_Angeles' }))).toEqual(
     'Gregorian 2020-04-03 14:08:52.123 America/Los_Angeles',
   );
 
   // Set fields then change zone
-  expect(d.set({}).withZone('America/Los_Angeles').toString()).toEqual(
+  expect(dateToString(dateWithZone(dateSet(d, {}), 'America/Los_Angeles'))).toEqual(
     'Gregorian 2020-04-03 11:08:52.123 America/Los_Angeles',
   );
 
   // Set fields, then change zone
-  expect(d.set({ hour: 9 }).withZone('America/Los_Angeles').toString()).toEqual(
+  expect(dateToString(dateWithZone(dateSet(d, { hour: 9 }), 'America/Los_Angeles'))).toEqual(
     'Gregorian 2020-04-03 06:08:52.123 America/Los_Angeles',
   );
 
   // Change zone, then set fields
-  expect(d.withZone('America/Los_Angeles').set({ hour: 9 }).toString()).toEqual(
+  expect(dateToString(dateSet(dateWithZone(d, 'America/Los_Angeles'), { hour: 9 }))).toEqual(
     'Gregorian 2020-04-03 09:08:52.123 America/Los_Angeles',
   );
 
   // Set to invalid zone
-  expect(d.set({ zoneId: 'ZZZ' }).toString()).toEqual('Gregorian 2020-04-03 14:08:52.123 Etc/UTC');
+  expect(dateToString(dateSet(d, { zoneId: 'ZZZ' }))).toEqual('Gregorian 2020-04-03 14:08:52.123 Etc/UTC');
 });
 
 test('buddhist fields', () => {
-  const d = BuddhistDate.fromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
+  const d = buddhistDateFromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
 
   // The toString method formats the extended year
-  expect(d.toString()).toEqual('Buddhist 2020-04-03 14:08:52.123 America/New_York');
-  expect(d.fields()).toEqual({
+  expect(dateToString(d)).toEqual('Buddhist 2020-04-03 14:08:52.123 America/New_York');
+  expect(dateFields(d)).toEqual({
     year: 2020,
     month: 4,
     day: 3,
@@ -128,14 +146,16 @@ test('buddhist fields', () => {
 test('buddhist set field', () => {
   let d: BuddhistDate;
 
-  d = BuddhistDate.fromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
-  expect(d.set({ year: 1997, day: 20 }).toString()).toEqual('Buddhist 1997-04-20 14:08:52.123 America/New_York');
+  d = buddhistDateFromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
+  expect(dateToString(dateSet(d, { year: 1997, day: 20 }))).toEqual(
+    'Buddhist 1997-04-20 14:08:52.123 America/New_York',
+  );
 });
 
 test('persian fields', () => {
-  const d = PersianDate.fromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
-  expect(d.toString()).toEqual('Persian 1399-01-15 14:08:52.123 America/New_York');
-  expect(d.fields()).toEqual({
+  const d = persianDateFromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
+  expect(dateToString(d)).toEqual('Persian 1399-01-15 14:08:52.123 America/New_York');
+  expect(dateFields(d)).toEqual({
     year: 1399,
     month: 1,
     day: 15,
@@ -150,32 +170,32 @@ test('persian fields', () => {
 test('persian set field', () => {
   let d: PersianDate;
 
-  d = PersianDate.fromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
-  expect(d.set({ year: 1997, day: 20 }).toString()).toEqual('Persian 1997-01-20 13:08:52.123 America/New_York');
+  d = persianDateFromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
+  expect(dateToString(dateSet(d, { year: 1997, day: 20 }))).toEqual('Persian 1997-01-20 13:08:52.123 America/New_York');
 
   // Clamp invalid month to 1 <= m <= 12
-  expect(d.set({ month: -5 }).toString()).toEqual('Persian 1399-01-15 14:08:52.123 America/New_York');
-  expect(d.set({ month: 24 }).toString()).toEqual('Persian 1399-12-15 13:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: -5 }))).toEqual('Persian 1399-01-15 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: 24 }))).toEqual('Persian 1399-12-15 13:08:52.123 America/New_York');
 
   // Clamp invalid day to 1 <= day <= (days in month)
-  expect(d.set({ day: -60 }).toString()).toEqual('Persian 1399-01-01 14:08:52.123 America/New_York');
-  expect(d.set({ day: 60 }).toString()).toEqual('Persian 1399-01-31 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { day: -60 }))).toEqual('Persian 1399-01-01 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { day: 60 }))).toEqual('Persian 1399-01-31 14:08:52.123 America/New_York');
 
   // Time calculation is shared with Gregorian so this is sufficient
-  expect(d.set({ hour: 5 }).toString()).toEqual('Persian 1399-01-15 05:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { hour: 5 }))).toEqual('Persian 1399-01-15 05:08:52.123 America/New_York');
 
   // Just change zone
-  expect(d.set({}).withZone('America/Los_Angeles').toString()).toEqual(
+  expect(dateToString(dateWithZone(dateSet(d, {}), 'America/Los_Angeles'))).toEqual(
     'Persian 1399-01-15 11:08:52.123 America/Los_Angeles',
   );
 
   // Set fields, then change zone
-  expect(d.set({ hour: 9 }).withZone('America/Los_Angeles').toString()).toEqual(
+  expect(dateToString(dateWithZone(dateSet(d, { hour: 9 }), 'America/Los_Angeles'))).toEqual(
     'Persian 1399-01-15 06:08:52.123 America/Los_Angeles',
   );
 
   // Change zone, then set fields
-  expect(d.withZone('America/Los_Angeles').set({ hour: 9 }).toString()).toEqual(
+  expect(dateToString(dateSet(dateWithZone(d, 'America/Los_Angeles'), { hour: 9 }))).toEqual(
     'Persian 1399-01-15 09:08:52.123 America/Los_Angeles',
   );
 });
@@ -187,9 +207,9 @@ test('gregorian random', () => {
     for (const sgn of [1, -1]) {
       const n = Math.floor(sgn * rng.rand() * APR_03_3000);
       for (const z of ZONES) {
-        const d = GregorianDate.fromUnixEpoch(n, z, 1, 1);
-        const r = d.set(d.fields());
-        expect(d.compare(r)).toEqual(0);
+        const d = gregorianDateFromUnixEpoch(n, z, 1, 1);
+        const r = dateSet(d, dateFields(d));
+        expect(dateCompare(d, r)).toEqual(0);
       }
     }
   }
@@ -202,9 +222,9 @@ test('persian random', () => {
     for (const sgn of [1, -1]) {
       const n = Math.floor(sgn * rng.rand() * APR_03_3000);
       for (const z of ZONES) {
-        const d = PersianDate.fromUnixEpoch(n, z, 1, 1);
-        const r = d.set(d.fields());
-        expect(d.compare(r)).toEqual(0);
+        const d = persianDateFromUnixEpoch(n, z, 1, 1);
+        const r = dateSet(d, dateFields(d));
+        expect(dateCompare(d, r)).toEqual(0);
       }
     }
   }

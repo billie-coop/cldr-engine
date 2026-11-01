@@ -1,4 +1,9 @@
 import {
+  availableLocales,
+  cldrFramework,
+  cldrVersion,
+  parseLanguageTag,
+  resolveLocale,
   CLDRFramework,
   CurrencyFormatOptions,
   NumberSystemInfo,
@@ -7,11 +12,10 @@ import {
   scopeGet,
   vectorMapping,
   fieldGet,
+  parseDatePattern,
 } from '../src';
 import { getCLDR } from './_helpers';
 import { tagCompact, tagExpanded } from '@phensley/language-tag';
-
-const { parseLanguageTag, resolveLocale } = CLDRFramework;
 
 test('init framework', () => {
   const framework = getCLDR();
@@ -85,8 +89,8 @@ test('parsing language tags', () => {
 });
 
 test('enumerating locales', () => {
-  const locales = CLDRFramework.availableLocales();
-  expect(locales).toContainEqual(CLDRFramework.resolveLocale('en'));
+  const locales = availableLocales();
+  expect(locales).toContainEqual(resolveLocale('en'));
 });
 
 test('accessing schema', () => {
@@ -116,9 +120,9 @@ test('accessing schema', () => {
 
 test('accessing internals', () => {
   const framework = getCLDR();
-  const api = framework.get('en');
+  framework.get('en');
 
-  const p = api.Internals.calendars.parseDatePattern('yyyy/MM/dd h:m:s');
+  const p = parseDatePattern('yyyy/MM/dd h:m:s');
   expect(p).toEqual([['y', 4], '/', ['M', 2], '/', ['d', 2], ' ', ['h', 1], ':', ['m', 1], ':', ['s', 1]]);
 });
 
@@ -139,7 +143,7 @@ test('async loader', async () => {
   const en = framework.get('en');
   const es = framework.get('es');
 
-  const path = ['bundle', 'id'];
+  const path = ['data', 'id'];
 
   await expect(framework.getAsync('en')).resolves.toEqual(en);
   await expect(framework.getAsync('es')).resolves.toEqual(es);
@@ -158,7 +162,7 @@ test('async loader', async () => {
 
 test('async await loader', async () => {
   const framework = getCLDR();
-  const path = ['bundle', 'id'];
+  const path = ['data', 'id'];
 
   const de = await framework.getAsync('de');
   expect(de).toHaveProperty(path, 'de-Latn-DE');
@@ -168,7 +172,7 @@ test('async await loader', async () => {
 });
 
 test('loader errors', () => {
-  const framework = new CLDRFramework({ config: {} });
+  const framework = cldrFramework({ config: {} });
   expect(() => framework.get('en')).toThrowError('loader is not defined');
   expect(() => framework.getAsync('en')).toThrowError('loader is not defined');
 });
@@ -181,7 +185,7 @@ test('undefined locale', () => {
 });
 
 test('version', () => {
-  const version = CLDRFramework.version().split(/\./g);
+  const version = cldrVersion().split(/\./g);
   expect(version.length).toBeGreaterThanOrEqual(3);
 });
 
@@ -191,14 +195,13 @@ test('framework config', () => {
     'number-system-name': ['latn', 'beng'],
   };
 
-  CLDRFramework.setDefaultConfig(config);
-  framework = new CLDRFramework({});
+  // 1.x set a global default config; the default is now passed to cldrFramework().
+  framework = cldrFramework({}, config);
   expect(framework.config()).toEqual(config);
 
-  CLDRFramework.setDefaultConfig(undefined as unknown as SchemaConfig);
-  framework = new CLDRFramework({});
+  framework = cldrFramework({});
   expect(framework.config()).toEqual({ calendars: ['gregory'] });
 
-  framework = new CLDRFramework({ config });
+  framework = cldrFramework({ config });
   expect(framework.config()).toEqual({ ...config, calendars: ['gregory'] });
 });

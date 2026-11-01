@@ -1,150 +1,185 @@
 import { ContextType, CurrencyType, PluralType } from '@phensley/cldr-types';
-import { Decimal, DecimalArg, Part, decimal, decimalIsInfinity, decimalIsNaN } from '@phensley/decimal';
+import { decimal, decimalIsInfinity, decimalIsNaN, Decimal, DecimalArg, Part } from '@phensley/decimal';
+import { pluralCardinal, pluralOrdinal } from '@phensley/plurals';
 
 import {
   CurrencyDisplayNameOptions,
   CurrencyFormatOptions,
-  CurrencyFractions,
   CurrencySymbolWidthType,
   DecimalAdjustOptions,
   DecimalFormatOptions,
 } from '../common';
 
-import { Bundle } from '../resource';
-import { ContextTransformInfo, NumberParams } from '../common/private';
-import { Numbers } from './api';
-import { PrivateApiImpl } from './private';
+import { NumberParams } from '../common/private';
+import { LocaleData } from '../locale-data';
+import { NumberRenderer } from '../internals/internals';
+import { contextTransform } from '../internals/general/internal';
 import {
-  getCurrencyForRegion,
-  getCurrencyFractions,
-  GeneralInternals,
-  NumberInternals,
-  NumberRenderer,
-} from '../internals';
-import { pluralCardinal, pluralOrdinal } from '@phensley/plurals';
+  adjustNumber,
+  currencyDisplayName,
+  currencyPluralName,
+  currencySymbol,
+  renderCurrency,
+  renderDecimal,
+} from '../internals/numbers/internal';
+import { partsRenderer, stringRenderer } from '../internals/numbers/render';
+import { getContextTransformInfo } from './private/api';
+import { getNumberParams } from './private/numbers';
 
 const DEFAULT_CURRENCY_OPTIONS: CurrencyDisplayNameOptions = { context: 'begin-sentence' };
 
 /**
- * Number and currency formatting.
+ * Adjust a decimal number using the given options.
  *
- * @internal
+ * @public
  */
-export class NumbersImpl implements Numbers {
-  private transform: ContextTransformInfo;
+export const adjustDecimal = (_data: LocaleData, n: DecimalArg, opts?: DecimalAdjustOptions): Decimal =>
+  adjustNumber(decimal(n), opts);
 
-  constructor(
-    private readonly bundle: Bundle,
-    private readonly numbers: NumberInternals,
-    private readonly general: GeneralInternals,
-    private readonly privateApi: PrivateApiImpl,
-  ) {
-    this.transform = privateApi.getContextTransformInfo();
-  }
+/**
+ * Get the currency symbol for the given code, e.g. '$' for 'USD' in 'en'.
+ *
+ * @public
+ */
+export const getCurrencySymbol = (data: LocaleData, code: CurrencyType, width?: CurrencySymbolWidthType): string =>
+  currencySymbol(data, code, width === 'narrow' ? 'narrow' : 'none');
 
-  adjustDecimal(n: DecimalArg, opts?: DecimalAdjustOptions): Decimal {
-    return this.numbers.adjustDecimal(decimal(n), opts);
-  }
+/**
+ * Get the display name of a currency.
+ *
+ * @public
+ */
+export const getCurrencyDisplayName = (
+  data: LocaleData,
+  code: CurrencyType,
+  opts: CurrencyDisplayNameOptions = DEFAULT_CURRENCY_OPTIONS,
+): string => {
+  const name = currencyDisplayName(data, code);
+  return contextTransform(name, getContextTransformInfo(data), _ctx(opts), 'currencyName');
+};
 
-  parseDecimal(n: number | string): Decimal {
-    return decimal(n);
-  }
+/**
+ * Get the pluralized name of a currency for the given number.
+ *
+ * @public
+ */
+export const getCurrencyPluralName = (
+  data: LocaleData,
+  n: DecimalArg,
+  code: string,
+  opts: CurrencyDisplayNameOptions = DEFAULT_CURRENCY_OPTIONS,
+): string => {
+  const plural = getPluralCardinal(data, n);
+  const name = currencyPluralName(data, code, plural as PluralType);
+  return contextTransform(name, getContextTransformInfo(data), _ctx(opts), 'currencyName');
+};
 
-  getCurrencySymbol(code: CurrencyType, width?: CurrencySymbolWidthType): string {
-    return this.numbers.getCurrencySymbol(this.bundle, code, width);
-  }
+/**
+ * Get the cardinal plural category for the number.
+ *
+ * @public
+ */
+export const getPluralCardinal = (data: LocaleData, n: DecimalArg, options?: DecimalAdjustOptions): string => {
+  const d = options ? adjustDecimal(data, n, options) : decimal(n);
+  return pluralCardinal(data.plurals, d);
+};
 
-  getCurrencyDisplayName(code: CurrencyType, opts: CurrencyDisplayNameOptions = DEFAULT_CURRENCY_OPTIONS): string {
-    const name = this.numbers.getCurrencyDisplayName(this.bundle, code);
-    return this.general.contextTransform(name, this.transform, _ctx(opts), 'currencyName');
-  }
+/**
+ * Get the ordinal plural category for the number.
+ *
+ * @public
+ */
+export const getPluralOrdinal = (data: LocaleData, n: DecimalArg, options?: DecimalAdjustOptions): string => {
+  const d = options ? adjustDecimal(data, n, options) : decimal(n);
+  return pluralOrdinal(data.plurals, d);
+};
 
-  getCurrencyFractions(code: CurrencyType): CurrencyFractions {
-    return getCurrencyFractions(code);
-  }
+/**
+ * Format a number to a string.
+ *
+ * @public
+ */
+export const formatDecimal = (data: LocaleData, n: DecimalArg, options?: DecimalFormatOptions): string => {
+  options = options || {};
+  const params = getNumberParams(data, options.nu);
+  return formatDecimalImpl(data, stringRenderer(params), params, n, options);
+};
 
-  getCurrencyForRegion(region: string): CurrencyType {
-    return getCurrencyForRegion(region);
-  }
+/**
+ * Format a number to an array of parts.
+ *
+ * @public
+ */
+export const formatDecimalToParts = (data: LocaleData, n: DecimalArg, options?: DecimalFormatOptions): Part[] => {
+  options = options || {};
+  const params = getNumberParams(data, options.nu);
+  return formatDecimalImpl(data, partsRenderer(params), params, n, options);
+};
 
-  getCurrencyPluralName(
-    n: DecimalArg,
-    code: string,
-    opts: CurrencyDisplayNameOptions = DEFAULT_CURRENCY_OPTIONS,
-  ): string {
-    const plural = this.getPluralCardinal(n);
-    const name = this.numbers.getCurrencyPluralName(this.bundle, code, plural as PluralType);
-    return this.general.contextTransform(name, this.transform, _ctx(opts), 'currencyName');
-  }
+/**
+ * Format a currency value to a string.
+ *
+ * @public
+ */
+export const formatCurrency = (
+  data: LocaleData,
+  n: DecimalArg,
+  code: CurrencyType,
+  options?: CurrencyFormatOptions,
+): string => {
+  options = options || {};
+  const params = getNumberParams(data, options.nu, 'finance');
+  return formatCurrencyImpl(data, stringRenderer(params), params, n, code, options);
+};
 
-  getPluralCardinal(n: DecimalArg, options?: DecimalAdjustOptions): string {
-    const d = options ? this.adjustDecimal(n, options) : decimal(n);
-    return pluralCardinal(this.bundle.plurals, d);
-  }
+/**
+ * Format a currency value to an array of parts.
+ *
+ * @public
+ */
+export const formatCurrencyToParts = (
+  data: LocaleData,
+  n: DecimalArg,
+  code: CurrencyType,
+  options?: CurrencyFormatOptions,
+): Part[] => {
+  options = options || {};
+  const params = getNumberParams(data, options.nu, 'finance');
+  return formatCurrencyImpl(data, partsRenderer(params), params, n, code, options);
+};
 
-  getPluralOrdinal(n: DecimalArg, options?: DecimalAdjustOptions): string {
-    const d = options ? this.adjustDecimal(n, options) : decimal(n);
-    return pluralOrdinal(this.bundle.plurals, d);
+const formatDecimalImpl = <T>(
+  data: LocaleData,
+  renderer: NumberRenderer<T>,
+  params: NumberParams,
+  n: DecimalArg,
+  options: DecimalFormatOptions,
+): T => {
+  // A NaN or Infinity value will just return the locale's representation
+  const d = decimal(n);
+  const v = validate(d, options, renderer, params);
+  if (v !== undefined) {
+    return v;
   }
+  const [result] = renderDecimal(data, renderer, d, options, params);
+  return result;
+};
 
-  formatDecimal(n: DecimalArg, options?: DecimalFormatOptions): string {
-    options = options || {};
-    const params = this.privateApi.getNumberParams(options.nu);
-    const renderer = this.numbers.stringRenderer(params);
-    return this.formatDecimalImpl(renderer, params, n, options);
-  }
+const formatCurrencyImpl = <T>(
+  data: LocaleData,
+  renderer: NumberRenderer<T>,
+  params: NumberParams,
+  n: DecimalArg,
+  code: CurrencyType,
+  options: CurrencyFormatOptions,
+): T => {
+  // Not much to be done with NaN and Infinity with currencies, so we always
+  // throw an error.
+  const d = decimal(n);
+  validate(d, FORCE_ERRORS, renderer, params);
+  return renderCurrency(data, renderer, decimal(n), code, options, params);
+};
 
-  formatDecimalToParts(n: DecimalArg, options?: DecimalFormatOptions): Part[] {
-    options = options || {};
-    const params = this.privateApi.getNumberParams(options.nu);
-    const renderer = this.numbers.partsRenderer(params);
-    return this.formatDecimalImpl(renderer, params, n, options);
-  }
-
-  formatCurrency(n: DecimalArg, code: CurrencyType, options?: CurrencyFormatOptions): string {
-    options = options || {};
-    const params = this.privateApi.getNumberParams(options.nu, 'finance');
-    const renderer = this.numbers.stringRenderer(params);
-    return this.formatCurrencyImpl(renderer, params, n, code, options);
-  }
-
-  formatCurrencyToParts(n: DecimalArg, code: CurrencyType, options?: CurrencyFormatOptions): Part[] {
-    options = options || {};
-    const params = this.privateApi.getNumberParams(options.nu, 'finance');
-    const renderer = this.numbers.partsRenderer(params);
-    return this.formatCurrencyImpl(renderer, params, n, code, options);
-  }
-
-  protected formatDecimalImpl<T>(
-    renderer: NumberRenderer<T>,
-    params: NumberParams,
-    n: DecimalArg,
-    options: DecimalFormatOptions,
-  ): T {
-    // A NaN or Infinity value will just return the locale's representation
-    const d = decimal(n);
-    const v = validate(d, options, renderer, params);
-    if (v !== undefined) {
-      return v;
-    }
-    const [result] = this.numbers.formatDecimal(this.bundle, renderer, d, options, params);
-    return result;
-  }
-
-  protected formatCurrencyImpl<T>(
-    renderer: NumberRenderer<T>,
-    params: NumberParams,
-    n: DecimalArg,
-    code: CurrencyType,
-    options: CurrencyFormatOptions,
-  ): T {
-    // Not much to be done with NaN and Infinity with currencies, so we always
-    // throw an error.
-    const d = decimal(n);
-    validate(d, FORCE_ERRORS, renderer, params);
-    return this.numbers.formatCurrency(this.bundle, renderer, decimal(n), code, options, params);
-  }
-}
 const FORCE_ERRORS: DecimalFormatOptions = { errors: ['nan', 'infinity'] };
 
 /**

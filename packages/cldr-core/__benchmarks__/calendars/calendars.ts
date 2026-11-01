@@ -3,10 +3,19 @@
 import { Suite } from 'benchmark';
 import { makeSuite } from '../../../cldr-utils/__benchmarks__/util';
 import { calendarsApi } from '../../__tests__/_helpers';
-import { CalendarsImpl, DateFormatOptions, GregorianDate, TimePeriod } from '../../src';
+import {
+  LocaleData,
+  DateFormatOptions,
+  TimePeriod,
+  dateAdd,
+  dateUnixEpoch,
+  gregorianDateFromUnixEpoch,
+  formatDate,
+  formatRelativeTime,
+} from '../../src';
 import { RelativeTimeFormatOptions } from '../../lib';
 
-const BUNDLES: { [x: string]: CalendarsImpl } = {
+const BUNDLES: { [x: string]: LocaleData } = {
   en: calendarsApi('en'),
   es: calendarsApi('es'),
 };
@@ -30,9 +39,9 @@ const EPOCHS = [
 ];
 
 const DATES = [
-  GregorianDate.fromUnixEpoch(952761625000, 'UTC', 1, 1),
-  GregorianDate.fromUnixEpoch(969019200000, 'UTC', 1, 1),
-  GregorianDate.fromUnixEpoch(967809600000, 'UTC', 1, 1),
+  gregorianDateFromUnixEpoch(952761625000, 'UTC', 1, 1),
+  gregorianDateFromUnixEpoch(969019200000, 'UTC', 1, 1),
+  gregorianDateFromUnixEpoch(967809600000, 'UTC', 1, 1),
 ];
 
 const INCR: Partial<TimePeriod>[] = [
@@ -44,7 +53,7 @@ const INCR: Partial<TimePeriod>[] = [
 ZONES.forEach((z) => {
   EPOCHS.forEach((e) => {
     gregorianSuite.add(`construct ${e} ${z}`, () => {
-      GregorianDate.fromUnixEpoch(e, z as string, 1, 1);
+      gregorianDateFromUnixEpoch(e, z as string, 1, 1);
     });
   });
 });
@@ -55,9 +64,9 @@ Object.keys(BUNDLES).forEach((k) => {
       const opts: DateFormatOptions = { datetime: 'full' };
       const engine = BUNDLES[k];
       const date = { date: e, zoneId: z };
-      engine.formatDate(date, opts);
+      formatDate(engine, date, opts);
       formatDateSuite.add(`format ${k} ${e} ${z}`, () => {
-        engine.formatDate(date, opts);
+        formatDate(engine, date, opts);
       });
     });
   });
@@ -65,8 +74,8 @@ Object.keys(BUNDLES).forEach((k) => {
     INCR.forEach((i) => {
       const opts: RelativeTimeFormatOptions = { dayOfWeek: true };
       const engine = BUNDLES[k];
-      formatDateSuite.add(`relative time ${k} ${d.unixEpoch()} ${JSON.stringify(i)}`, () => {
-        engine.formatRelativeTime(d, d.add(i), opts);
+      formatDateSuite.add(`relative time ${k} ${dateUnixEpoch(d)} ${JSON.stringify(i)}`, () => {
+        formatRelativeTime(engine, d, dateAdd(d, i), opts);
       });
     });
   });

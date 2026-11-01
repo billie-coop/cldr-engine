@@ -1,8 +1,44 @@
-import { CalendarDate, GregorianDate } from '../../../src';
+import {
+  CalendarDate,
+  GregorianDate,
+  dateAdd,
+  dateDayOfMonth,
+  dateDayOfWeek,
+  dateDayOfYear,
+  dateEra,
+  dateFieldOfVisualDifference,
+  dateFirstDayOfWeek,
+  dateHour,
+  dateHourOfDay,
+  dateIsDaylightSavings,
+  dateIsLeapYear,
+  dateJulianDay,
+  dateMetaZoneId,
+  dateMilliseconds,
+  dateMillisecondsInDay,
+  dateMinDaysInFirstWeek,
+  dateMinute,
+  dateModifiedJulianDay,
+  dateMonth,
+  dateRelatedYear,
+  dateSecond,
+  dateTimeZoneId,
+  dateTimeZoneOffset,
+  dateToDateString,
+  dateToString,
+  dateToTimeString,
+  dateType,
+  dateUnixEpoch,
+  dateWeekOfMonth,
+  dateWeekOfYear,
+  dateYear,
+  dateYearOfWeekOfYear,
+  gregorianDateFromUnixEpoch,
+} from '../../../src';
 import { CalendarConstants } from '../../../src/systems/calendars/constants';
 import { DayOfWeek } from '../../../src/systems/calendars/fields';
 
-const make = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, DayOfWeek.SUNDAY, 1);
+const make = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, DayOfWeek.SUNDAY, 1);
 
 const unixEpochFromJD = (jd: number, msDay: number = 0): number => {
   const days = jd - CalendarConstants.JD_UNIX_EPOCH;
@@ -21,24 +57,24 @@ test('string methods', () => {
   n = 1751988681234;
 
   d = make(n, NEW_YORK);
-  expect(d.toString()).toEqual('Gregorian 2025-07-08 11:31:21.234 America/New_York');
-  expect(d.toDateString()).toEqual('2025-07-08');
-  expect(d.toTimeString()).toEqual('11:31:21.234');
-  expect(d.toTimeString({ includeZoneId: true })).toEqual('11:31:21.234 America/New_York');
-  expect(d.toTimeString({ includeZoneId: false })).toEqual('11:31:21.234');
-  expect(d.toTimeString({ includeZoneOffset: true })).toEqual('11:31:21.234-04:00');
+  expect(dateToString(d)).toEqual('Gregorian 2025-07-08 11:31:21.234 America/New_York');
+  expect(dateToDateString(d)).toEqual('2025-07-08');
+  expect(dateToTimeString(d)).toEqual('11:31:21.234');
+  expect(dateToTimeString(d, { includeZoneId: true })).toEqual('11:31:21.234 America/New_York');
+  expect(dateToTimeString(d, { includeZoneId: false })).toEqual('11:31:21.234');
+  expect(dateToTimeString(d, { includeZoneOffset: true })).toEqual('11:31:21.234-04:00');
 
-  let q = d.add({ millis: -234 });
-  expect(q.toTimeString({ optionalMilliseconds: true })).toEqual('11:31:21');
-  expect(q.toTimeString({ optionalMilliseconds: false })).toEqual('11:31:21.000');
+  let q = dateAdd(d, { millis: -234 });
+  expect(dateToTimeString(q, { optionalMilliseconds: true })).toEqual('11:31:21');
+  expect(dateToTimeString(q, { optionalMilliseconds: false })).toEqual('11:31:21.000');
 
   d = make(n, 'Europe/Paris');
-  expect(d.toString()).toEqual('Gregorian 2025-07-08 17:31:21.234 Europe/Paris');
-  expect(d.toDateString()).toEqual('2025-07-08');
-  expect(d.toTimeString()).toEqual('17:31:21.234');
-  expect(d.toTimeString({ includeZoneId: true })).toEqual('17:31:21.234 Europe/Paris');
-  expect(d.toTimeString({ includeZoneId: false })).toEqual('17:31:21.234');
-  expect(d.toTimeString({ includeZoneOffset: true })).toEqual('17:31:21.234+02:00');
+  expect(dateToString(d)).toEqual('Gregorian 2025-07-08 17:31:21.234 Europe/Paris');
+  expect(dateToDateString(d)).toEqual('2025-07-08');
+  expect(dateToTimeString(d)).toEqual('17:31:21.234');
+  expect(dateToTimeString(d, { includeZoneId: true })).toEqual('17:31:21.234 Europe/Paris');
+  expect(dateToTimeString(d, { includeZoneId: false })).toEqual('17:31:21.234');
+  expect(dateToTimeString(d, { includeZoneOffset: true })).toEqual('17:31:21.234+02:00');
 });
 
 test('gregorian date', () => {
@@ -50,100 +86,100 @@ test('gregorian date', () => {
 
   // 7:59 PM NY time
   d = make(n, NEW_YORK);
-  expect(d.toString()).toEqual('Gregorian 2018-04-11 19:59:59.123 America/New_York');
-  expect(d.toDateString()).toEqual('2018-04-11');
-  expect(d.toTimeString()).toEqual('19:59:59.123');
-  expect(d.toTimeString({ includeZoneId: true })).toEqual('19:59:59.123 America/New_York');
-  expect(d.toTimeString({ includeZoneId: false })).toEqual('19:59:59.123');
-  expect(d.toTimeString({ includeZoneOffset: true })).toEqual('19:59:59.123-04:00');
-  expect(d.toTimeString({ includeZoneOffset: false })).toEqual('19:59:59.123');
-  expect(d.type()).toEqual('gregory');
-  expect(d.unixEpoch()).toEqual(1523491199123);
+  expect(dateToString(d)).toEqual('Gregorian 2018-04-11 19:59:59.123 America/New_York');
+  expect(dateToDateString(d)).toEqual('2018-04-11');
+  expect(dateToTimeString(d)).toEqual('19:59:59.123');
+  expect(dateToTimeString(d, { includeZoneId: true })).toEqual('19:59:59.123 America/New_York');
+  expect(dateToTimeString(d, { includeZoneId: false })).toEqual('19:59:59.123');
+  expect(dateToTimeString(d, { includeZoneOffset: true })).toEqual('19:59:59.123-04:00');
+  expect(dateToTimeString(d, { includeZoneOffset: false })).toEqual('19:59:59.123');
+  expect(dateType(d)).toEqual('gregory');
+  expect(dateUnixEpoch(d)).toEqual(1523491199123);
 
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.modifiedJulianDay()).toEqual(2458220);
-  expect(d.era()).toEqual(1);
-  expect(d.year()).toEqual(2018);
-  expect(d.relatedYear()).toEqual(2018);
-  expect(d.month()).toEqual(4);
-  expect(d.dayOfMonth()).toEqual(11);
-  expect(d.dayOfYear()).toEqual(101);
-  expect(d.weekOfYear()).toEqual(15);
-  expect(d.yearOfWeekOfYear()).toEqual(2018);
+  expect(dateModifiedJulianDay(d)).toEqual(2458220);
+  expect(dateEra(d)).toEqual(1);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateRelatedYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(4);
+  expect(dateDayOfMonth(d)).toEqual(11);
+  expect(dateDayOfYear(d)).toEqual(101);
+  expect(dateWeekOfYear(d)).toEqual(15);
+  expect(dateYearOfWeekOfYear(d)).toEqual(2018);
 
-  expect(d.hour()).toEqual(7);
-  expect(d.hourOfDay()).toEqual(19);
-  expect(d.minute()).toEqual(59);
-  expect(d.second()).toEqual(59);
-  expect(d.milliseconds()).toEqual(123);
+  expect(dateHour(d)).toEqual(7);
+  expect(dateHourOfDay(d)).toEqual(19);
+  expect(dateMinute(d)).toEqual(59);
+  expect(dateSecond(d)).toEqual(59);
+  expect(dateMilliseconds(d)).toEqual(123);
 
-  expect(d.metaZoneId()).toEqual('America_Eastern');
-  expect(d.timeZoneId()).toEqual('America/New_York');
-  expect(d.isLeapYear()).toEqual(false);
-  expect(d.isDaylightSavings()).toEqual(true);
-  expect(d.timeZoneOffset()).toEqual(-14400000);
+  expect(dateMetaZoneId(d)).toEqual('America_Eastern');
+  expect(dateTimeZoneId(d)).toEqual('America/New_York');
+  expect(dateIsLeapYear(d)).toEqual(false);
+  expect(dateIsDaylightSavings(d)).toEqual(true);
+  expect(dateTimeZoneOffset(d)).toEqual(-14400000);
 
   // + 1 second
   d = make(n + 1000, NEW_YORK);
 
-  expect(d.modifiedJulianDay()).toEqual(2458220);
-  expect(d.era()).toEqual(1);
-  expect(d.year()).toEqual(2018);
-  expect(d.month()).toEqual(4);
-  expect(d.dayOfMonth()).toEqual(11);
-  expect(d.dayOfYear()).toEqual(101);
-  expect(d.weekOfYear()).toEqual(15);
-  expect(d.yearOfWeekOfYear()).toEqual(2018);
+  expect(dateModifiedJulianDay(d)).toEqual(2458220);
+  expect(dateEra(d)).toEqual(1);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(4);
+  expect(dateDayOfMonth(d)).toEqual(11);
+  expect(dateDayOfYear(d)).toEqual(101);
+  expect(dateWeekOfYear(d)).toEqual(15);
+  expect(dateYearOfWeekOfYear(d)).toEqual(2018);
 
-  expect(d.hour()).toEqual(8);
-  expect(d.hourOfDay()).toEqual(20);
-  expect(d.minute()).toEqual(0);
-  expect(d.second()).toEqual(0);
-  expect(d.milliseconds()).toEqual(123);
+  expect(dateHour(d)).toEqual(8);
+  expect(dateHourOfDay(d)).toEqual(20);
+  expect(dateMinute(d)).toEqual(0);
+  expect(dateSecond(d)).toEqual(0);
+  expect(dateMilliseconds(d)).toEqual(123);
 
   // 1:59 AM Paris time
   d = make(n, PARIS);
 
-  expect(d.modifiedJulianDay()).toEqual(2458221);
-  expect(d.era()).toEqual(1);
-  expect(d.year()).toEqual(2018);
-  expect(d.month()).toEqual(4);
-  expect(d.dayOfMonth()).toEqual(12);
-  expect(d.dayOfYear()).toEqual(102);
+  expect(dateModifiedJulianDay(d)).toEqual(2458221);
+  expect(dateEra(d)).toEqual(1);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(4);
+  expect(dateDayOfMonth(d)).toEqual(12);
+  expect(dateDayOfYear(d)).toEqual(102);
 
-  expect(d.hour()).toEqual(1);
-  expect(d.hourOfDay()).toEqual(1);
-  expect(d.minute()).toEqual(59);
-  expect(d.second()).toEqual(59);
-  expect(d.milliseconds()).toEqual(123);
+  expect(dateHour(d)).toEqual(1);
+  expect(dateHourOfDay(d)).toEqual(1);
+  expect(dateMinute(d)).toEqual(59);
+  expect(dateSecond(d)).toEqual(59);
+  expect(dateMilliseconds(d)).toEqual(123);
 
   // Monday, October 15, 2018 11:59:59 PM UTC
   n = 1539647999000;
 
   d = make(n, NEW_YORK);
 
-  expect(d.modifiedJulianDay()).toEqual(2458407);
-  expect(d.year()).toEqual(2018);
-  expect(d.month()).toEqual(10);
-  expect(d.dayOfMonth()).toEqual(15);
-  expect(d.dayOfYear()).toEqual(288);
-  expect(d.weekOfYear()).toEqual(42);
-  expect(d.yearOfWeekOfYear()).toEqual(2018);
+  expect(dateModifiedJulianDay(d)).toEqual(2458407);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(10);
+  expect(dateDayOfMonth(d)).toEqual(15);
+  expect(dateDayOfYear(d)).toEqual(288);
+  expect(dateWeekOfYear(d)).toEqual(42);
+  expect(dateYearOfWeekOfYear(d)).toEqual(2018);
 
   // March 11, 2018 3:00:25 AM EDT
   n = 1520751625000;
 
   d = make(n, NEW_YORK);
-  expect(d.julianDay()).toEqual(2458188.7919560187); // Real Julian day UTC
-  expect(d.modifiedJulianDay()).toEqual(2458189); // CLDR's modified Julian day, midnight local time.
-  expect(d.year()).toEqual(2018);
-  expect(d.month()).toEqual(3);
-  expect(d.dayOfMonth()).toEqual(11);
-  expect(d.dayOfYear()).toEqual(70);
-  expect(d.weekOfYear()).toEqual(11);
-  expect(d.yearOfWeekOfYear()).toEqual(2018);
+  expect(dateJulianDay(d)).toEqual(2458188.7919560187); // Real Julian day UTC
+  expect(dateModifiedJulianDay(d)).toEqual(2458189); // CLDR's modified Julian day, midnight local time.
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(3);
+  expect(dateDayOfMonth(d)).toEqual(11);
+  expect(dateDayOfYear(d)).toEqual(70);
+  expect(dateWeekOfYear(d)).toEqual(11);
+  expect(dateYearOfWeekOfYear(d)).toEqual(2018);
 });
 
 test('min / max / clamp', () => {
@@ -153,18 +189,18 @@ test('min / max / clamp', () => {
   const max = unixEpochFromJD(CalendarConstants.JD_MAX, 0);
 
   d = make(min, 'UTC');
-  expect(d.toString()).toEqual('Gregorian -4712-01-01 00:00:00.000 Etc/UTC');
+  expect(dateToString(d)).toEqual('Gregorian -4712-01-01 00:00:00.000 Etc/UTC');
 
   // Clamp to minimum date
   d = make(min - CalendarConstants.ONE_DAY_MS, 'UTC');
-  expect(d.toString()).toEqual('Gregorian -4712-01-01 00:00:00.000 Etc/UTC');
+  expect(dateToString(d)).toEqual('Gregorian -4712-01-01 00:00:00.000 Etc/UTC');
 
   d = make(max, 'UTC');
-  expect(d.toString()).toEqual('Gregorian 8652-12-31 00:00:00.000 Etc/UTC');
+  expect(dateToString(d)).toEqual('Gregorian 8652-12-31 00:00:00.000 Etc/UTC');
 
   // Clamp to maximum date
   d = make(max + CalendarConstants.ONE_DAY_MS, 'UTC');
-  expect(d.toString()).toEqual('Gregorian 8652-12-31 00:00:00.000 Etc/UTC');
+  expect(dateToString(d)).toEqual('Gregorian 8652-12-31 00:00:00.000 Etc/UTC');
 });
 
 test('millis in day', () => {
@@ -175,25 +211,25 @@ test('millis in day', () => {
   n = 1520677230000;
   d = make(n, NEW_YORK);
 
-  expect(d.millisecondsInDay()).toEqual(19230000); // 5 hour, 20 min, 30 sec
+  expect(dateMillisecondsInDay(d)).toEqual(19230000); // 5 hour, 20 min, 30 sec
 
   // March 11, 2018 1:59:59 AM EST
   n = 1520751599000;
   d = make(n, NEW_YORK);
 
-  expect(d.millisecondsInDay()).toEqual(7199000); // 1 hour, 59 min, 59 sec
+  expect(dateMillisecondsInDay(d)).toEqual(7199000); // 1 hour, 59 min, 59 sec
 
   // March 11, 2018 3:00:00 AM EST
   n += 1000;
   d = make(n, NEW_YORK);
 
-  expect(d.millisecondsInDay()).toEqual(10800000); // 3 hours
+  expect(dateMillisecondsInDay(d)).toEqual(10800000); // 3 hours
 
   // March 11, 2018 6:20:30 AM EDT
   n = 1520763630000;
   d = make(n, NEW_YORK);
 
-  expect(d.millisecondsInDay()).toEqual(22830000); // 6 hours, 20 min, 30 sec
+  expect(dateMillisecondsInDay(d)).toEqual(22830000); // 6 hours, 20 min, 30 sec
 });
 
 test('leap years 1584-1808', () => {
@@ -207,8 +243,8 @@ test('leap years 1584-1808', () => {
 
   for (let i = 0; i < 230; i++) {
     d = make(base + oneYear * i, NEW_YORK);
-    if (d.isLeapYear()) {
-      leaps.push(d.year());
+    if (dateIsLeapYear(d)) {
+      leaps.push(dateYear(d));
     }
   }
 
@@ -229,8 +265,8 @@ test('leap years 1982-2208', () => {
 
   for (let i = 0; i < 230; i++) {
     d = make(base + oneYear * i, NEW_YORK);
-    if (d.isLeapYear()) {
-      leaps.push(d.year());
+    if (dateIsLeapYear(d)) {
+      leaps.push(dateYear(d));
     }
   }
 
@@ -252,25 +288,25 @@ test('field of greatest difference', () => {
   const base = make(n, NEW_YORK);
   end = make(n + 5000, NEW_YORK);
 
-  expect(base.fieldOfVisualDifference(end)).toEqual('s');
+  expect(dateFieldOfVisualDifference(base, end)).toEqual('s');
 
   end = make(n + CalendarConstants.ONE_MINUTE_MS * 5, NEW_YORK);
-  expect(base.fieldOfVisualDifference(end)).toEqual('m');
+  expect(dateFieldOfVisualDifference(base, end)).toEqual('m');
 
   end = make(n + CalendarConstants.ONE_HOUR_MS * 5, NEW_YORK);
-  expect(base.fieldOfVisualDifference(end)).toEqual('H');
+  expect(dateFieldOfVisualDifference(base, end)).toEqual('H');
 
   end = make(n + CalendarConstants.ONE_HOUR_MS * 15, NEW_YORK);
-  expect(base.fieldOfVisualDifference(end)).toEqual('a');
+  expect(dateFieldOfVisualDifference(base, end)).toEqual('a');
 
   end = make(n + CalendarConstants.ONE_DAY_MS * 2, NEW_YORK);
-  expect(base.fieldOfVisualDifference(end)).toEqual('d');
+  expect(dateFieldOfVisualDifference(base, end)).toEqual('d');
 
   end = make(n + CalendarConstants.ONE_DAY_MS * 45, NEW_YORK);
-  expect(base.fieldOfVisualDifference(end)).toEqual('M');
+  expect(dateFieldOfVisualDifference(base, end)).toEqual('M');
 
   end = make(n + CalendarConstants.ONE_DAY_MS * 450, NEW_YORK);
-  expect(base.fieldOfVisualDifference(end)).toEqual('y');
+  expect(dateFieldOfVisualDifference(base, end)).toEqual('y');
 });
 
 test('week of month', () => {
@@ -280,40 +316,40 @@ test('week of month', () => {
   let d: CalendarDate;
 
   d = make(base, NEW_YORK);
-  expect(d.month()).toEqual(1);
-  expect(d.weekOfMonth()).toEqual(1);
+  expect(dateMonth(d)).toEqual(1);
+  expect(dateWeekOfMonth(d)).toEqual(1);
 
   d = make(base + 6 * day, NEW_YORK);
-  expect(d.weekOfMonth()).toEqual(1);
+  expect(dateWeekOfMonth(d)).toEqual(1);
 
   d = make(base + 7 * day, NEW_YORK);
-  expect(d.weekOfMonth()).toEqual(2);
+  expect(dateWeekOfMonth(d)).toEqual(2);
 
   d = make(base + 13 * day, NEW_YORK);
-  expect(d.weekOfMonth()).toEqual(2);
+  expect(dateWeekOfMonth(d)).toEqual(2);
 
   d = make(base + 14 * day, NEW_YORK);
-  expect(d.weekOfMonth()).toEqual(3);
+  expect(dateWeekOfMonth(d)).toEqual(3);
 
   d = make(base + 20 * day, NEW_YORK);
-  expect(d.weekOfMonth()).toEqual(3);
+  expect(dateWeekOfMonth(d)).toEqual(3);
 
   d = make(base + 21 * day, NEW_YORK);
-  expect(d.dayOfMonth()).toEqual(22);
-  expect(d.weekOfMonth()).toEqual(4);
+  expect(dateDayOfMonth(d)).toEqual(22);
+  expect(dateWeekOfMonth(d)).toEqual(4);
 
   d = make(base + 28 * day, NEW_YORK);
-  expect(d.dayOfMonth()).toEqual(29);
-  expect(d.weekOfMonth()).toEqual(5);
+  expect(dateDayOfMonth(d)).toEqual(29);
+  expect(dateWeekOfMonth(d)).toEqual(5);
 
   d = make(base + 30 * day, NEW_YORK);
-  expect(d.dayOfMonth()).toEqual(31);
-  expect(d.weekOfMonth()).toEqual(5);
+  expect(dateDayOfMonth(d)).toEqual(31);
+  expect(dateWeekOfMonth(d)).toEqual(5);
 
   d = make(base + 32 * day, NEW_YORK);
-  expect(d.month()).toEqual(2);
-  expect(d.dayOfMonth()).toEqual(2);
-  expect(d.weekOfMonth()).toEqual(1);
+  expect(dateMonth(d)).toEqual(2);
+  expect(dateDayOfMonth(d)).toEqual(2);
+  expect(dateWeekOfMonth(d)).toEqual(1);
 });
 
 test('week of year', () => {
@@ -322,12 +358,12 @@ test('week of year', () => {
   let d: CalendarDate;
 
   d = make(base, LOS_ANGELES);
-  expect(d.dayOfWeek()).toEqual(7); // saturday
-  expect(d.weekOfYear()).toEqual(10);
+  expect(dateDayOfWeek(d)).toEqual(7); // saturday
+  expect(dateWeekOfYear(d)).toEqual(10);
 
   d = make(base, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(1); // sunday
-  expect(d.weekOfYear()).toEqual(11);
+  expect(dateDayOfWeek(d)).toEqual(1); // sunday
+  expect(dateWeekOfYear(d)).toEqual(11);
 
   // March 11, 2000 3:00:25 AM EST
   base = 952761625000;
@@ -346,71 +382,71 @@ test('week of year', () => {
   const day = CalendarConstants.ONE_DAY_MS;
 
   d = make(base, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(7); // saturday
-  expect(d.dayOfMonth()).toEqual(11);
-  expect(d.dayOfYear()).toEqual(71);
-  expect(d.weekOfYear()).toEqual(11);
-  expect(d.isLeapYear()).toEqual(true);
+  expect(dateDayOfWeek(d)).toEqual(7); // saturday
+  expect(dateDayOfMonth(d)).toEqual(11);
+  expect(dateDayOfYear(d)).toEqual(71);
+  expect(dateWeekOfYear(d)).toEqual(11);
+  expect(dateIsLeapYear(d)).toEqual(true);
 
   d = make(base + day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(1); // sunday
-  expect(d.dayOfMonth()).toEqual(12);
-  expect(d.dayOfYear()).toEqual(72);
-  expect(d.weekOfYear()).toEqual(12);
+  expect(dateDayOfWeek(d)).toEqual(1); // sunday
+  expect(dateDayOfMonth(d)).toEqual(12);
+  expect(dateDayOfYear(d)).toEqual(72);
+  expect(dateWeekOfYear(d)).toEqual(12);
 
   d = make(base + 2 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(2); // monday
-  expect(d.dayOfMonth()).toEqual(13);
-  expect(d.dayOfYear()).toEqual(73);
-  expect(d.weekOfYear()).toEqual(12);
+  expect(dateDayOfWeek(d)).toEqual(2); // monday
+  expect(dateDayOfMonth(d)).toEqual(13);
+  expect(dateDayOfYear(d)).toEqual(73);
+  expect(dateWeekOfYear(d)).toEqual(12);
 
   d = make(base + 3 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(3); // tuesday
-  expect(d.dayOfMonth()).toEqual(14);
-  expect(d.dayOfYear()).toEqual(74);
-  expect(d.weekOfYear()).toEqual(12);
+  expect(dateDayOfWeek(d)).toEqual(3); // tuesday
+  expect(dateDayOfMonth(d)).toEqual(14);
+  expect(dateDayOfYear(d)).toEqual(74);
+  expect(dateWeekOfYear(d)).toEqual(12);
 
   d = make(base + 4 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(4); // wednesday
-  expect(d.dayOfMonth()).toEqual(15);
-  expect(d.dayOfYear()).toEqual(75);
-  expect(d.weekOfYear()).toEqual(12);
+  expect(dateDayOfWeek(d)).toEqual(4); // wednesday
+  expect(dateDayOfMonth(d)).toEqual(15);
+  expect(dateDayOfYear(d)).toEqual(75);
+  expect(dateWeekOfYear(d)).toEqual(12);
 
   d = make(base + 5 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(5); // thursday
-  expect(d.dayOfMonth()).toEqual(16);
-  expect(d.dayOfYear()).toEqual(76);
-  expect(d.weekOfYear()).toEqual(12);
+  expect(dateDayOfWeek(d)).toEqual(5); // thursday
+  expect(dateDayOfMonth(d)).toEqual(16);
+  expect(dateDayOfYear(d)).toEqual(76);
+  expect(dateWeekOfYear(d)).toEqual(12);
 
   d = make(base + 6 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(6); // friday
-  expect(d.dayOfMonth()).toEqual(17);
-  expect(d.dayOfYear()).toEqual(77);
-  expect(d.weekOfYear()).toEqual(12);
+  expect(dateDayOfWeek(d)).toEqual(6); // friday
+  expect(dateDayOfMonth(d)).toEqual(17);
+  expect(dateDayOfYear(d)).toEqual(77);
+  expect(dateWeekOfYear(d)).toEqual(12);
 
   d = make(base + 7 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(7); // saturday
-  expect(d.dayOfMonth()).toEqual(18);
-  expect(d.dayOfYear()).toEqual(78);
-  expect(d.weekOfYear()).toEqual(12);
+  expect(dateDayOfWeek(d)).toEqual(7); // saturday
+  expect(dateDayOfMonth(d)).toEqual(18);
+  expect(dateDayOfYear(d)).toEqual(78);
+  expect(dateWeekOfYear(d)).toEqual(12);
 
   d = make(base + 8 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(1); // sunday
-  expect(d.dayOfMonth()).toEqual(19);
-  expect(d.dayOfYear()).toEqual(79);
-  expect(d.weekOfYear()).toEqual(13);
+  expect(dateDayOfWeek(d)).toEqual(1); // sunday
+  expect(dateDayOfMonth(d)).toEqual(19);
+  expect(dateDayOfYear(d)).toEqual(79);
+  expect(dateWeekOfYear(d)).toEqual(13);
 
   d = make(base + 9 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(2); // monday
-  expect(d.dayOfMonth()).toEqual(20);
-  expect(d.dayOfYear()).toEqual(80);
-  expect(d.weekOfYear()).toEqual(13);
+  expect(dateDayOfWeek(d)).toEqual(2); // monday
+  expect(dateDayOfMonth(d)).toEqual(20);
+  expect(dateDayOfYear(d)).toEqual(80);
+  expect(dateWeekOfYear(d)).toEqual(13);
 
   d = make(base + 10 * day, NEW_YORK);
-  expect(d.dayOfWeek()).toEqual(3); // tuesday
-  expect(d.dayOfMonth()).toEqual(21);
-  expect(d.dayOfYear()).toEqual(81);
-  expect(d.weekOfYear()).toEqual(13);
+  expect(dateDayOfWeek(d)).toEqual(3); // tuesday
+  expect(dateDayOfMonth(d)).toEqual(21);
+  expect(dateDayOfYear(d)).toEqual(81);
+  expect(dateWeekOfYear(d)).toEqual(13);
 });
 
 type WeekCase = [number, number, number];
@@ -422,9 +458,9 @@ test('first/last week of year 2000', () => {
     const [dom, woy, ywoy] = c;
     const d = make(base + i * day, NEW_YORK);
     try {
-      expect(d.dayOfMonth()).toEqual(dom);
-      expect(d.weekOfYear()).toEqual(woy);
-      expect(d.yearOfWeekOfYear()).toEqual(ywoy);
+      expect(dateDayOfMonth(d)).toEqual(dom);
+      expect(dateWeekOfYear(d)).toEqual(woy);
+      expect(dateYearOfWeekOfYear(d)).toEqual(ywoy);
     } catch (e) {
       console.log(`failure: ${c}`);
       throw e;
@@ -619,11 +655,11 @@ test('first/last week of year 2000', () => {
 test('constructor', () => {
   let d: GregorianDate;
 
-  d = GregorianDate.fromUnixEpoch(0, 'America/New_York');
-  expect(d.toString()).toEqual('Gregorian 1969-12-31 19:00:00.000 America/New_York');
+  d = gregorianDateFromUnixEpoch(0, 'America/New_York');
+  expect(dateToString(d)).toEqual('Gregorian 1969-12-31 19:00:00.000 America/New_York');
 
-  d = GregorianDate.fromUnixEpoch(0, 'Asia/Tokyo');
-  expect(d.toString()).toEqual('Gregorian 1970-01-01 09:00:00.000 Asia/Tokyo');
+  d = gregorianDateFromUnixEpoch(0, 'Asia/Tokyo');
+  expect(dateToString(d)).toEqual('Gregorian 1970-01-01 09:00:00.000 Asia/Tokyo');
 });
 
 test('days in month/year', () => {
@@ -632,15 +668,15 @@ test('days in month/year', () => {
   // Wednesday, April 11, 2018 11:59:59.123 PM UTC
   d = make(1523491199123, 'UTC');
 
-  // Test protected methods
-  expect((d as any).daysInMonth(2025, 0)).toEqual(31);
-  expect((d as any).daysInMonth(2022, 0)).toEqual(31);
+  // Calendar rules (protected methods in 1.x)
+  expect(d.calendar.daysInMonth(2025, 0)).toEqual(31);
+  expect(d.calendar.daysInMonth(2022, 0)).toEqual(31);
 
   // Gregorian leap years
-  expect((d as any).daysInMonth(2025, 1)).toEqual(28);
-  expect((d as any).daysInMonth(2024, 1)).toEqual(29);
+  expect(d.calendar.daysInMonth(2025, 1)).toEqual(28);
+  expect(d.calendar.daysInMonth(2024, 1)).toEqual(29);
 
   // Gregorian leap years
-  expect((d as any).daysInYear(2025)).toEqual(365);
-  expect((d as any).daysInYear(2024)).toEqual(366);
+  expect(d.calendar.daysInYear(2025)).toEqual(365);
+  expect(d.calendar.daysInYear(2024)).toEqual(366);
 });

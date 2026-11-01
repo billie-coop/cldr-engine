@@ -1,60 +1,48 @@
-import { add } from './add';
+import { dateFromFields, dateFromUnixEpoch, isCalendarDate } from './core';
 import { DateField } from './fields';
-import { GregorianDate } from './gregorian';
-import { TimePeriod } from './interval';
-import { CalendarDateFields } from './types';
+import { gregorianDaysInYear, gregorianResolveFields } from './gregorian';
+import { daysInMonth, initGregorianFields, monthStart } from './gregorianmath';
+import { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
 
 /**
  * A date in the Japanese Imperial calendar.
  *
- * type: japanese
+ * @public
+ */
+export type JapaneseDate = CalendarDate;
+
+/**
+ * Construct a Japanese date from the given fields.
  *
  * @public
  */
-export class JapaneseDate extends GregorianDate {
-  protected constructor(firstDay: number, minDays: number) {
-    super('japanese', firstDay, minDays);
-  }
+export const japaneseDateFromFields = (
+  fields: Partial<CalendarDateFields>,
+  firstDay: number,
+  minDays: number,
+): JapaneseDate => dateFromFields(japaneseCalendar, fields, firstDay, minDays);
 
-  add(fields: Partial<TimePeriod>): JapaneseDate {
-    const [jd, ms] = add(this, fields);
-    return this._new().initFromJD(jd, ms, this.timeZoneId());
-  }
+/**
+ * Construct a Japanese date from the given UNIX epoch.
+ *
+ * @public
+ */
+export const japaneseDateFromUnixEpoch = (
+  epoch: number,
+  zoneId: string,
+  firstDay: number,
+  minDays: number,
+): JapaneseDate => dateFromUnixEpoch(japaneseCalendar, epoch, zoneId, firstDay, minDays);
 
-  withZone(zoneId: string): JapaneseDate {
-    return this._new().initFromUnixEpoch(this.unixEpoch(), zoneId);
-  }
-
-  toString(): string {
-    return this._toString('Japanese');
-  }
-
-  static fromFields(fields: Partial<CalendarDateFields>, firstDay: number, minDays: number): JapaneseDate {
-    return new JapaneseDate(firstDay, minDays)._set(fields) as JapaneseDate;
-  }
-
-  static fromUnixEpoch(epoch: number, zoneId: string, firstDay: number, minDays: number): JapaneseDate {
-    return new JapaneseDate(firstDay, minDays).initFromUnixEpoch(epoch, zoneId);
-  }
-
-  protected _new(): JapaneseDate {
-    return new JapaneseDate(this._firstDay, this._minDays);
-  }
-
-  protected initFromUnixEpoch(epoch: number, zoneId: string): JapaneseDate {
-    super.initFromUnixEpoch(epoch, zoneId);
-    computeJapaneseFields(this._fields);
-    return this;
-  }
-
-  protected initFromJD(jd: number, msDay: number, zoneId: string): JapaneseDate {
-    super.initFromJD(jd, msDay, zoneId);
-    computeJapaneseFields(this._fields);
-    return this;
-  }
-}
+/**
+ * Returns true if the argument is a date in the Japanese calendar.
+ *
+ * @public
+ */
+export const isJapaneseDate = (x: any): x is JapaneseDate => isCalendarDate(x) && x.calendar.type === 'japanese';
 
 const computeJapaneseFields = (f: number[]): void => {
+  initGregorianFields(f);
   const year = f[DateField.EXTENDED_YEAR];
   const len = ERAS.length;
   const end = (len / 3) | 0;
@@ -324,3 +312,24 @@ const ERAS: number[] = [
   1989, 1, 8,     // Heisei
   2019, 5, 1,     // Reiwa
 ];
+
+/**
+ * Rules of the Japanese Imperial calendar: the Gregorian calendar with Japanese eras.
+ *
+ * type: japanese
+ *
+ * @public
+ */
+export const japaneseCalendar: CalendarSystem = {
+  type: 'japanese',
+  name: 'Japanese',
+  monthCount: 12,
+  relatedYearOffset: 0,
+  // 1.x JapaneseDate.fromFields applies no defaults
+  defaultFields: {},
+  daysInMonth,
+  daysInYear: gregorianDaysInYear,
+  monthStart,
+  computeFields: computeJapaneseFields,
+  resolveFields: gregorianResolveFields,
+};

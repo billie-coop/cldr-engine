@@ -1,9 +1,7 @@
-import { CLDRFramework, DateFormatOptions, DateIntervalFormatOptions, FormatWidthType, ZonedDateTime } from '../src';
+import { availableLocales, DateFormatOptions, DateIntervalFormatOptions, FormatWidthType, ZonedDateTime } from '../src';
 import { getCLDR } from '../__tests__/_helpers';
 import { Timer } from './timer';
 import { DateTimePatternFieldValues } from '@phensley/cldr-core/lib/schema';
-
-const { availableLocales } = CLDRFramework;
 
 const ZONES = ['America/New_York', 'Europe/London', 'Africa/Timbuktu'];
 

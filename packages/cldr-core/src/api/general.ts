@@ -1,19 +1,9 @@
-import {
-  AltType,
-  CharacterOrderType,
-  ContextType,
-  LineOrderType,
-  NamesSchema,
-  Vector2Arrow,
-} from '@phensley/cldr-types';
-
-import { MessageFormatter, MessageFormatterOptions, createMessageFormatter } from '@phensley/messageformat';
+import { AltType, CharacterOrderType, ContextType, LineOrderType, Vector2Arrow } from '@phensley/cldr-types';
+import { createMessageFormatter, MessageFormatter, MessageFormatterOptions } from '@phensley/messageformat';
 import { Part } from '@phensley/decimal';
-
 import {
   parseLanguageTag,
   LanguageTag,
-  tagCompact,
   tagHasLanguage,
   tagHasRegion,
   tagHasScript,
@@ -21,15 +11,14 @@ import {
   tagRegion,
   tagScript,
 } from '@phensley/language-tag';
-import { Locale, resolveLanguageTag } from '@phensley/locale';
-import { DisplayNameOptions, ListPatternType, MeasurementCategory, MeasurementSystem } from '../common';
-import { Bundle } from '../resource';
-import { GeneralInternals, Internals } from '../internals';
 
-import { General } from './api';
-import { PrivateApiImpl } from './private/api';
-import { ContextTransformInfo } from '../common/private';
-import { vectorGet } from '../schema/schema/arrows';
+import { DisplayNameOptions, ListPatternType, MeasurementCategory, MeasurementSystem } from '../common';
+import { LocaleData } from '../locale-data';
+import { resolveLocale } from '../framework';
+import { contextTransform, formatListValue } from '../internals/general/internal';
+import { fieldGet, vectorGet } from '../schema/schema/arrows';
+import { partsValue, stringValue } from '../utils/render';
+import { getContextTransformInfo } from './private/api';
 
 const DEFAULT_NAME_OPTIONS: DisplayNameOptions = { context: 'begin-sentence' };
 
@@ -42,182 +31,200 @@ const F_LANG_SCRIPT = (t: LanguageTag): string => `${tagLanguage(t)}-${tagScript
 const LANGUAGE_FUNCS: LanguageTagFunc[] = [F_LANG_REGION, F_LANG_SCRIPT, (t: LanguageTag): string => tagLanguage(t)];
 
 /**
- * @internal
+ * Returns the character order for the current locale, e.g. "ltr" for left-to-right
+ * or "rtl" for right-to-left.
+ *
+ * @public
  */
-export class GeneralImpl implements General {
-  private general: GeneralInternals;
-  private names: NamesSchema;
-  private transform: ContextTransformInfo;
+export const characterOrder = (data: LocaleData): CharacterOrderType =>
+  fieldGet(data.schema.Layout.characterOrder, data) as CharacterOrderType;
 
-  constructor(
-    private _bundle: Bundle,
-    private _locale: Locale,
-    internal: Internals,
-    _private: PrivateApiImpl,
-  ) {
-    this.general = internal.general;
-    this.names = internal.schema.Names;
-    this.transform = _private.getContextTransformInfo();
+/**
+ * Returns the line order for the current locale, e.g. "ttb" for top-to-bottom
+ * or "btt" for bottom-to-top.
+ *
+ * @public
+ */
+export const lineOrder = (data: LocaleData): LineOrderType =>
+  fieldGet(data.schema.Layout.lineOrder, data) as LineOrderType;
+
+/**
+ * Construct a message formatter that uses the locale's plural rules.
+ *
+ * @public
+ */
+export const messageFormatter = (data: LocaleData, options?: MessageFormatterOptions): MessageFormatter =>
+  createMessageFormatter({ ...options, plurals: data.plurals });
+
+/**
+ * Returns the measurement system in use for the current locale generally,
+ * or for a specific measurement category.
+ *
+ * @public
+ */
+export const measurementSystem = (data: LocaleData, category?: MeasurementCategory): MeasurementSystem => {
+  const region = data.region;
+  switch (category) {
+    case 'temperature':
+      switch (region) {
+        case 'BS':
+        case 'BZ':
+        case 'PR':
+        case 'PW':
+          return 'us';
+        default:
+          return 'metric';
+      }
+
+    default:
+      switch (region) {
+        case 'GB':
+          return 'uk';
+        case 'LR':
+        case 'MM':
+        case 'US':
+          return 'us';
+        default:
+          return 'metric';
+      }
+  }
+};
+
+/**
+ * Format a list of items to string using the given list type.
+ *
+ * @public
+ */
+export const formatList = (data: LocaleData, items: string[], type?: ListPatternType): string =>
+  formatListValue(data, stringValue(), items, type || 'and');
+
+/**
+ * Format a list of items to an array of parts using the given list type.
+ *
+ * @public
+ */
+export const formatListToParts = (data: LocaleData, items: string[], type?: ListPatternType): Part[] => {
+  const parts: Part[][] = items.map((i) => [{ type: 'item', value: i }]);
+  return formatListValue(data, partsValue(), parts, type || 'and');
+};
+
+/**
+ * Returns the display name of the given language code or language tag.
+ *
+ * @public
+ */
+export const getLanguageDisplayName = (
+  data: LocaleData,
+  code: string | LanguageTag,
+  options: DisplayNameOptions = DEFAULT_NAME_OPTIONS,
+): string => {
+  const type = options.type || 'none';
+  const arrow = data.schema.Names.languages.displayName;
+
+  let tag: LanguageTag = typeof code === 'string' ? parseLanguageTag(code) : code;
+  let s: string = '';
+
+  // First attempt to match the exact string
+  if (typeof code === 'string') {
+    s = getVectorAlt(data, arrow, code, type);
+  }
+  // Try language + region
+  if (!s && tagHasLanguage(tag) && tagHasRegion(tag)) {
+    s = getVectorAlt(data, arrow, F_LANG_REGION(tag), type);
+  }
+  // Try language + script
+  if (!s && tagHasLanguage(tag) && tagHasScript(tag)) {
+    s = getVectorAlt(data, arrow, F_LANG_SCRIPT(tag), type);
+  }
+  // Try language if script and region are empty
+  if (!s && !tagHasScript(tag) && !tagHasRegion(tag)) {
+    s = getVectorAlt(data, arrow, tagLanguage(tag), type);
   }
 
-  characterOrder(): CharacterOrderType {
-    return this.general.characterOrder(this._bundle) as CharacterOrderType;
-  }
-
-  lineOrder(): LineOrderType {
-    return this.general.lineOrder(this._bundle) as LineOrderType;
-  }
-
-  bundle(): Bundle {
-    return this._bundle;
-  }
-
-  locale(): Locale {
-    return this._locale;
-  }
-
-  resolveLocale(id: string | LanguageTag): Locale {
-    const _id = typeof id === 'string' ? id : tagCompact(id);
-    const tag = resolveLanguageTag(id);
-    return { id: _id, tag };
-  }
-
-  parseLanguageTag(tag: string): LanguageTag {
-    return parseLanguageTag(tag);
-  }
-
-  messageFormatter(options?: MessageFormatterOptions): MessageFormatter {
-    const plurals = this._bundle.plurals;
-    return createMessageFormatter({ ...options, plurals });
-  }
-
-  measurementSystem(category?: MeasurementCategory): MeasurementSystem {
-    const region = this._bundle.region;
-    switch (category) {
-      case 'temperature':
-        switch (region) {
-          case 'BS':
-          case 'BZ':
-          case 'PR':
-          case 'PW':
-            return 'us';
-          default:
-            return 'metric';
-        }
-
-      default:
-        switch (region) {
-          case 'GB':
-            return 'uk';
-          case 'LR':
-          case 'MM':
-          case 'US':
-            return 'us';
-          default:
-            return 'metric';
-        }
-    }
-  }
-
-  formatList(items: string[], type?: ListPatternType): string {
-    return this.general.formatList(this._bundle, items, type || 'and');
-  }
-
-  formatListToParts(items: string[], type?: ListPatternType): Part[] {
-    return this.general.formatListToParts(this._bundle, items, type || 'and');
-  }
-
-  getLanguageDisplayName(code: string | LanguageTag, options: DisplayNameOptions = DEFAULT_NAME_OPTIONS): string {
-    const type = options.type || 'none';
-    const arrow = this.names.languages.displayName;
-
-    let tag: LanguageTag = typeof code === 'string' ? parseLanguageTag(code) : code;
-    let s: string = '';
-
-    // First attempt to match the exact string
-    if (typeof code === 'string') {
-      s = this._getVectorAlt(arrow, code, type);
-    }
-    // Try language + region
-    if (!s && tagHasLanguage(tag) && tagHasRegion(tag)) {
-      s = this._getVectorAlt(arrow, F_LANG_REGION(tag), type);
-    }
-    // Try language + script
-    if (!s && tagHasLanguage(tag) && tagHasScript(tag)) {
-      s = this._getVectorAlt(arrow, F_LANG_SCRIPT(tag), type);
-    }
-    // Try language if script and region are empty
-    if (!s && !tagHasScript(tag) && !tagHasRegion(tag)) {
-      s = this._getVectorAlt(arrow, tagLanguage(tag), type);
-    }
-
-    // Resolve to fill in unknown subtags, then attempt combinations
-    if (!s) {
-      const locale = this.resolveLocale(tag);
-      tag = locale.tag;
-      for (const func of LANGUAGE_FUNCS) {
-        const id = func(tag);
-        s = this._getVectorAlt(arrow, id, type);
-        if (s) {
-          // Found one
-          break;
-        }
+  // Resolve to fill in unknown subtags, then attempt combinations
+  if (!s) {
+    const locale = resolveLocale(tag);
+    tag = locale.tag;
+    for (const func of LANGUAGE_FUNCS) {
+      const id = func(tag);
+      s = getVectorAlt(data, arrow, id, type);
+      if (s) {
+        // Found one
+        break;
       }
     }
-    return this.general.contextTransform(s, this.transform, _ctx(options), 'languages');
   }
+  return contextTransform(s, getContextTransformInfo(data), _ctx(options), 'languages');
+};
 
-  getScriptDisplayName(code: string | LanguageTag, options: DisplayNameOptions = DEFAULT_NAME_OPTIONS): string {
-    const arrow = this.names.scripts.displayName;
-    const type = options.type || 'none';
-    let s: string = '';
-    if (typeof code === 'string') {
-      s = this._getVectorAlt(arrow, code, type);
+/**
+ * Returns the display name of the given script code or the script of the language tag.
+ *
+ * @public
+ */
+export const getScriptDisplayName = (
+  data: LocaleData,
+  code: string | LanguageTag,
+  options: DisplayNameOptions = DEFAULT_NAME_OPTIONS,
+): string => {
+  const arrow = data.schema.Names.scripts.displayName;
+  const type = options.type || 'none';
+  let s: string = '';
+  if (typeof code === 'string') {
+    s = getVectorAlt(data, arrow, code, type);
 
-      // If language is blank or we have an explicit script subtag, use the
-      // script subtag as-is. This will resolve "und-Zzzz" to "Unknown" but
-      // "en-Zzzz" will fall through to resolve "Latin"
-    } else if (!tagHasLanguage(code) || tagHasScript(code)) {
-      s = this._getVectorAlt(arrow, tagScript(code), type);
-    }
-    if (!s) {
-      // Resolve to populate the script
-      const locale = this.resolveLocale(code);
-      s = this._getVectorAlt(arrow, tagScript(locale.tag), type);
-    }
-    return this.general.contextTransform(s, this.transform, _ctx(options), 'script');
+    // If language is blank or we have an explicit script subtag, use the
+    // script subtag as-is. This will resolve "und-Zzzz" to "Unknown" but
+    // "en-Zzzz" will fall through to resolve "Latin"
+  } else if (!tagHasLanguage(code) || tagHasScript(code)) {
+    s = getVectorAlt(data, arrow, tagScript(code), type);
   }
-
-  getRegionDisplayName(code: string | LanguageTag, options: DisplayNameOptions = DEFAULT_NAME_OPTIONS): string {
-    const arrow = this.names.regions.displayName;
-    const type = options.type || 'none';
-    let s: string = '';
-    if (typeof code === 'string') {
-      s = this._getVectorAlt(arrow, code, type);
-
-      // If language is blank or we have an explicit region subtag, use
-      // the region subtag as-is. This will resolve "und-ZZ" to "Unknown" but
-      // "en-Zzzz" will fall through to resolve "United States"
-    } else if (!tagHasLanguage(code) || tagHasRegion(code)) {
-      s = this._getVectorAlt(arrow, tagRegion(code), type);
-    }
-    if (!s) {
-      // Resolve to populate the region
-      const { tag } = this.resolveLocale(code);
-      s = this._getVectorAlt(arrow, tagRegion(tag), type);
-    }
-    // No context transform for region
-    return s;
+  if (!s) {
+    // Resolve to populate the script
+    const locale = resolveLocale(code);
+    s = getVectorAlt(data, arrow, tagScript(locale.tag), type);
   }
+  return contextTransform(s, getContextTransformInfo(data), _ctx(options), 'script');
+};
 
-  // Check if the given alt type field exists, and fall back to alt type 'none'
-  protected _getVectorAlt<T extends string>(arrow: Vector2Arrow<AltType, T>, code: string, type: AltType): string {
-    return (
-      vectorGet(arrow, this._bundle, type, code as unknown as T) ||
-      vectorGet(arrow, this._bundle, 'none', code as unknown as T)
-    );
+/**
+ * Returns the display name of the given region code or the region of the language tag.
+ *
+ * @public
+ */
+export const getRegionDisplayName = (
+  data: LocaleData,
+  code: string | LanguageTag,
+  options: DisplayNameOptions = DEFAULT_NAME_OPTIONS,
+): string => {
+  const arrow = data.schema.Names.regions.displayName;
+  const type = options.type || 'none';
+  let s: string = '';
+  if (typeof code === 'string') {
+    s = getVectorAlt(data, arrow, code, type);
+
+    // If language is blank or we have an explicit region subtag, use
+    // the region subtag as-is. This will resolve "und-ZZ" to "Unknown" but
+    // "en-Zzzz" will fall through to resolve "United States"
+  } else if (!tagHasLanguage(code) || tagHasRegion(code)) {
+    s = getVectorAlt(data, arrow, tagRegion(code), type);
   }
-}
+  if (!s) {
+    // Resolve to populate the region
+    const { tag } = resolveLocale(code);
+    s = getVectorAlt(data, arrow, tagRegion(tag), type);
+  }
+  // No context transform for region
+  return s;
+};
+
+// Check if the given alt type field exists, and fall back to alt type 'none'
+const getVectorAlt = <T extends string>(
+  data: LocaleData,
+  arrow: Vector2Arrow<AltType, T>,
+  code: string,
+  type: AltType,
+): string => vectorGet(arrow, data, type, code as unknown as T) || vectorGet(arrow, data, 'none', code as unknown as T);
 
 // Default an options context value
 const _ctx = (o: DisplayNameOptions): ContextType => _def(o, 'context', 'begin-sentence' as ContextType);

@@ -1,6 +1,6 @@
 import { ContextType } from '@phensley/cldr-types';
 
-import { CalendarDate } from '../../../src';
+import { CalendarDate, dateAdd, formatRelativeTime, toGregorianDate } from '../../../src';
 import { calendarsApi } from '../../_helpers';
 
 const UTC = 'UTC';
@@ -14,95 +14,95 @@ test('format relative time', () => {
   let s: string;
   let end: CalendarDate;
 
-  const start = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId: UTC });
+  const start = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId: UTC });
 
-  s = api.formatRelativeTime(start, start);
+  s = formatRelativeTime(api, start, start);
   expect(s).toEqual('now');
 
-  s = api.formatRelativeTime(start, start, { context });
+  s = formatRelativeTime(api, start, start, { context });
   expect(s).toEqual('Now');
 
-  end = start.add({ millis: 250 });
+  end = dateAdd(start, { millis: 250 });
 
-  s = api.formatRelativeTime(start, end);
+  s = formatRelativeTime(api, start, end);
   expect(s).toEqual('now');
 
-  s = api.formatRelativeTime(start, end, { context });
+  s = formatRelativeTime(api, start, end, { context });
   expect(s).toEqual('Now');
 
-  end = start.add({ millis: 750 });
-  s = api.formatRelativeTime(start, end, { context });
+  end = dateAdd(start, { millis: 750 });
+  s = formatRelativeTime(api, start, end, { context });
   expect(s).toEqual('In 1 second');
 
-  end = start.add({ millis: 1250 });
-  s = api.formatRelativeTime(start, end, { context });
+  end = dateAdd(start, { millis: 1250 });
+  s = formatRelativeTime(api, start, end, { context });
   expect(s).toEqual('In 1 second');
 
-  end = start.add({ second: 30 });
-  s = api.formatRelativeTime(start, end);
+  end = dateAdd(start, { second: 30 });
+  s = formatRelativeTime(api, start, end);
   expect(s).toEqual('in 30 seconds');
 
-  s = api.formatRelativeTime(start, end, { context });
+  s = formatRelativeTime(api, start, end, { context });
   expect(s).toEqual('In 30 seconds');
 
-  end = start.add({ minute: -32 });
-  s = api.formatRelativeTime(start, end, { context });
+  end = dateAdd(start, { minute: -32 });
+  s = formatRelativeTime(api, start, end, { context });
   expect(s).toEqual('32 minutes ago');
 
-  end = start.add({ day: -27 });
-  s = api.formatRelativeTime(start, end, { context, field: 'week' });
+  end = dateAdd(start, { day: -27 });
+  s = formatRelativeTime(api, start, end, { context, field: 'week' });
   expect(s).toEqual('4 weeks ago');
 
-  end = start.add({ day: -27 });
-  s = api.formatRelativeTime(start, end, { context, field: 'week', maximumFractionDigits: 1 });
+  end = dateAdd(start, { day: -27 });
+  s = formatRelativeTime(api, start, end, { context, field: 'week', maximumFractionDigits: 1 });
   expect(s).toEqual('3.9 weeks ago');
 
-  end = start.add({ week: 1 });
-  s = api.formatRelativeTime(start, end, { context, field: 'week' });
+  end = dateAdd(start, { week: 1 });
+  s = formatRelativeTime(api, start, end, { context, field: 'week' });
   expect(s).toEqual('Next week');
 
-  end = start.add({ week: 2 });
-  s = api.formatRelativeTime(start, end, { context, field: 'week' });
+  end = dateAdd(start, { week: 2 });
+  s = formatRelativeTime(api, start, end, { context, field: 'week' });
   expect(s).toEqual('In 2 weeks');
 
-  s = api.formatRelativeTime(start, end, { context, field: 'week', dayOfWeek: true });
+  s = formatRelativeTime(api, start, end, { context, field: 'week', dayOfWeek: true });
   expect(s).toEqual('In 2 Sundays');
 
-  s = api.formatRelativeTime(start, end, { context, allowWeeks: true });
+  s = formatRelativeTime(api, start, end, { context, allowWeeks: true });
   expect(s).toEqual('In 2 weeks');
 
-  s = api.formatRelativeTime(start, end, { context, allowWeeks: true, dayOfWeek: true });
+  s = formatRelativeTime(api, start, end, { context, allowWeeks: true, dayOfWeek: true });
   expect(s).toEqual('In 2 Sundays');
 
-  end = start.add({ month: 6 });
-  s = api.formatRelativeTime(start, end, { context, field: 'month' });
+  end = dateAdd(start, { month: 6 });
+  s = formatRelativeTime(api, start, end, { context, field: 'month' });
   expect(s).toEqual('In 6 months');
 
-  end = start.add({ month: 6 });
-  s = api.formatRelativeTime(start, end, { context, width: 'short' });
+  end = dateAdd(start, { month: 6 });
+  s = formatRelativeTime(api, start, end, { context, width: 'short' });
   expect(s).toEqual('In 6 mo.');
 
-  end = start.add({ month: 6 });
-  s = api.formatRelativeTime(start, end, { context, field: 'day' });
+  end = dateAdd(start, { month: 6 });
+  s = formatRelativeTime(api, start, end, { context, field: 'day' });
   expect(s).toEqual('In 184 days');
 
-  end = start.add({ month: 3000 });
-  s = api.formatRelativeTime(start, end, { context, field: 'month' });
+  end = dateAdd(start, { month: 3000 });
+  s = formatRelativeTime(api, start, end, { context, field: 'month' });
   expect(s).toEqual('In 3,000 months');
 
-  s = api.formatRelativeTime(start, end, { context, field: 'month', group: false });
+  s = formatRelativeTime(api, start, end, { context, field: 'month', group: false });
   expect(s).toEqual('In 3000 months');
 
-  end = start.add({ year: 1, month: 2 });
-  s = api.formatRelativeTime(start, end, { context, round: 'floor' });
+  end = dateAdd(start, { year: 1, month: 2 });
+  s = formatRelativeTime(api, start, end, { context, round: 'floor' });
   expect(s).toEqual('Next year');
 
-  end = start.add({ year: 1, month: 2 });
-  s = api.formatRelativeTime(start, end, { context, width: 'short', round: 'floor' });
+  end = dateAdd(start, { year: 1, month: 2 });
+  s = formatRelativeTime(api, start, end, { context, width: 'short', round: 'floor' });
   expect(s).toEqual('Next yr.');
 
-  end = start.add({ year: 1, month: 2 });
-  s = api.formatRelativeTime(start, end, { context, width: 'narrow', round: 'floor' });
+  end = dateAdd(start, { year: 1, month: 2 });
+  s = formatRelativeTime(api, start, end, { context, width: 'narrow', round: 'floor' });
   expect(s).toEqual('Next yr.');
 });
 
@@ -112,28 +112,28 @@ test('specific field', () => {
   let s: string;
   let end: CalendarDate;
 
-  const start = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId: UTC });
+  const start = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId: UTC });
 
-  end = start.add({ year: 1, month: 6 });
-  s = api.formatRelativeTime(start, end, { context, field: 'year' });
+  end = dateAdd(start, { year: 1, month: 6 });
+  s = formatRelativeTime(api, start, end, { context, field: 'year' });
   expect(s).toEqual('In 2 years');
 
-  s = api.formatRelativeTime(start, end, { context, field: 'year', minimumFractionDigits: 1 });
+  s = formatRelativeTime(api, start, end, { context, field: 'year', minimumFractionDigits: 1 });
   expect(s).toEqual('In 1.5 years');
 
-  s = api.formatRelativeTime(start, end, { context, field: 'month' });
+  s = formatRelativeTime(api, start, end, { context, field: 'month' });
   expect(s).toEqual('In 18 months');
 
-  end = start.add({ month: 6 });
-  s = api.formatRelativeTime(start, end, { context, field: 'day' });
+  end = dateAdd(start, { month: 6 });
+  s = formatRelativeTime(api, start, end, { context, field: 'day' });
   expect(s).toEqual('In 184 days');
 
-  end = start.add({ day: 90, hour: 12, minute: 30 });
+  end = dateAdd(start, { day: 90, hour: 12, minute: 30 });
 
-  s = api.formatRelativeTime(start, end, { context, field: 'day' });
+  s = formatRelativeTime(api, start, end, { context, field: 'day' });
   expect(s).toEqual('In 91 days');
 
-  s = api.formatRelativeTime(start, end, { context, field: 'day', maximumFractionDigits: 1 });
+  s = formatRelativeTime(api, start, end, { context, field: 'day', maximumFractionDigits: 1 });
   expect(s).toEqual('In 90.5 days');
 });
 
@@ -143,28 +143,28 @@ test('numeric only', () => {
   let s: string;
   let end: CalendarDate;
 
-  const start = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId: UTC });
+  const start = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId: UTC });
 
-  end = start.add({});
-  s = api.formatRelativeTime(start, end, { context });
+  end = dateAdd(start, {});
+  s = formatRelativeTime(api, start, end, { context });
   expect(s).toEqual('Now');
 
-  s = api.formatRelativeTime(start, end, { context, field: 'day' });
+  s = formatRelativeTime(api, start, end, { context, field: 'day' });
   expect(s).toEqual('Today');
 
-  s = api.formatRelativeTime(start, end, { context, numericOnly: true });
+  s = formatRelativeTime(api, start, end, { context, numericOnly: true });
   expect(s).toEqual('In 0 seconds');
 
-  s = api.formatRelativeTime(start, end, { context, numericOnly: true, field: 'hour' });
+  s = formatRelativeTime(api, start, end, { context, numericOnly: true, field: 'hour' });
   expect(s).toEqual('In 0 hours');
 
-  s = api.formatRelativeTime(start, end, { context, numericOnly: true, alwaysNow: true });
+  s = formatRelativeTime(api, start, end, { context, numericOnly: true, alwaysNow: true });
   expect(s).toEqual('Now');
 
-  end = start.add({ year: 1 });
-  s = api.formatRelativeTime(start, end, { context });
+  end = dateAdd(start, { year: 1 });
+  s = formatRelativeTime(api, start, end, { context });
   expect(s).toEqual('Next year');
 
-  s = api.formatRelativeTime(start, end, { context, numericOnly: true });
+  s = formatRelativeTime(api, start, end, { context, numericOnly: true });
   expect(s).toEqual('In 1 year');
 });

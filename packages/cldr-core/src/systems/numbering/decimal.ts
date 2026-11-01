@@ -1,4 +1,4 @@
-import { DecimalArg, DecimalFormatter, stringDecimalFormatter, decimal, decimalFormat } from '@phensley/decimal';
+import { DecimalArg, stringDecimalFormatter, decimal, decimalFormat } from '@phensley/decimal';
 import { NumberingSystem, NumberSymbols } from '../../common/private';
 
 const isInteger = (n: any): boolean => typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
@@ -13,45 +13,47 @@ export interface NumberingSystemParams {
 /**
  * @internal
  */
-export class DecimalNumberingSystem extends NumberingSystem {
-  constructor(
-    name: string,
-    readonly digits: string[],
-    symbols: NumberSymbols,
-    minimumGroupingDigits: number,
-    primaryGroupingSize: number,
-    secondaryGroupingSize: number,
-  ) {
-    super(name, symbols, minimumGroupingDigits, primaryGroupingSize, secondaryGroupingSize);
-  }
+export const decimalNumberingSystem = (
+  name: string,
+  digits: string[],
+  symbols: NumberSymbols,
+  minimumGroupingDigits: number,
+  primaryGroupingSize: number,
+  secondaryGroupingSize: number,
+): NumberingSystem => ({ name, digits, symbols, minimumGroupingDigits, primaryGroupingSize, secondaryGroupingSize });
 
-  formatString(n: DecimalArg, groupDigits: boolean, minInt: number): string {
-    if (!groupDigits && isInteger(n)) {
-      return fastFormatDecimal(String(n), this.digits, minInt);
-    }
-    return this._formatDecimal(stringDecimalFormatter(), n, groupDigits, minInt);
+/**
+ * Format a number directly to a string. This is used for things like low-level field
+ * formatting for Calendars.
+ *
+ * @internal
+ */
+export const numberingFormatString = (
+  system: NumberingSystem,
+  n: DecimalArg,
+  groupDigits: boolean,
+  minInt: number,
+): string => {
+  if (!groupDigits && isInteger(n)) {
+    return fastFormatDecimal(String(n), system.digits, minInt);
   }
-
-  // TODO: future merging of internal number formatting code into this module
-
-  protected _formatDecimal<R>(f: DecimalFormatter<R>, n: DecimalArg, groupDigits: boolean, minInt: number): R {
-    const d = decimal(n);
-    const group = groupDigits ? this.symbols.group : '';
-    decimalFormat(
-      d,
-      f,
-      this.symbols.decimal || '.',
-      group,
-      minInt,
-      this.minimumGroupingDigits,
-      this.primaryGroupingSize,
-      this.secondaryGroupingSize,
-      true,
-      this.digits,
-    );
-    return f.render();
-  }
-}
+  const f = stringDecimalFormatter();
+  const d = decimal(n);
+  const group = groupDigits ? system.symbols.group : '';
+  decimalFormat(
+    d,
+    f,
+    system.symbols.decimal || '.',
+    group,
+    minInt,
+    system.minimumGroupingDigits,
+    system.primaryGroupingSize,
+    system.secondaryGroupingSize,
+    true,
+    system.digits,
+  );
+  return f.render();
+};
 
 /**
  * Characters used in decimal parsing.
@@ -134,7 +136,7 @@ const INTERNAL_SYMBOLS: NumberSymbols = {
 /**
  * @internal
  */
-export const INTERNAL_NUMBERING = new DecimalNumberingSystem(
+export const INTERNAL_NUMBERING = /*#__PURE__*/ decimalNumberingSystem(
   'internal',
   '0123456789'.split(''),
   INTERNAL_SYMBOLS,

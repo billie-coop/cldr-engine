@@ -5,6 +5,7 @@ import { Bundle } from '../../resource/bundle';
 import { numarray } from '../../utils/string';
 
 import { dayPeriodKeys, dayPeriodRules } from './autogen.dayperiods';
+import { PATTERN_CACHE_SIZE } from '../general/internal';
 
 interface Rule {
   minutes: number[];
@@ -18,20 +19,20 @@ const parseRule = (raw: string): Rule => {
   return { keys, minutes };
 };
 
-export class DayPeriodRules {
-  private cache: Cache<Rule>;
+let cache: Cache<Rule> | undefined;
 
-  constructor(cacheSize: number) {
-    this.cache = createCache(parseRule, cacheSize);
+/**
+ * Flexible day period ('in the afternoon', ...) for the minutes of the day, using the rules for
+ * the bundle's language and region.
+ *
+ * @internal
+ */
+export const flexDayPeriod = (bundle: Bundle, minutes: number): DayPeriodType | undefined => {
+  const raw = dayPeriodRules[bundle.languageRegion] || dayPeriodRules[bundle.language];
+  if (raw === undefined) {
+    return undefined;
   }
-
-  get(bundle: Bundle, minutes: number): DayPeriodType | undefined {
-    const raw = dayPeriodRules[bundle.languageRegion] || dayPeriodRules[bundle.language];
-    if (raw === undefined) {
-      return undefined;
-    }
-    const rule = cacheGet(this.cache, raw);
-    const i = binarySearch(rule.minutes, true, minutes);
-    return rule.keys[i];
-  }
-}
+  const rule = cacheGet(cache || (cache = createCache(parseRule, PATTERN_CACHE_SIZE)), raw);
+  const i = binarySearch(rule.minutes, true, minutes);
+  return rule.keys[i];
+};

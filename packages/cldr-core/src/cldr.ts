@@ -1,40 +1,29 @@
+// Convenience layer: the 1.x-style "batteries included" API, built by binding the locale
+// functions to a LocaleData. Importing this module pulls in every locale function; use the
+// functions directly (e.g. `formatDecimal(locale, n)`) when bundle size matters.
+
 import { Schema } from '@phensley/cldr-types';
-import { SchemaConfig } from './schema';
+import { decimal } from '@phensley/decimal';
+import { parseLanguageTag } from '@phensley/language-tag';
+import { Locale } from '@phensley/locale';
 
-import { LRU, createLRU, lruGet, lruSet, lruSize } from '@phensley/cldr-utils';
-
+import { Calendars, General, Numbers, Units } from './api/api';
+import * as cal from './api/calendars';
+import * as gen from './api/general';
+import * as num from './api/numbers';
+import * as uni from './api/units';
 import {
-  Calendars,
-  CalendarsImpl,
-  General,
-  GeneralImpl,
-  Numbers,
-  NumbersImpl,
-  PrivateApiImpl,
-  Units,
-  UnitsImpl,
-} from './api';
-
-import { Internals, InternalsImpl } from './internals';
-
-import { availableLocales } from './locale';
-
-import { parseLanguageTag, LanguageTag, tagCompact, tagLanguage } from '@phensley/language-tag';
-
-import { Locale, resolveLanguageTag } from '@phensley/locale';
-
-import { Bundle, Pack } from './resource';
-
-import { VERSION } from './utils/version';
-import { loadPack, packGet } from './resource/pack';
-
-const enum Messages {
-  CHECKSUM = 'Checksum mismatch on resource pack! The schema config used to ' +
-    'generate the resource pack must be identical to the one used at runtime.',
-  LOCALE_UNDEFINED = 'The "locale" argument is undefined',
-  NO_ASYNC_LOADER = 'A Promise-based resource loader is not defined',
-  NO_SYNC_LOADER = 'A synchronous resource loader is not defined',
-}
+  createFramework,
+  frameworkInfo,
+  loadLocale,
+  loadLocaleAsync,
+  resolveLocale,
+  CLDROptions,
+  Framework,
+} from './framework';
+import { getCurrencyForRegion, getCurrencyFractions } from './internals/numbers/util';
+import { LocaleData } from './locale-data';
+import { SchemaConfig } from './schema';
 
 /**
  * Interface exporting all functionality for a given locale.
@@ -67,305 +56,183 @@ export interface CLDR {
    *
    * Provides access to the low-level schema for accessing CLDR fields.
    *
-   * Currently undocumented. In the future an internal api can be
-   * exposed allowing access to low-level functions of the library.
-   *
    * @internal
    */
   readonly Schema: Schema;
 
   /**
-   * UNDOCUMENTED AND EXPERIMENTAL
-   *
-   * Provides access to the low-level library internals.
-   *
-   * @internal
+   * The locale data the functions are bound to. Pass it to the locale functions directly.
    */
-  readonly Internals: Internals;
+  readonly data: LocaleData;
 }
 
 /**
- * Implements CLDR
+ * Bind the calendar functions to a locale.
  *
  * @public
  */
-class CLDRImpl implements CLDR {
-  private _calendars?: Calendars;
-  private _general?: General;
-  private _numbers?: Numbers;
-  private _privateApi?: PrivateApiImpl;
-  private _units?: Units;
-
-  constructor(
-    private readonly locale: Locale,
-    private readonly bundle: Bundle,
-    private readonly internals: Internals,
-  ) {}
-
-  /**
-   * Calendar functions.
-   */
-  get Calendars(): Calendars {
-    if (this._calendars === undefined) {
-      this._calendars = new CalendarsImpl(this.bundle, this.internals, this.privateApi);
-    }
-    return this._calendars;
-  }
-
-  /**
-   * General functions.
-   */
-  get General(): General {
-    if (this._general === undefined) {
-      this._general = new GeneralImpl(this.bundle, this.locale, this.internals, this.privateApi);
-    }
-    return this._general;
-  }
-
-  /**
-   * Number and currency functions.
-   */
-  get Numbers(): Numbers {
-    if (this._numbers === undefined) {
-      this._numbers = new NumbersImpl(this.bundle, this.internals.numbers, this.internals.general, this.privateApi);
-    }
-    return this._numbers;
-  }
-
-  /**
-   * Unit quantity functions.
-   */
-  get Units(): Units {
-    if (this._units === undefined) {
-      this._units = new UnitsImpl(this.bundle, this.internals, this.privateApi);
-    }
-    return this._units;
-  }
-
-  /**
-   * UNDOCUMENTED AND EXPERIMENTAL
-   *
-   * Provides access to the low-level schema for accessing CLDR fields.
-   *
-   * Currently undocumented. In the future an internal api can be
-   * exposed allowing access to low-level functions of the library.
-   *
-   * @internal
-   */
-  get Schema(): Schema {
-    return this.internals.schema;
-  }
-
-  /**
-   * UNDOCUMENTED AND EXPERIMENTAL
-   *
-   * Provides access to the low-level library internals.
-   *
-   * @internal
-   */
-  get Internals(): Internals {
-    return this.internals;
-  }
-
-  private get privateApi(): PrivateApiImpl {
-    if (this._privateApi === undefined) {
-      this._privateApi = new PrivateApiImpl(this.bundle, this.internals);
-    }
-    return this._privateApi;
-  }
-}
-
-const EMPTY_CONFIG: SchemaConfig = {};
+export const bindCalendars = (data: LocaleData): Calendars => ({
+  firstDayOfWeek: () => cal.firstDayOfWeek(data),
+  minDaysInFirstWeek: () => cal.minDaysInFirstWeek(data),
+  dateField: (type, options) => cal.dateField(data, type, options),
+  dayPeriods: (options) => cal.dayPeriods(data, options),
+  eras: (options) => cal.eras(data, options),
+  months: (options) => cal.months(data, options),
+  quarters: (options) => cal.quarters(data, options),
+  weekdays: (options) => cal.weekdays(data, options),
+  toBuddhistDate: (date) => cal.toBuddhistDate(data, date),
+  newBuddhistDate: (fields) => cal.newBuddhistDate(data, fields),
+  toGregorianDate: (date) => cal.toGregorianDate(data, date),
+  newGregorianDate: (fields) => cal.newGregorianDate(data, fields),
+  toISO8601Date: (date) => cal.toISO8601Date(data, date),
+  newISO8601Date: (fields) => cal.newISO8601Date(data, fields),
+  toJapaneseDate: (date) => cal.toJapaneseDate(data, date),
+  newJapaneseDate: (fields) => cal.newJapaneseDate(data, fields),
+  toPersianDate: (date) => cal.toPersianDate(data, date),
+  newPersianDate: (fields) => cal.newPersianDate(data, fields),
+  fieldOfVisualDifference: (a, b) => cal.fieldOfVisualDifference(data, a, b),
+  formatDate: (date, options) => cal.formatDate(data, date, options),
+  formatDateToParts: (date, options) => cal.formatDateToParts(data, date, options),
+  formatDateInterval: (start, end, options) => cal.formatDateInterval(data, start, end, options),
+  formatDateIntervalToParts: (start, end, options) => cal.formatDateIntervalToParts(data, start, end, options),
+  formatRelativeTimeField: (value, field, options) => cal.formatRelativeTimeField(data, value, field, options),
+  formatRelativeTime: (start, end, options) => cal.formatRelativeTime(data, start, end, options),
+  formatDateRaw: (date, options) => cal.formatDateRaw(data, date, options),
+  formatDateRawToParts: (date, options) => cal.formatDateRawToParts(data, date, options),
+  formatDateWrapper: (date, time, options) => cal.formatDateWrapper(data, date, time, options),
+  formatDateWrapperToParts: (date, time, options) => cal.formatDateWrapperToParts(data, date, time, options),
+  now: (zoneId) => cal.now(data, zoneId),
+  nowBuddhist: (zoneId) => cal.nowBuddhist(data, zoneId),
+  nowGregorian: (zoneId) => cal.nowGregorian(data, zoneId),
+  nowISO8601: (zoneId) => cal.nowISO8601(data, zoneId),
+  nowJapanese: (zoneId) => cal.nowJapanese(data, zoneId),
+  nowPersian: (zoneId) => cal.nowPersian(data, zoneId),
+  timeData: () => cal.timeData(data),
+  timeZoneIds: cal.timeZoneIds,
+  resolveTimeZoneId: cal.resolveTimeZoneId,
+  timeZoneInfo: (zoneid) => cal.timeZoneInfo(data, zoneid),
+  timePeriodToQuantity: cal.timePeriodToQuantity,
+  timeZoneFromUTC: cal.timeZoneFromUTC,
+  timeZoneFromWall: cal.timeZoneFromWall,
+});
 
 /**
- * Options to initialize the library.
+ * Bind the general functions to a locale.
  *
  * @public
  */
-export interface CLDROptions {
-  /**
-   * Log some messages.
-   */
-  debug?: boolean;
-
-  /**
-   * Customizing of the schema.
-   */
-  config?: SchemaConfig;
-
-  /**
-   * Given a language identifier, fetch the resource pack from the
-   * filesystem, webserver, etc, and return the raw decompressed string.
-   */
-  loader?: (language: string) => any;
-
-  asyncLoader?: (language: string) => Promise<any>;
-
-  /**
-   * Number of language-wide resource packs to keep in memory.
-   *
-   * Note: a language pack will only be garbage collected once all instances
-   * using it are garbage collected, so if you hold onto instances the cache
-   * may be ineffective.
-   */
-  packCacheSize?: number;
-
-  /**
-   * Size of internal pattern caches.
-   */
-  patternCacheSize?: number;
-
-  /**
-   * Skip calculting the schema checksums. The checksum detects when the schema
-   * does not match the loaded resource pack and throws an error.
-   */
-  skipChecksum?: boolean;
-}
+export const bindGeneral = (data: LocaleData): General => ({
+  characterOrder: () => gen.characterOrder(data),
+  lineOrder: () => gen.lineOrder(data),
+  bundle: () => data,
+  locale: () => data.locale,
+  resolveLocale,
+  parseLanguageTag,
+  messageFormatter: (options) => gen.messageFormatter(data, options),
+  measurementSystem: (category) => gen.measurementSystem(data, category),
+  formatList: (items, type) => gen.formatList(data, items, type),
+  formatListToParts: (items, type) => gen.formatListToParts(data, items, type),
+  getLanguageDisplayName: (code, options) => gen.getLanguageDisplayName(data, code, options),
+  getScriptDisplayName: (code, options) => gen.getScriptDisplayName(data, code, options),
+  getRegionDisplayName: (code, options) => gen.getRegionDisplayName(data, code, options),
+});
 
 /**
- * Top-level entry point for the library. It's only purpose at the
- * moment is to construct API instances for a particular locale.
- * All other functionality should be available statically through
- * exported types and functions.
+ * Bind the number and currency functions to a locale.
  *
  * @public
  */
-export class CLDRFramework {
-  protected readonly packCache: LRU<Pack>;
-  protected readonly loader?: (language: string) => any;
-  protected readonly asyncLoader?: (language: string) => Promise<any>;
-  protected readonly internals: Internals;
-  protected readonly _config: SchemaConfig;
-  protected static defaultConfig?: SchemaConfig;
+export const bindNumbers = (data: LocaleData): Numbers => ({
+  adjustDecimal: (n, options) => num.adjustDecimal(data, n, options),
+  parseDecimal: (n) => decimal(n),
+  formatDecimal: (n, options) => num.formatDecimal(data, n, options),
+  formatDecimalToParts: (n, options) => num.formatDecimalToParts(data, n, options),
+  formatCurrency: (n, code, options) => num.formatCurrency(data, n, code, options),
+  formatCurrencyToParts: (n, code, options) => num.formatCurrencyToParts(data, n, code, options),
+  getCurrencySymbol: (code, width) => num.getCurrencySymbol(data, code, width),
+  getCurrencyDisplayName: (code, options) => num.getCurrencyDisplayName(data, code, options),
+  getCurrencyPluralName: (n, code, options) => num.getCurrencyPluralName(data, n, code, options),
+  getCurrencyFractions,
+  getCurrencyForRegion,
+  getPluralCardinal: (n, options) => num.getPluralCardinal(data, n, options),
+  getPluralOrdinal: (n, options) => num.getPluralOrdinal(data, n, options),
+});
 
-  constructor(protected options: CLDROptions) {
-    this.packCache = createLRU(options.packCacheSize || 2);
-    this.loader = options.loader;
-    this.asyncLoader = options.asyncLoader;
-    this._config = options.config || CLDRFramework.defaultConfig || EMPTY_CONFIG;
-    const patternCacheSize = options.patternCacheSize || 200;
-    this.internals = new InternalsImpl(this._config, VERSION, options.debug, options.skipChecksum, patternCacheSize);
-  }
+/**
+ * Bind the unit functions to a locale.
+ *
+ * @public
+ */
+export const bindUnits = (data: LocaleData): Units => ({
+  availableUnits: () => uni.availableUnits(data),
+  getUnitDisplayName: (name, length) => uni.getUnitDisplayName(data, name, length),
+  formatQuantity: (q, options) => uni.formatQuantity(data, q, options),
+  formatQuantityToParts: (q, options) => uni.formatQuantityToParts(data, q, options),
+  formatQuantitySequence: (q, options) => uni.formatQuantitySequence(data, q, options),
+  formatQuantitySequenceToParts: (q, options) => uni.formatQuantitySequenceToParts(data, q, options),
+});
 
-  /**
-   * Specify a configuration to use as a fallback.
-   */
-  static setDefaultConfig(config: SchemaConfig): void {
-    this.defaultConfig = config;
-  }
+/**
+ * Build the convenience object for a locale. Each group is bound on first access.
+ *
+ * @public
+ */
+export const bindCLDR = (data: LocaleData): CLDR => {
+  const api = { Schema: data.schema, data } as CLDR;
+  // The bound function groups are built on first access. They are non-enumerable so the object
+  // compares and serializes as its data.
+  const group = <T>(name: string, bind: (d: LocaleData) => T): void => {
+    let value: T | undefined;
+    Object.defineProperty(api, name, { enumerable: false, get: () => value || (value = bind(data)) });
+  };
+  group('Calendars', bindCalendars);
+  group('General', bindGeneral);
+  group('Numbers', bindNumbers);
+  group('Units', bindUnits);
+  return api;
+};
 
-  config(): SchemaConfig {
-    return this._config;
-  }
+/**
+ * Convenience loader: loads locales and returns the bound CLDR object.
+ *
+ * @public
+ */
+export interface CLDRFramework {
+  /** The underlying framework (schema and pack cache), for use with the locale functions. */
+  readonly framework: Framework;
 
-  info(): string {
-    return `packs loaded: ${lruSize(this.packCache)}`;
-  }
+  /** The schema config in use. */
+  config(): SchemaConfig;
 
-  /**
-   * Return the library version.
-   */
-  static version(): string {
-    return VERSION;
-  }
-
-  /**
-   * Return an array of the available locales.
-   */
-  static availableLocales(): Locale[] {
-    return availableLocales();
-  }
-
-  /**
-   * Parse a locale identifier and resolve it. This returns a Locale object
-   * that includes the original id string or tag's compact form, and
-   * a resolved LanguageTag.
-   */
-  static resolveLocale(id: string | LanguageTag): Locale {
-    const _id = typeof id === 'string' ? id : tagCompact(id);
-    const tag = resolveLanguageTag(id);
-    return { id: _id, tag };
-  }
-
-  /**
-   * Parses a string into a BCP47 language tag
-   */
-  static parseLanguageTag(s: string): LanguageTag {
-    return parseLanguageTag(s);
-  }
+  /** Diagnostic information. */
+  info(): string;
 
   /**
    * Synchronously load a bundle and construct an instance of an API for
-   * a given locale. Mainly used when you want to load a language statically
-   * when your application's state store is initialized.
+   * a given locale.
    */
-  get(locale: Locale | string): CLDR {
-    must(this.loader, Messages.NO_SYNC_LOADER);
-    must(locale, Messages.LOCALE_UNDEFINED);
-    const resolved = typeof locale === 'string' ? CLDRFramework.resolveLocale(locale) : locale;
-    const language = tagLanguage(resolved.tag);
-
-    let pack = lruGet(this.packCache, language);
-    if (pack === undefined) {
-      const data = this.loader!(language);
-      pack = loadPack(data);
-      this.check(pack);
-      lruSet(this.packCache, language, pack);
-    }
-    return this.build(resolved, pack);
-  }
+  get(locale: Locale | string): CLDR;
 
   /**
    * Asynchronously load a bundle and construct an instance of an API for
    * a given locale.
    */
-  getAsync(locale: Locale | string): Promise<CLDR> {
-    must(this.asyncLoader, Messages.NO_ASYNC_LOADER);
-    must(locale, Messages.LOCALE_UNDEFINED);
-    const resolved = typeof locale === 'string' ? CLDRFramework.resolveLocale(locale) : locale;
-    const language = tagLanguage(resolved.tag);
-
-    const promise = new Promise<CLDR>((resolve, reject) => {
-      const pack = lruGet(this.packCache, language);
-      if (pack !== undefined) {
-        resolve(this.build(resolved, pack));
-        return;
-      }
-
-      // Resolve via the promise loader
-      this.asyncLoader!(language)
-        .then((raw) => {
-          const _pack = loadPack(raw);
-          this.check(_pack);
-          lruSet(this.packCache, language, _pack);
-          resolve(this.build(resolved, _pack));
-        })
-        .catch(reject);
-    });
-
-    return promise;
-  }
-
-  /**
-   * Builds an API instance.
-   */
-  protected build(locale: Locale, pack: Pack): CLDR {
-    const bundle = packGet(pack, locale.tag);
-    return new CLDRImpl(locale, bundle, this.internals);
-  }
-
-  /**
-   * Verify the resource pack is compatible with the schema config checksum.
-   */
-  protected check(pack: Pack): void {
-    if (!this.options.skipChecksum && pack.checksum !== this.internals.checksum) {
-      throw new Error(Messages.CHECKSUM);
-    }
-  }
+  getAsync(locale: Locale | string): Promise<CLDR>;
 }
 
-const must = (arg: any, message: string): void => {
-  if (arg === undefined) {
-    throw new Error(message);
-  }
+/**
+ * Create the convenience loader. The config defaults to the given default config (the
+ * @phensley/cldr package passes its bundled config here).
+ *
+ * @public
+ */
+export const cldrFramework = (options: CLDROptions, defaultConfig?: SchemaConfig): CLDRFramework => {
+  const framework = createFramework(options, defaultConfig);
+  return {
+    framework,
+    config: () => framework.config,
+    info: () => frameworkInfo(framework),
+    get: (locale) => bindCLDR(loadLocale(framework, locale)),
+    getAsync: (locale) => loadLocaleAsync(framework, locale).then(bindCLDR),
+  };
 };

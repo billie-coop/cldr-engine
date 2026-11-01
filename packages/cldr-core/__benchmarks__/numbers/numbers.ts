@@ -1,7 +1,7 @@
 /// <reference path="../../../cldr-utils/__benchmarks__/typings.d.ts" />
 
 import { makeSuite } from '../../../cldr-utils/__benchmarks__/util';
-import { DecimalFormatStyleType, NumbersImpl } from '../../src';
+import { DecimalFormatStyleType, LocaleData, formatDecimal } from '../../src';
 import { numbersApi } from '../../__tests__/_helpers';
 
 export const numberEngineSuite = makeSuite('Number Engine');
@@ -10,7 +10,7 @@ const CASES = ['1.2', '123.45', '12345.678', '69900.12', '9876543210.12345', '10
 
 const STYLES: DecimalFormatStyleType[] = ['decimal', 'percent', 'short', 'long'];
 
-const BUNDLES: { [x: string]: NumbersImpl } = {
+const BUNDLES: { [x: string]: LocaleData } = {
   en: numbersApi('en'),
   es: numbersApi('es'),
 };
@@ -20,9 +20,9 @@ Object.keys(BUNDLES).forEach((k) => {
     STYLES.forEach((style) => {
       const opts = { style: style, group: true };
       const engine = BUNDLES[k];
-      let s = engine.formatDecimal(n, opts);
+      let s = formatDecimal(engine, n, opts);
       numberEngineSuite.add(`engine ${k} format decimal ${style} ${n}: ${s}`, () => {
-        s = engine.formatDecimal(n, opts);
+        s = formatDecimal(engine, n, opts);
       });
     });
   });

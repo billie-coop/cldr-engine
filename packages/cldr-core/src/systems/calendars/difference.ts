@@ -1,11 +1,19 @@
 import { tzFromWall } from '@phensley/timezone';
-import { dateAdd } from './add';
-import { CalendarDate, DateDiffOptions } from './calendar';
+import { addYMD } from './add';
+import { dateCompare, DateDiffOptions, dateStartOf, dateUnixEpoch, negatePeriod } from './calendar';
 import { CalendarConstants } from './constants';
+import { DateField } from './fields';
 import { daysInMonth, ymdToJD } from './gregorianmath';
-import { timePeriod, TimePeriod, TimePeriodFieldFlag, timePeriodFieldFlags } from './interval';
+import {
+  TIME_PERIOD_FIELDS,
+  timePeriod,
+  TimePeriod,
+  TimePeriodField,
+  TimePeriodFieldFlag,
+  timePeriodFieldFlags,
+} from './interval';
 import { adjustYM, clampYMD, toYMD, unixEpochFromJD, YearMonth, YearMonthDay } from './math';
-import { CalendarDateInternals } from './types';
+import { CalendarDate } from './types';
 
 /**
  * This file implements Temporal-compatible date difference, underpinning
@@ -39,11 +47,16 @@ const DEFAULT_FLAGS =
   TimePeriodFieldFlag.MILLIS;
 
 /**
- * State maintained for the difference calculation.
+ * State maintained for the difference calculation. Created fresh for each calculation;
+ * `two` is updated as the calculation proceeds.
  *
  * Public for testing.
  */
-export class DifferenceState {
+export interface DifferenceState {
+  readonly date1: CalendarDate;
+  readonly date2: CalendarDate;
+  readonly options: DateDiffOptions;
+
   // Date as YMD
   one: YearMonthDay;
   two: YearMonthDay;
@@ -84,43 +97,46 @@ export class DifferenceState {
 
   // Number of months in a year
   readonly monthCount: number;
-
-  constructor(
-    readonly date1: CalendarDate,
-    readonly date2: CalendarDate,
-    readonly options: DateDiffOptions,
-  ) {
-    this.one = toYMD(date1);
-    this.two = toYMD(date2);
-    this.epoch2 = date2.unixEpoch();
-    this.ms1 = date1.millisecondsInDay();
-    this.ms2 = date2.millisecondsInDay();
-    this.zoneId = date1.timeZoneId();
-    this.sign = date1.compare(date2);
-    this.incr = -this.sign;
-    this.fractions = !!options.rollupFractional;
-    [this.flags, this.smallestFlag] = timePeriodFieldFlags(options.fields);
-    if (!this.flags) {
-      this.flags = DEFAULT_FLAGS;
-    }
-    const internal = date1 as any as CalendarDateInternals;
-    this.monthCount = internal.monthCount();
-  }
-
-  /**
-   * Return true if the flag is set.
-   */
-  has(flag: TimePeriodFieldFlag): boolean {
-    return (flag & this.flags) !== 0;
-  }
-
-  /**
-   * Return true if a flag is the smallest field in the set.
-   */
-  smallest(flag: TimePeriodFieldFlag): boolean {
-    return flag === this.smallestFlag;
-  }
 }
+
+/**
+ * Create the state for a difference calculation.
+ */
+export const differenceState = (
+  date1: CalendarDate,
+  date2: CalendarDate,
+  options: DateDiffOptions,
+): DifferenceState => {
+  const sign = dateCompare(date1, date2);
+  const [flags, smallestFlag] = timePeriodFieldFlags(options.fields);
+  return {
+    date1,
+    date2,
+    options,
+    one: toYMD(date1),
+    two: toYMD(date2),
+    epoch2: dateUnixEpoch(date2),
+    ms1: date1.fields[DateField.MILLIS_IN_DAY],
+    ms2: date2.fields[DateField.MILLIS_IN_DAY],
+    zoneId: date1.zoneInfo.zoneid,
+    sign,
+    incr: -sign,
+    fractions: !!options.rollupFractional,
+    flags: flags || DEFAULT_FLAGS,
+    smallestFlag,
+    monthCount: date1.calendar.monthCount,
+  };
+};
+
+/**
+ * Return true if the flag is set.
+ */
+const has = (state: DifferenceState, flag: TimePeriodFieldFlag): boolean => (flag & state.flags) !== 0;
+
+/**
+ * Return true if a flag is the smallest field in the set.
+ */
+const smallest = (state: DifferenceState, flag: TimePeriodFieldFlag): boolean => flag === state.smallestFlag;
 
 /**
  * Calculate the difference between two dates in years, months, days, etc.
@@ -136,7 +152,7 @@ export const difference = (date1: CalendarDate, date2: CalendarDate, options: Da
   let result: TimePeriod = timePeriod();
 
   // Track state across date and time sections
-  const state = new DifferenceState(date1, date2, options);
+  const state = differenceState(date1, date2, options);
 
   // If equal, return zero.
   if (state.sign === 0) {
@@ -158,13 +174,13 @@ export const difference = (date1: CalendarDate, date2: CalendarDate, options: Da
     //   date2 = epoch 1762070460000 "2025-11-02 01:01:00-07:00"
     //   date1.until(date2)
     //
-    millis = state.epoch2 - state.date1.unixEpoch();
+    millis = state.epoch2 - dateUnixEpoch(state.date1);
   } else {
     // Scan for time difference, adjust end date.
     [state.two, millis] = timeDifference(state);
 
     // Compute the difference between the date fields and store in the result.
-    dateDifference(state, result);
+    differenceOfDates(state, result);
   }
 
   // ==> At this point we have computed the YEAR, MONTH, WEEK, and DAY fields in the result.
@@ -173,7 +189,7 @@ export const difference = (date1: CalendarDate, date2: CalendarDate, options: Da
   result.millis = millis;
 
   // At least one time field was requested.
-  if (!state.has(TimePeriodFieldFlag.DAY)) {
+  if (!has(state, TimePeriodFieldFlag.DAY)) {
     // If DAY field is not requested, roll days into time
     // TODO: sign
     result.millis += result.day * CalendarConstants.ONE_DAY_MS;
@@ -191,7 +207,7 @@ export const difference = (date1: CalendarDate, date2: CalendarDate, options: Da
 
   // Hack for rounding edge case
   if (
-    state.has(TimePeriodFieldFlag.DAY) &&
+    has(state, TimePeriodFieldFlag.DAY) &&
     Math.abs(result.millis) >= 23 * CalendarConstants.ONE_HOUR_MS &&
     Math.abs(result.millis) <= 25 * CalendarConstants.ONE_HOUR_MS
   ) {
@@ -207,13 +223,13 @@ export const difference = (date1: CalendarDate, date2: CalendarDate, options: Da
 /**
  * Compute date difference.
  */
-const dateDifference = (state: DifferenceState, result: TimePeriod) => {
+const differenceOfDates = (state: DifferenceState, result: TimePeriod) => {
   const { flags, one, two, incr, options } = state;
 
   // Seek towards the end date without exceeding it by guessing the year and month.
   let seek: YearMonth;
 
-  if (state.has(TimePeriodFieldFlag.YEAR) || state.has(TimePeriodFieldFlag.MONTH)) {
+  if (has(state, TimePeriodFieldFlag.YEAR) || has(state, TimePeriodFieldFlag.MONTH)) {
     // In this block we use date 1 as our base and add or subtract years and months as we
     // approach date 2 without exceeding it.
 
@@ -240,7 +256,7 @@ const dateDifference = (state: DifferenceState, result: TimePeriod) => {
       seek = adjustYM(seek.year, seek.month + incr);
     }
 
-    if (!state.has(TimePeriodFieldFlag.YEAR)) {
+    if (!has(state, TimePeriodFieldFlag.YEAR)) {
       // Result does not include YEAR, so it must include MONTH due to the condition
       // on the outer block.
       // Result includes MONTH but not YEAR, translate years to months.
@@ -248,11 +264,11 @@ const dateDifference = (state: DifferenceState, result: TimePeriod) => {
       result.year = 0;
     } else {
       // Result includes YEAR.
-      if (!state.has(TimePeriodFieldFlag.MONTH)) {
+      if (!has(state, TimePeriodFieldFlag.MONTH)) {
         // Result includes YEAR but not MONTH.
         if (
-          (!state.fractions && state.smallest(TimePeriodFieldFlag.YEAR)) ||
-          !state.smallest(TimePeriodFieldFlag.YEAR)
+          (!state.fractions && smallest(state, TimePeriodFieldFlag.YEAR)) ||
+          !smallest(state, TimePeriodFieldFlag.YEAR)
         ) {
           // If YEAR is the smallest field and we're not rolling up fractions, or
           // YEAR is not the smallest field, zero the months. The months will be
@@ -275,7 +291,7 @@ const dateDifference = (state: DifferenceState, result: TimePeriod) => {
 
   // Optionally translate weeks to days
   let week = 0;
-  if ((options.includeWeeks && (!flags || flags === DEFAULT_FLAGS)) || state.has(TimePeriodFieldFlag.WEEK)) {
+  if ((options.includeWeeks && (!flags || flags === DEFAULT_FLAGS)) || has(state, TimePeriodFieldFlag.WEEK)) {
     week = Math.trunc(day / 7);
     day %= 7;
   }
@@ -341,13 +357,13 @@ const roundResult = (state: DifferenceState, result: TimePeriod) => {
   // Move to the start of the day.
   //
   // Example "2025-03-09 01:59:00" becomes "2025-03-09 00:00:00"
-  const date = toYMD(state.date1.startOf('day'));
+  const date = toYMD(dateStartOf(state.date1, 'day'));
 
   // Add the date components.
   //
   // Example "2025-03-09 00:00:00" + "1 year, 1 month, 22 days"
   // becomes "2025-10-31 00:00:00"
-  const start = dateAdd(date, {
+  const start = addYMD(date, {
     year: result.year,
     month: result.month,
     week: result.week,
@@ -362,7 +378,7 @@ const roundResult = (state: DifferenceState, result: TimePeriod) => {
   let startEpoch = unixEpochFromJD(jd, state.ms1);
 
   // Get wall clock UNIX epoch timestamp.
-  startEpoch = tzFromWall(state.date1.timeZoneId(), startEpoch)![0];
+  startEpoch = tzFromWall(state.date1.zoneInfo.zoneid, startEpoch)![0];
 
   // Repeat the above to get the end date that is +/- 1 day after the start date.
   // The +1 or -1 increment depends on the direction of the comparison.
@@ -371,14 +387,14 @@ const roundResult = (state: DifferenceState, result: TimePeriod) => {
   const end = adjustDays(start.year, start.month, start.day + state.incr);
   const endJd = ymdToJD(end.year, end.month, end.day, state.monthCount);
   let endEpoch = unixEpochFromJD(endJd, state.ms1);
-  endEpoch = tzFromWall(state.date1.timeZoneId(), endEpoch)![0];
+  endEpoch = tzFromWall(state.date1.zoneInfo.zoneid, endEpoch)![0];
 
   // Get the difference between start and end.
   const delta = endEpoch - startEpoch;
 
   // If the milliseconds of our time period exceeds the length of the last full day,
   // roll milliseconds into 1 day.
-  if (state.has(TimePeriodFieldFlag.DAY) && Math.abs(result.millis) >= Math.abs(delta)) {
+  if (has(state, TimePeriodFieldFlag.DAY) && Math.abs(result.millis) >= Math.abs(delta)) {
     const days = (result.millis / (state.incr * delta)) | 0;
     const remainder = result.millis - delta;
     result.day += days;
@@ -434,19 +450,19 @@ const greaterThanYMD = (sign: number, y1: number, m1: number, d1: number, date2:
  * Roll milliseconds into all time fields.
  */
 const rollTime = (state: DifferenceState, result: TimePeriod) => {
-  if (state.has(TimePeriodFieldFlag.HOUR)) {
+  if (has(state, TimePeriodFieldFlag.HOUR)) {
     result.hour = (result.millis / CalendarConstants.ONE_HOUR_MS) | 0;
     result.millis -= result.hour * CalendarConstants.ONE_HOUR_MS;
   }
-  if (state.has(TimePeriodFieldFlag.MINUTE)) {
+  if (has(state, TimePeriodFieldFlag.MINUTE)) {
     result.minute = (result.millis / CalendarConstants.ONE_MINUTE_MS) | 0;
     result.millis -= result.minute * CalendarConstants.ONE_MINUTE_MS;
   }
-  if (state.has(TimePeriodFieldFlag.SECOND)) {
+  if (has(state, TimePeriodFieldFlag.SECOND)) {
     result.second = (result.millis / CalendarConstants.ONE_SECOND_MS) | 0;
     result.millis -= result.second * CalendarConstants.ONE_SECOND_MS;
   }
-  if (!state.has(TimePeriodFieldFlag.MILLIS)) {
+  if (!has(state, TimePeriodFieldFlag.MILLIS)) {
     result.millis = 0;
   }
 };
@@ -460,16 +476,16 @@ const rollDateFractions = (state: DifferenceState, result: TimePeriod) => {
   const days = result.day + result.millis / CalendarConstants.ONE_DAY_MS;
   result.millis = 0;
 
-  if (state.smallest(TimePeriodFieldFlag.YEAR)) {
+  if (smallest(state, TimePeriodFieldFlag.YEAR)) {
     result.year += result.month / state.monthCount + (result.week * 7 + days) / 365.25;
     result.month = result.week = result.day = 0;
-  } else if (state.smallest(TimePeriodFieldFlag.MONTH)) {
+  } else if (smallest(state, TimePeriodFieldFlag.MONTH)) {
     result.month += (result.week * 7 + days) / 30.44;
     result.week = result.day = 0;
-  } else if (state.smallest(TimePeriodFieldFlag.WEEK)) {
+  } else if (smallest(state, TimePeriodFieldFlag.WEEK)) {
     result.week += days / 7;
     result.day = 0;
-  } else if (state.smallest(TimePeriodFieldFlag.DAY)) {
+  } else if (smallest(state, TimePeriodFieldFlag.DAY)) {
     result.day = days;
   }
 };
@@ -479,7 +495,7 @@ const rollDateFractions = (state: DifferenceState, result: TimePeriod) => {
  * roll up smaller fields into fractions of a larger field.
  */
 const rollTimeFractions = (state: DifferenceState, result: TimePeriod) => {
-  if (state.smallest(TimePeriodFieldFlag.HOUR)) {
+  if (smallest(state, TimePeriodFieldFlag.HOUR)) {
     result.hour +=
       (result.minute * CalendarConstants.ONE_MINUTE_MS +
         result.second * CalendarConstants.ONE_SECOND_MS +
@@ -487,16 +503,114 @@ const rollTimeFractions = (state: DifferenceState, result: TimePeriod) => {
       CalendarConstants.ONE_HOUR_MS;
     result.minute = result.second = 0;
   }
-  if (state.smallest(TimePeriodFieldFlag.MINUTE)) {
+  if (smallest(state, TimePeriodFieldFlag.MINUTE)) {
     result.minute = (result.second * CalendarConstants.ONE_MINUTE_MS + result.millis) / CalendarConstants.ONE_MINUTE_MS;
     result.second = 0;
   }
-  if (state.smallest(TimePeriodFieldFlag.SECOND)) {
+  if (smallest(state, TimePeriodFieldFlag.SECOND)) {
     result.second = result.millis / CalendarConstants.ONE_SECOND_MS;
   }
 
   // Finally if MILLIS not requested, zero it.
-  if (!state.smallest(TimePeriodFieldFlag.MILLIS)) {
+  if (!smallest(state, TimePeriodFieldFlag.MILLIS)) {
     result.millis = 0;
   }
 };
+
+/**
+ * Automatically select the best field to represent the time period.
+ */
+const relativeField = (p: TimePeriod): TimePeriodField => {
+  for (const f of TIME_PERIOD_FIELDS) {
+    if (p[f]) {
+      return f;
+    }
+  }
+  return 'millis';
+};
+
+/**
+ * Calculate the relative time between two dates. If a field is specified
+ * the time will be calculated in terms of that single field. Otherwise
+ * the field will be auto-selected.
+ *
+ * @public
+ */
+export const dateRelativeTime = (
+  d: CalendarDate,
+  other: CalendarDate,
+  field?: TimePeriodField,
+  options?: DateDiffOptions,
+): [TimePeriodField, number] => {
+  options = options || {};
+  let result: TimePeriod;
+
+  // If no field is specified, calculate the difference in all fields and select the largest.
+  if (field === undefined) {
+    result = difference(d, other, { ...options, rollupFractional: false, fields: undefined });
+    field = relativeField(result);
+  }
+
+  // Calculate the difference in terms of the requested or auto-selected field.
+  options = { ...options, fields: [field] };
+  result = difference(d, other, options);
+  return [field, result[field] || 0];
+};
+
+/**
+ * Calculate the period of time (years, months, days, ..) since the given date.
+ *
+ * In a normal call, "other is less-than-or-equal-to d".
+ * If "d is less-than other" we invert the sign of the result.
+ *
+ * For example:
+ *
+ *   dateSince("2024-03-03", "2024-01-30") == "1 month 4 days"
+ *   dateSince("2024-01-30", "2024-03-03") == "-1 month -3 days"
+ *
+ * The durations are not symmetrical due to calendar math, e.g. end-of-month alignment
+ * with months of different lengths.
+ *
+ * @public
+ */
+export const dateSince = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod =>
+  negatePeriod(difference(d, other, options || {}));
+
+/**
+ * Calculate the period of time (years, months, days, ..) until the given date.
+ *
+ * In a normal call, "d is less-than-or-equal-to other".
+ * If "other is less-than d" we invert the sign of the result.
+ *
+ * For example:
+ *
+ *   dateUntil("2024-01-30", "2024-03-30") == "1 month 3 days"
+ *   dateUntil("2024-03-03", "2024-01-30") == "-1 month -4 days"
+ *
+ * The duration are not symmetrical due to calendar math, e.g. end-of-month alignment
+ * with months of different lengths.
+ *
+ * @public
+ */
+export const dateUntil = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod =>
+  difference(d, other, options || {});
+
+/**
+ * Calculate the time period between two dates. Note this returns the
+ * absolute value of the difference.
+ *
+ * @public
+ */
+export const dateDifference = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod => {
+  const result = difference(d, other, options || {});
+  return dateCompare(d, other) === 1 ? negatePeriod(result) : result;
+};
+
+/**
+ * Calculate the time period between two dates. If 'other' is before this date,
+ * the time period fields will be negative.
+ *
+ * @public
+ */
+export const dateDifferenceSigned = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod =>
+  dateUntil(d, other, options);

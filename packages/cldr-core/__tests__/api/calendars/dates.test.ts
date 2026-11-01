@@ -1,6 +1,19 @@
 import { calendarsApi } from '../../_helpers';
 
-import { CalendarDate } from '../../../src';
+import {
+  CalendarDate,
+  dateExtendedYear,
+  dateFirstDayOfWeek,
+  dateHour,
+  dateMinDaysInFirstWeek,
+  dateUnixEpoch,
+  dateYear,
+  toBuddhistDate,
+  toGregorianDate,
+  toISO8601Date,
+  toJapaneseDate,
+  toPersianDate,
+} from '../../../src';
 import { DayOfWeek } from '../../../src/systems/calendars/fields';
 
 // March 11, 2018 7:00:25 AM UTC
@@ -16,133 +29,133 @@ test('buddhist dates', () => {
   const base = MARCH_11_2018_070025_UTC;
   let d: CalendarDate;
 
-  d = EN.toBuddhistDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toBuddhistDate(EN, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.year()).toEqual(2561);
+  expect(dateYear(d)).toEqual(2561);
 
-  d = DE.toBuddhistDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toBuddhistDate(DE, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 
-  d = FA.toBuddhistDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SATURDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toBuddhistDate(FA, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SATURDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 });
 
 test('gregorian dates', () => {
   const base = MARCH_11_2018_070025_UTC;
   let d: CalendarDate;
 
-  d = EN.toGregorianDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toGregorianDate(EN, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.year()).toEqual(2018);
+  expect(dateYear(d)).toEqual(2018);
 
-  d = DE.toGregorianDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toGregorianDate(DE, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 
-  d = FA.toGregorianDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SATURDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toGregorianDate(FA, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SATURDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 });
 
 test('iso-8601 dates', () => {
   const base = MARCH_11_2018_070025_UTC;
   let d: CalendarDate;
 
-  d = EN.toISO8601Date({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toISO8601Date(EN, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 
-  expect(d.year()).toEqual(2018);
+  expect(dateYear(d)).toEqual(2018);
 
-  d = DE.toISO8601Date({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toISO8601Date(DE, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 
-  d = FA.toISO8601Date({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toISO8601Date(FA, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 });
 
 test('japanese dates', () => {
   const base = MARCH_11_2018_070025_UTC;
   let d: CalendarDate;
 
-  d = EN.toJapaneseDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toJapaneseDate(EN, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.year()).toEqual(30);
+  expect(dateYear(d)).toEqual(30);
 
-  d = DE.toJapaneseDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toJapaneseDate(DE, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 
-  d = FA.toJapaneseDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SATURDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toJapaneseDate(FA, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SATURDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 });
 
 test('persian dates', () => {
   const base = MARCH_11_2018_070025_UTC;
   let d: CalendarDate;
 
-  d = EN.toPersianDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toPersianDate(EN, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.year()).toEqual(1396);
+  expect(dateYear(d)).toEqual(1396);
 
-  d = DE.toPersianDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toPersianDate(DE, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 
-  d = FA.toPersianDate({ date: base, zoneId: NEW_YORK });
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SATURDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toPersianDate(FA, { date: base, zoneId: NEW_YORK });
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SATURDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 });
 
 test('conversions', () => {
   const base = MARCH_11_2018_070025_UTC;
-  const orig = EN.toGregorianDate({ date: base, zoneId: NEW_YORK });
+  const orig = toGregorianDate(EN, { date: base, zoneId: NEW_YORK });
   let d: CalendarDate;
 
-  d = EN.toISO8601Date(orig);
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.MONDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(4);
+  d = toISO8601Date(EN, orig);
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.MONDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(4);
 
-  expect(d.year()).toEqual(2018);
+  expect(dateYear(d)).toEqual(2018);
 
-  d = EN.toJapaneseDate(d);
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toJapaneseDate(EN, d);
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.year()).toEqual(30);
-  expect(d.extendedYear()).toEqual(2018);
+  expect(dateYear(d)).toEqual(30);
+  expect(dateExtendedYear(d)).toEqual(2018);
 
-  d = EN.toPersianDate(d);
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toPersianDate(EN, d);
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.year()).toEqual(1396);
-  expect(d.extendedYear()).toEqual(1396);
+  expect(dateYear(d)).toEqual(1396);
+  expect(dateExtendedYear(d)).toEqual(1396);
 
-  d = EN.toGregorianDate(d);
-  expect(d.firstDayOfWeek()).toEqual(DayOfWeek.SUNDAY);
-  expect(d.minDaysInFirstWeek()).toEqual(1);
+  d = toGregorianDate(EN, d);
+  expect(dateFirstDayOfWeek(d)).toEqual(DayOfWeek.SUNDAY);
+  expect(dateMinDaysInFirstWeek(d)).toEqual(1);
 
-  expect(d.year()).toEqual(2018);
-  expect(d.extendedYear()).toEqual(2018);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateExtendedYear(d)).toEqual(2018);
 
   expect(d).toEqual(orig);
 
-  d = EN.toGregorianDate({ date: d.unixEpoch() });
-  expect(d.hour()).toEqual(7);
-  expect(d.year()).toEqual(2018);
-  expect(d.extendedYear()).toEqual(2018);
+  d = toGregorianDate(EN, { date: dateUnixEpoch(d) });
+  expect(dateHour(d)).toEqual(7);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateExtendedYear(d)).toEqual(2018);
 });

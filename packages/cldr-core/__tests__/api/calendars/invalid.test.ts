@@ -1,6 +1,6 @@
 import { calendarsApi } from '../../_helpers';
 
-import { CalendarType, ZonedDateTime } from '../../../src';
+import { CalendarType, ZonedDateTime, formatDate } from '../../../src';
 
 const unix = (date: number, zoneId: string): ZonedDateTime => ({ date, zoneId });
 
@@ -15,7 +15,7 @@ test('invalid calendar type', () => {
   const api = calendarsApi('en');
   let s: string;
 
-  s = api.formatDate(mar11, { datetime: 'full', ca: 'invalid' as CalendarType });
+  s = formatDate(api, mar11, { datetime: 'full', ca: 'invalid' as CalendarType });
   expect(s).toEqual('Saturday, March 10, 2018 at 11:00:25 PM Pacific Standard Time');
 });
 
@@ -25,7 +25,7 @@ test('invalid calendar type and extension', () => {
   const api = calendarsApi('en-GU-u-ca-foobar');
   let s: string;
 
-  s = api.formatDate(mar11, { datetime: 'full', ca: 'invalid' as CalendarType });
+  s = formatDate(api, mar11, { datetime: 'full', ca: 'invalid' as CalendarType });
   expect(s).toEqual('Saturday, March 10, 2018 at 11:00:25 PM Pacific Standard Time');
 });
 
@@ -35,10 +35,10 @@ test('invalid epoch timestamp', () => {
   let date: ZonedDateTime;
 
   date = { date: 'foo', zoneId: LOS_ANGELES } as unknown as ZonedDateTime;
-  s = api.formatDate(date, { datetime: 'full' });
+  s = formatDate(api, date, { datetime: 'full' });
   expect(s).toEqual('Wednesday, December 31, 1969 at 4:00:00 PM Pacific Standard Time');
 
   date = { date: { foo: 'bar' }, zoneId: LOS_ANGELES } as unknown as ZonedDateTime;
-  s = api.formatDate(date, { datetime: 'full' });
+  s = formatDate(api, date, { datetime: 'full' });
   expect(s).toEqual('Wednesday, December 31, 1969 at 4:00:00 PM Pacific Standard Time');
 });

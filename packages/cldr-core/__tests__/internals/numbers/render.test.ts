@@ -1,22 +1,15 @@
-import { languageBundle, INTERNALS } from '../../_helpers';
+import { languageBundle } from '../../_helpers';
 
-import { Bundle, NumberInternalsImpl, PrivateApiImpl } from '../../../src';
+import { getNumberParams, getNumberPattern, stringRenderer } from '../../../src';
 import { RE_DIGIT, RE_SYMBOL } from '../../../src/internals/numbers/render';
 import { NumberPattern } from '../../../src/parsing/number';
 import { decimal } from '@phensley/decimal';
 
-const internals = INTERNALS();
-const privateApi = (bundle: Bundle) => new PrivateApiImpl(bundle, internals);
-const numbersImpl = (_lang: string) => new NumberInternalsImpl(internals, 5);
-
 test('number renderer', () => {
   const en = languageBundle('en');
-  const priv = privateApi(en);
-  const impl = numbersImpl('en');
-
-  const renderer = impl.stringRenderer(priv.getNumberParams('latn'));
+  const renderer = stringRenderer(getNumberParams(en, 'latn'));
   const raw = '+#0.0#;-#0.0#';
-  const pattern = impl.getNumberPattern(raw, false);
+  const pattern = getNumberPattern(raw, false);
   const s = renderer.render(decimal('12345.6789'), pattern, '', '', '.', 1, false);
   expect(s).toEqual('+12345.6789');
 });
@@ -35,14 +28,11 @@ test('digits', () => {
 
 test('secondary groupiing', () => {
   const en = languageBundle('en');
-  const priv = privateApi(en);
-  const impl = numbersImpl('en');
-
-  const renderer = impl.stringRenderer(priv.getNumberParams('latn'));
+  const renderer = stringRenderer(getNumberParams(en, 'latn'));
   let s: string;
   let pattern: NumberPattern;
 
-  pattern = impl.getNumberPattern('#,##,##0', false);
+  pattern = getNumberPattern('#,##,##0', false);
   s = renderer.render(decimal('123456789'), pattern, '', '', '.', 1, true);
   expect(s).toEqual('12,34,56,789');
 });

@@ -1,6 +1,6 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { hrtime } from 'process';
-import { GregorianDate } from '../../../src';
+import { dateSince, dateUntil, gregorianDateFromUnixEpoch } from '../../../src';
 import { CalendarConstants } from '../../../src/systems/calendars/constants';
 import { CLDRFormatter, TemporalFormatter } from './_utils';
 
@@ -8,7 +8,7 @@ import { CLDRFormatter, TemporalFormatter } from './_utils';
 // This scans a large range of epoch timestamps and calculates the until / since
 // difference between them, comparing the output of all functions.
 
-const gregorian = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, 1, 1);
+const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const elapsed = (start: [number, number], end: [number, number]): number => {
   const s = start[0] * 1e3 + start[1] / 1e6;
@@ -80,8 +80,8 @@ const scan = (epoch: number, zone: string, days: number, minutes: number) => {
         continue;
       }
 
-      const cuntil1 = cdate1.until(cdate2);
-      const cuntil2 = cdate2.until(cdate1);
+      const cuntil1 = dateUntil(cdate1, cdate2);
+      const cuntil2 = dateUntil(cdate2, cdate1);
 
       let tuntil1: Temporal.Duration;
       let tuntil2: Temporal.Duration;
@@ -106,8 +106,8 @@ const scan = (epoch: number, zone: string, days: number, minutes: number) => {
         console.log(`ERROR: "${c2}" != "${t2}" test: ${end} until ${start} in ${zone}`);
       }
 
-      const csince1 = cdate1.since(cdate2);
-      const csince2 = cdate2.since(cdate1);
+      const csince1 = dateSince(cdate1, cdate2);
+      const csince2 = dateSince(cdate2, cdate1);
 
       let tsince1: Temporal.Duration;
       let tsince2: Temporal.Duration;

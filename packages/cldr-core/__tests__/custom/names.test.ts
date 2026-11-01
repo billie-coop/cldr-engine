@@ -1,14 +1,15 @@
 import { buildConfig, generalApi } from '../_helpers';
+import { getLanguageDisplayName, getRegionDisplayName, getScriptDisplayName } from '../../src';
 
 test('custom language display names', () => {
   const cfg = buildConfig({ 'language-id': ['en'] });
   const api = generalApi('en', cfg);
   let s: string;
 
-  s = api.getLanguageDisplayName('en');
+  s = getLanguageDisplayName(api, 'en');
   expect(s).toEqual('English');
 
-  s = api.getLanguageDisplayName('fr');
+  s = getLanguageDisplayName(api, 'fr');
   expect(s).toEqual('');
 });
 
@@ -17,10 +18,10 @@ test('custom script display names', () => {
   const api = generalApi('en', cfg);
   let s: string;
 
-  s = api.getScriptDisplayName('Latn');
+  s = getScriptDisplayName(api, 'Latn');
   expect(s).toEqual('Latin');
 
-  s = api.getLanguageDisplayName('Arab');
+  s = getLanguageDisplayName(api, 'Arab');
   expect(s).toEqual('');
 });
 
@@ -29,12 +30,12 @@ test('custom region display names', () => {
   const api = generalApi('en', cfg);
   let s: string;
 
-  s = api.getRegionDisplayName('001');
+  s = getRegionDisplayName(api, '001');
   expect(s).toEqual('world');
 
-  s = api.getRegionDisplayName('US');
+  s = getRegionDisplayName(api, 'US');
   expect(s).toEqual('United States');
 
-  s = api.getRegionDisplayName('FR');
+  s = getRegionDisplayName(api, 'FR');
   expect(s).toEqual('');
 });

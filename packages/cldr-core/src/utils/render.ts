@@ -1,6 +1,11 @@
 import { Part } from '@phensley/decimal';
 import { WrapperNode } from '../parsing/wrapper';
 
+/**
+ * Accumulates a formatted value as a string or as parts.
+ *
+ * @internal
+ */
 export interface AbstractValue<R> {
   length(): number;
   add(type: string, value: string): void;
@@ -14,116 +19,98 @@ export interface AbstractValue<R> {
   empty(): R;
 }
 
-export class StringValue implements AbstractValue<string> {
-  private str: string = '';
-
-  length(): number {
-    return this.str.length;
-  }
-
-  get(i: number): string {
-    return this.str[i] || '';
-  }
-
-  add(_type: string, value: string): void {
-    this.str += value;
-  }
-
-  append(value: string): void {
-    this.str += value;
-  }
-
-  insert(i: number, _type: string, value: string): void {
-    const prefix = this.str.substring(0, i);
-    const suffix = this.str.substring(i);
-    this.str = `${prefix}${value}${suffix}`;
-  }
-
-  render(): string {
-    const s = this.str;
-    this.str = '';
-    return s;
-  }
-
-  reset(): void {
-    this.str = '';
-  }
-
-  join(...str: string[]): string {
-    return str.join('');
-  }
-
-  wrap(pattern: WrapperNode[], args: string[]): void {
-    for (const n of pattern) {
-      if (typeof n === 'string') {
-        this.add('literal', n);
-      } else {
-        const arg = args[n];
-        if (arg) {
-          this.str += arg;
+/**
+ * Builds a string value.
+ *
+ * @internal
+ */
+export const stringValue = (): AbstractValue<string> => {
+  let str = '';
+  const add = (_type: string, value: string): void => {
+    str += value;
+  };
+  return {
+    length: (): number => str.length,
+    get: (i: number): string => str[i] || '',
+    add,
+    append: (value: string): void => {
+      str += value;
+    },
+    insert: (i: number, _type: string, value: string): void => {
+      const prefix = str.substring(0, i);
+      const suffix = str.substring(i);
+      str = `${prefix}${value}${suffix}`;
+    },
+    render: (): string => {
+      const s = str;
+      str = '';
+      return s;
+    },
+    reset: (): void => {
+      str = '';
+    },
+    join: (...elems: string[]): string => elems.join(''),
+    wrap: (pattern: WrapperNode[], args: string[]): void => {
+      for (const n of pattern) {
+        if (typeof n === 'string') {
+          add('literal', n);
+        } else {
+          const arg = args[n];
+          if (arg) {
+            str += arg;
+          }
         }
       }
-    }
-  }
+    },
+    empty: (): string => '',
+  };
+};
 
-  empty(): string {
-    return '';
-  }
-}
-
-export class PartsValue implements AbstractValue<Part[]> {
-  private parts: Part[] = [];
-
-  length(): number {
-    return this.parts.length;
-  }
-
-  get(i: number): string {
-    const p = this.parts[i];
-    return p ? p.value : '';
-  }
-
-  add(type: string, value: string): void {
-    this.parts.push({ type, value });
-  }
-
-  append(value: Part[]): void {
-    for (const p of value) {
-      this.parts.push(p);
-    }
-  }
-
-  insert(i: number, type: string, value: string): void {
-    this.parts.splice(i, 0, { type, value });
-  }
-
-  render(): Part[] {
-    const p = this.parts;
-    this.parts = [];
-    return p;
-  }
-
-  reset(): void {
-    this.parts = [];
-  }
-
-  join(...parts: Part[][]): Part[] {
-    return ([] as Part[]).concat(...parts);
-  }
-
-  wrap(pattern: WrapperNode[], args: Part[][]): void {
-    for (const n of pattern) {
-      if (typeof n === 'string') {
-        this.add('literal', n);
-      } else {
-        for (const p of args[n] || []) {
-          this.parts.push(p);
+/**
+ * Builds an array of parts.
+ *
+ * @internal
+ */
+export const partsValue = (): AbstractValue<Part[]> => {
+  let parts: Part[] = [];
+  const add = (type: string, value: string): void => {
+    parts.push({ type, value });
+  };
+  return {
+    length: (): number => parts.length,
+    get: (i: number): string => {
+      const p = parts[i];
+      return p ? p.value : '';
+    },
+    add,
+    append: (value: Part[]): void => {
+      for (const p of value) {
+        parts.push(p);
+      }
+    },
+    insert: (i: number, type: string, value: string): void => {
+      parts.splice(i, 0, { type, value });
+    },
+    render: (): Part[] => {
+      const p = parts;
+      parts = [];
+      return p;
+    },
+    reset: (): void => {
+      parts = [];
+    },
+    join: (...elems: Part[][]): Part[] => ([] as Part[]).concat(...elems),
+    wrap: (pattern: WrapperNode[], args: Part[][]): void => {
+      for (const n of pattern) {
+        if (typeof n === 'string') {
+          add('literal', n);
+        } else {
+          for (const p of args[n] || []) {
+            parts.push(p);
+          }
         }
       }
-    }
-  }
-
-  empty(): Part[] {
-    return [];
-  }
-}
+    },
+    empty: (): Part[] => [],
+  };
+};

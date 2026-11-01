@@ -1,6 +1,6 @@
 import { calendarsApi } from '../../_helpers';
 
-import { ZonedDateTime } from '../../../src';
+import { ZonedDateTime, formatDate, toJapaneseDate } from '../../../src';
 
 const unix = (date: number, zoneId: string): ZonedDateTime => ({ date, zoneId });
 
@@ -19,21 +19,21 @@ test('japanese', () => {
   const api = calendarsApi('en');
   let s: string;
 
-  s = api.formatDate(mar11, { datetime: 'full', ca: 'japanese' });
+  s = formatDate(api, mar11, { datetime: 'full', ca: 'japanese' });
   expect(s).toEqual('Saturday, March 10, 30 Heisei at 11:00:25 PM Pacific Standard Time');
 
   const may01 = unix(MAY_01_2019_120000_UTC, NEW_YORK);
 
-  s = api.formatDate(may01, { datetime: 'full', ca: 'japanese' });
+  s = formatDate(api, may01, { datetime: 'full', ca: 'japanese' });
   expect(s).toEqual('Wednesday, May 1, 1 Reiwa at 8:00:00 AM Eastern Daylight Time');
 });
 
 test('japanese date', () => {
   const api = calendarsApi('en-u-ca-japanese');
   let s: string;
-  const date = api.toJapaneseDate({ date: MARCH_11_2018_070025_UTC });
+  const date = toJapaneseDate(api, { date: MARCH_11_2018_070025_UTC });
 
-  s = api.formatDate(date);
+  s = formatDate(api, date);
   expect(s).toEqual('Sunday, March 11, 30 Heisei');
 });
 
@@ -44,15 +44,15 @@ test('japanese default', () => {
 
   // TODO: once rbnf is implemented the year will be formatted
   // using the 'jpanyear' rule.
-  s = api.formatDate(date); // default options { date: 'full' }
+  s = formatDate(api, date); // default options { date: 'full' }
   expect(s).toEqual('2018年3月11日日曜日');
 
-  s = api.formatDate(date, { ca: 'gregory' });
+  s = formatDate(api, date, { ca: 'gregory' });
   expect(s).toEqual('2018年3月11日');
 
-  s = api.formatDate(date, { ca: 'gregory', date: 'full' });
+  s = formatDate(api, date, { ca: 'gregory', date: 'full' });
   expect(s).toEqual('2018年3月11日日曜日');
 
-  s = api.formatDate(date, { ca: 'japanese' });
+  s = formatDate(api, date, { ca: 'japanese' });
   expect(s).toEqual('平成30年3月11日');
 });

@@ -1,78 +1,90 @@
 import { UnitType } from '@phensley/cldr-types';
 import { Part } from '@phensley/decimal';
 
-import { GeneralInternals, Internals, NumberInternals, UnitInternals } from '../internals';
 import { ListPatternType, Quantity, UnitFormatOptions, UnitLength } from '../common';
-import { Bundle } from '../resource';
-import { PartsValue } from '../utils/render';
-
-import { Units } from './api';
-import { PrivateApiImpl } from './private';
+import { LocaleData } from '../locale-data';
+import { formatListValue } from '../internals/general/internal';
+import { partsRenderer, stringRenderer } from '../internals/numbers/render';
+import { getUnitInfo, renderUnit } from '../internals/units/internal';
+import { vectorGet } from '../schema/schema/arrows';
+import { partsValue } from '../utils/render';
+import { formatList } from './general';
+import { getNumberParams } from './private/numbers';
 
 const DEFAULT_OPTIONS: UnitFormatOptions = { length: 'long', style: 'decimal' };
 
 /**
- * @internal
+ * Units available in the active schema config.
+ *
+ * @public
  */
-export class UnitsImpl implements Units {
-  private general: GeneralInternals;
-  private numbers: NumberInternals;
-  private units: UnitInternals;
+export const availableUnits = (data: LocaleData): UnitType[] => data.indices['unit-id'].keys.slice(0) as UnitType[];
 
-  constructor(
-    private bundle: Bundle,
-    private internal: Internals,
-    private privateApi: PrivateApiImpl,
-  ) {
-    this.general = internal.general;
-    this.numbers = internal.numbers;
-    this.units = internal.units;
-  }
+/**
+ * Get the display name of a unit.
+ *
+ * @public
+ */
+export const getUnitDisplayName = (data: LocaleData, name: UnitType, length?: UnitLength): string =>
+  vectorGet(getUnitInfo(data, length || 'long').displayName, data, name);
 
-  availableUnits(): UnitType[] {
-    return this.internal.indices['unit-id'].keys.slice(0) as UnitType[];
-  }
+/**
+ * Format a quantity to a string.
+ *
+ * @public
+ */
+export const formatQuantity = (data: LocaleData, q: Quantity, options?: UnitFormatOptions): string => {
+  options = options || DEFAULT_OPTIONS;
+  const params = getNumberParams(data, options.nu);
+  return renderUnit(data, stringRenderer(params), q, options, params);
+};
 
-  getUnitDisplayName(name: UnitType, length?: UnitLength): string {
-    return this.units.getDisplayName(this.bundle, name, length || 'long');
-  }
+/**
+ * Format a quantity to an array of parts.
+ *
+ * @public
+ */
+export const formatQuantityToParts = (data: LocaleData, q: Quantity, options?: UnitFormatOptions): Part[] => {
+  options = options || DEFAULT_OPTIONS;
+  const params = getNumberParams(data, options.nu);
+  return renderUnit(data, partsRenderer(params), q, options, params);
+};
 
-  formatQuantity(q: Quantity, options?: UnitFormatOptions): string {
-    options = options || DEFAULT_OPTIONS;
-    const params = this.privateApi.getNumberParams(options.nu);
-    const renderer = this.numbers.stringRenderer(params);
-    return this.units.format(this.bundle, renderer, q, options, params);
-  }
+/**
+ * Format a sequence of quantities to a string, e.g. "5 feet, 3 inches".
+ *
+ * @public
+ */
+export const formatQuantitySequence = (data: LocaleData, qs: Quantity[], options?: UnitFormatOptions): string => {
+  options = options || DEFAULT_OPTIONS;
+  const items = qs.map((q) => formatQuantity(data, q, options));
+  const type = selectListType(options);
+  return formatList(data, items, type);
+};
 
-  formatQuantityToParts(q: Quantity, options?: UnitFormatOptions): Part[] {
-    options = options || DEFAULT_OPTIONS;
-    const params = this.privateApi.getNumberParams(options.nu);
-    const renderer = this.numbers.partsRenderer(params);
-    return this.units.format(this.bundle, renderer, q, options, params);
-  }
+/**
+ * Format a sequence of quantities to an array of parts.
+ *
+ * @public
+ */
+export const formatQuantitySequenceToParts = (
+  data: LocaleData,
+  qs: Quantity[],
+  options?: UnitFormatOptions,
+): Part[] => {
+  options = options || DEFAULT_OPTIONS;
+  const parts: Part[][] = qs.map((q) => formatQuantityToParts(data, q, options));
+  const type = selectListType(options);
+  return formatListValue(data, partsValue(), parts, type);
+};
 
-  formatQuantitySequence(qs: Quantity[], options?: UnitFormatOptions): string {
-    options = options || DEFAULT_OPTIONS;
-    const items = qs.map((q) => this.formatQuantity(q, options));
-    const type = this.selectListType(options);
-    return this.general.formatList(this.bundle, items, type);
+const selectListType = (options: UnitFormatOptions): ListPatternType => {
+  switch (options.length) {
+    case 'narrow':
+      return 'unit-narrow';
+    case 'short':
+      return 'unit-short';
+    default:
+      return 'unit-long';
   }
-
-  formatQuantitySequenceToParts(qs: Quantity[], options?: UnitFormatOptions): Part[] {
-    options = options || DEFAULT_OPTIONS;
-    const parts: Part[][] = qs.map((q) => this.formatQuantityToParts(q, options));
-    const type = this.selectListType(options);
-    return this.general.formatListImpl(this.bundle, new PartsValue(), parts, type);
-  }
-
-  protected selectListType(options: UnitFormatOptions): ListPatternType {
-    switch (options.length) {
-      case 'narrow':
-        return 'unit-narrow';
-      case 'short':
-        return 'unit-short';
-      default:
-        return 'unit-long';
-    }
-  }
-}
+};

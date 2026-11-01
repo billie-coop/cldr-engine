@@ -1,5 +1,14 @@
 import { Temporal } from '@js-temporal/polyfill';
-import { CalendarDate, GregorianDate, TimePeriod, TimePeriodField } from '../../../src';
+import {
+  CalendarDate,
+  TimePeriod,
+  TimePeriodField,
+  dateAdd,
+  dateToDateString,
+  dateToDateTimeString,
+  dateUntil,
+  gregorianDateFromUnixEpoch,
+} from '../../../src';
 import {
   FEB_28_2024,
   FEB_29_2024,
@@ -11,7 +20,7 @@ import {
 } from './_referencedates';
 import { CLDRFormatter, enumerate, periodToDurationLike, TemporalFormatter } from './_utils';
 
-const gregorian = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, 1, 1);
+const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const CLDRFMT = new CLDRFormatter({ includeZoneOffset: true });
 const TEMPFMT = new TemporalFormatter({ includeZoneOffset: true });
@@ -24,7 +33,7 @@ const test262 = (epoch1: number, epoch2: number, zoneId: string, debug?: boolean
   const cldr2 = gregorian(epoch2, zoneId);
 
   const tuntil = temp1.until(temp2, { largestUnit: 'months' });
-  const cuntil = cldr1.until(cldr2);
+  const cuntil = dateUntil(cldr1, cldr2);
   expect(TEMPFMT.durationString(tuntil)).toEqual(CLDRFMT.periodString(cuntil));
   if (debug) {
     console.log(CLDRFMT.periodString(cuntil));
@@ -92,18 +101,18 @@ test('temporal test262 sub-minute-offset', () => {
 const edgeCaseAdd = (epoch: number, zone: string, added: Partial<TimePeriod>) => {
   const temp1 = Temporal.Instant.fromEpochMilliseconds(epoch).toZonedDateTimeISO(zone);
   const cldr1 = gregorian(epoch, zone);
-  const cldr2 = cldr1.add(added);
+  const cldr2 = dateAdd(cldr1, added);
   const temp2 = temp1.add(periodToDurationLike(added));
   expect(CLDRFMT.dateTimeString(cldr2)).toEqual(TEMPFMT.dateTimeString(temp2));
   const tuntil = temp1.until(temp2, { largestUnit: 'year', smallestUnit: 'millisecond' });
-  const cuntil = cldr1.until(cldr2);
+  const cuntil = dateUntil(cldr1, cldr2);
   expect(CLDRFMT.periodString(cuntil)).toEqual(TEMPFMT.durationString(tuntil));
 };
 
 const cldrUntil = (epoch1: number, epoch2: number, zone: string): string => {
   const cldr1 = gregorian(epoch1, zone);
   const cldr2 = gregorian(epoch2, zone);
-  const cuntil = cldr1.until(cldr2);
+  const cuntil = dateUntil(cldr1, cldr2);
   // console.log(CLDRFMT.dateTimeString(cldr1), cldr1.toISOString());
   // console.log(CLDRFMT.dateTimeString(cldr2), cldr2.toISOString());
   return CLDRFMT.periodString(cuntil);
@@ -165,7 +174,7 @@ test('temporal bug 2 cldr result', () => {
   const until = (epoch1: number, epoch2: number, zone: string): string => {
     const date1 = gregorian(epoch1, zone);
     const date2 = gregorian(epoch2, zone);
-    const until = date1.until(date2);
+    const until = dateUntil(date1, date2);
     const result = CLDRFMT.periodString(until);
     // console.log(`${toString(date1)} until ${toString(date2)} is ${result}`);
     return result;
@@ -355,10 +364,10 @@ test('date-only utc', () => {
   for (const [index, [epoch, day, fields, expDate, expDiff]] of enumerate(cases)) {
     const added: Partial<TimePeriod> = { day };
     const base = gregorian(epoch, 'UTC');
-    const date = base.add(added);
-    expect(date.toDateString(), `case ${index} add ${added} days`).toEqual(expDate);
-    const until = base.until(date, { fields });
-    expect(cldrfmt.periodString(until), `case ${index}: ${base.toDateString()} days ${day}`).toEqual(expDiff);
+    const date = dateAdd(base, added);
+    expect(dateToDateString(date), `case ${index} add ${added} days`).toEqual(expDate);
+    const until = dateUntil(base, date, { fields });
+    expect(cldrfmt.periodString(until), `case ${index}: ${dateToDateString(base)} days ${day}`).toEqual(expDiff);
   }
 });
 
@@ -428,10 +437,12 @@ test('date time utc', () => {
     expect(temputil.durationString(tuntil), msg).toEqual(expDiff);
 
     const cldr1 = gregorian(epoch, 'UTC');
-    const cldr2 = cldr1.add(added);
-    const cuntil = cldr1.until(cldr2);
+    const cldr2 = dateAdd(cldr1, added);
+    const cuntil = dateUntil(cldr1, cldr2);
     expect(cldrutil.dateTimeString(cldr2), msg).toEqual(expDate);
-    expect(cldrutil.periodString(cuntil), `case ${index}: ${cldr1.toDateTimeString()} add ${_added}`).toEqual(expDiff);
+    expect(cldrutil.periodString(cuntil), `case ${index}: ${dateToDateTimeString(cldr1)} add ${_added}`).toEqual(
+      expDiff,
+    );
   }
 });
 
@@ -512,8 +523,8 @@ test('rolldown utc', () => {
   for (const [index, [epoch, added, fields, expDate, expDiff]] of enumerate(cases)) {
     const msg = `case ${index} add ${JSON.stringify(added)} fields ${JSON.stringify(fields)}`;
     const cldr1 = gregorian(epoch, 'UTC');
-    const cldr2 = cldr1.add(added);
-    const cuntil = cldr1.until(cldr2, { fields });
+    const cldr2 = dateAdd(cldr1, added);
+    const cuntil = dateUntil(cldr1, cldr2, { fields });
     expect(cldrutil.dateTimeString(cldr2), msg).toEqual(expDate);
     expect(cldrutil.periodString(cuntil), msg).toEqual(expDiff);
   }
@@ -562,10 +573,10 @@ test('rolldown combinations', () => {
     const msg = `case ${index} add ${JSON.stringify(added)}`;
 
     const cldr1 = gregorian(epoch, 'UTC');
-    const cldr2 = cldr1.add(added);
+    const cldr2 = dateAdd(cldr1, added);
 
     for (const [sub, [fields, duration]] of enumerate(subs)) {
-      const cuntil = cldr1.until(cldr2, { fields });
+      const cuntil = dateUntil(cldr1, cldr2, { fields });
       expect(cldrutil.dateTimeString(cldr2), msg).toEqual(expDate);
       expect(cldrutil.periodString(cuntil), msg + ` test ${sub} ${JSON.stringify(fields)} ${duration}:`).toEqual(
         duration,
@@ -583,14 +594,14 @@ test('weeks', () => {
 
   const start = gregorian(JAN_30_2024, 'America/New_York');
 
-  end = start.add({ day: 21 });
+  end = dateAdd(start, { day: 21 });
   expect(cldrfmt.dateTimeString(end)).toEqual('2024-02-20 08:30:00');
-  until = start.until(end, { fields: ['week'] });
+  until = dateUntil(start, end, { fields: ['week'] });
   expect(cldrfmt.periodString(until)).toEqual('3w');
 
-  end = start.add({ day: 21 });
+  end = dateAdd(start, { day: 21 });
   expect(cldrfmt.dateTimeString(end)).toEqual('2024-02-20 08:30:00');
-  until = start.until(end, { includeWeeks: true });
+  until = dateUntil(start, end, { includeWeeks: true });
   expect(cldrfmt.periodString(until)).toEqual('3w');
 });
 
@@ -612,8 +623,8 @@ test('coverage adjustDays', () => {
   ];
 
   for (const [hour, expected] of cases) {
-    end = start.add({ hour });
-    until = start.until(end);
+    end = dateAdd(start, { hour });
+    until = dateUntil(start, end);
     expect(cldrfmt.periodString(until)).toEqual(expected);
   }
 });
@@ -644,9 +655,9 @@ test('rollup fractions', () => {
   for (const [index, [epoch, added, fields, expDate, expDiff]] of enumerate(cases)) {
     const msg = `case ${index} add ${JSON.stringify(added)} fields ${JSON.stringify(fields)}`;
     const base = gregorian(epoch, 'UTC');
-    const date = base.add(added);
-    expect(date.toDateTimeString({ optionalMilliseconds: true }), msg).toEqual(expDate);
-    const until = base.until(date, { fields, rollupFractional: true });
+    const date = dateAdd(base, added);
+    expect(dateToDateTimeString(date, { optionalMilliseconds: true }), msg).toEqual(expDate);
+    const until = dateUntil(base, date, { fields, rollupFractional: true });
     expect(cldrfmt.periodString(until), msg).toEqual(expDiff);
   }
 });

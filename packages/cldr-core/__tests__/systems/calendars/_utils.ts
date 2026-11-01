@@ -1,5 +1,5 @@
 import { Temporal } from '@js-temporal/polyfill';
-import { CalendarDate, TimePeriod } from '../../../src';
+import { CalendarDate, TimePeriod, dateToDateString, dateToDateTimeString } from '../../../src';
 
 /**
  * Index the elements in an array with an incrementing 1-based number.
@@ -120,11 +120,11 @@ export class CLDRFormatter {
   }
 
   dateString(c: CalendarDate): string {
-    return c.toDateString();
+    return dateToDateString(c);
   }
   dateTimeString(c: CalendarDate): string {
     const { includeZoneOffset } = this.opts;
-    return c.toDateTimeString({ includeZoneOffset, optionalMilliseconds: true });
+    return dateToDateTimeString(c, { includeZoneOffset, optionalMilliseconds: true });
   }
   periodString(p: Partial<TimePeriod>): string {
     return formatTimePeriod(p);

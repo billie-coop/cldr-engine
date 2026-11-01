@@ -1,6 +1,6 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { hrtime } from 'process';
-import { GregorianDate, TimePeriod } from '../../../src';
+import { TimePeriod, dateAdd, dateSince, dateUntil, gregorianDateFromUnixEpoch } from '../../../src';
 import { CalendarConstants } from '../../../src/systems/calendars/constants';
 import { heaps, periodToDurationLike, TIMEPERIOD_TO_DURATION_KEYS, zipList } from './_utils';
 
@@ -14,7 +14,7 @@ import { heaps, periodToDurationLike, TIMEPERIOD_TO_DURATION_KEYS, zipList } fro
 // The cldr-engine implementation of addition is approximately 5x faster
 // than @js-temporal/polyfill using Node.js v22.13.1.
 
-const gregorian = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, 1, 1);
+const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const elapsed = (start: [number, number], end: [number, number]): number => {
   const s = start[0] * 1e3 + start[1] / 1e6;
@@ -64,10 +64,10 @@ const benchmarkDifference = (epoch: number, zone: string, days: number, minutes:
         if (cldr) {
           const cdate1 = gregorian(start, zone);
           const cdate2 = gregorian(end, zone);
-          cdate1.until(cdate2);
-          cdate2.until(cdate1);
-          cdate1.since(cdate2);
-          cdate2.since(cdate1);
+          dateUntil(cdate1, cdate2);
+          dateUntil(cdate2, cdate1);
+          dateSince(cdate1, cdate2);
+          dateSince(cdate2, cdate1);
         } else {
           const tdate1 = Temporal.Instant.fromEpochMilliseconds(start).toZonedDateTimeISO(zone);
           const tdate2 = Temporal.Instant.fromEpochMilliseconds(end).toZonedDateTimeISO(zone);
@@ -123,8 +123,8 @@ const benchmarkAddition = (epoch: number, zone: string, positive: Permutation[],
         for (const [period, duration] of periods) {
           if (cldr) {
             const cdate1 = gregorian(start, zone);
-            const cdate2 = cdate1.add(period);
-            cdate2.add(period);
+            const cdate2 = dateAdd(cdate1, period);
+            dateAdd(cdate2, period);
           } else {
             const tdate1 = Temporal.Instant.fromEpochMilliseconds(start).toZonedDateTimeISO(zone);
             const tdate2 = tdate1.add(duration);

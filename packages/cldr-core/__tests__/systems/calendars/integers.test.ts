@@ -1,6 +1,7 @@
 import { GregorianDate, TimePeriodField } from '../../../src/systems/calendars';
+import { dateAdd, dateSubtract, dateUnixEpoch, gregorianDateFromUnixEpoch } from '../../../src';
 
-const gregorian = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, 1, 1);
+const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const FIELDS: TimePeriodField[] = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millis'];
 
@@ -12,10 +13,10 @@ test('date field integers', () => {
   const nums = [0.1, 0.11111, 0.2, 0.3, 0.5, 0.7, 1, 1.1, 1.3333333];
   for (const n of nums) {
     for (const f of FIELDS) {
-      u = date.add({ [f]: n }).unixEpoch();
+      u = dateUnixEpoch(dateAdd(date, { [f]: n }));
       expect(Math.floor(u)).toEqual(u);
 
-      u = date.subtract({ [f]: n }).unixEpoch();
+      u = dateUnixEpoch(dateSubtract(date, { [f]: n }));
       expect(Math.floor(u)).toEqual(u);
     }
   }

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { join } from 'path';
 
-import { CLDRFramework, CLDROptions } from '../../src';
+import { cldrFramework, CLDRFramework, CLDROptions } from '../../src';
 
 const packPath = (language: string) => join(__dirname, '..', '..', 'packs', `${language}.json`);
 
@@ -16,5 +16,5 @@ const defaultOptions: CLDROptions = {
 
 export const getCLDR = (options: CLDROptions = defaultOptions): CLDRFramework => {
   const merged = Object.assign({}, defaultOptions, options);
-  return new CLDRFramework(merged);
+  return cldrFramework(merged);
 };

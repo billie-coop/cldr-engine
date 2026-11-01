@@ -4,10 +4,21 @@ import * as fs from 'fs';
 import { join } from 'path';
 
 import { createLRU, lruGet, lruSet } from '@phensley/cldr-utils';
-import { resolveLanguageTag } from '@phensley/locale';
+import { resolveLanguageTag, resolveLocaleId } from '@phensley/locale';
 
-import { loadPack as parsePack, CLDRFramework, SchemaConfig, packGet } from '../../src';
-import { Bundle, Pack } from '../../src/resource';
+import {
+  buildOrigin,
+  cldrFramework,
+  loadPack as parsePack,
+  localeData,
+  packGet,
+  CLDRFramework,
+  LocaleData,
+  SchemaConfig,
+} from '../../src';
+import { buildSchema } from '../../src/internals/schema';
+import { Pack } from '../../src/resource';
+import { config as defaultconfig } from '../../../cldr/src/config';
 import { VERSION } from '../../src/utils/version';
 import { tagLanguage } from '@phensley/language-tag';
 
@@ -16,7 +27,7 @@ const pkg = require('../../package.json');
 
 const TEMPROOT = join(__dirname, '..', '..', '.custom-packs');
 
-const bundleCache = createLRU<Bundle>(15);
+const bundleCache = createLRU<LocaleData>(15);
 
 interface PackSpec {
   hash: string;
@@ -41,7 +52,7 @@ const makedir = (dir: string) => {
  */
 export const customFramework = (path: string, config: SchemaConfig): CLDRFramework => {
   const loader = (_lang: string) => fs.readFileSync(path).toString('utf-8');
-  return new CLDRFramework({
+  return cldrFramework({
     config,
     debug: true,
     loader,
@@ -97,11 +108,25 @@ export const loadPack = (language: string, spec?: PackSpec): Pack => {
   return parsePack(raw);
 };
 
+// Schema accessors per config, built once per config (1.x built them per Internals instance).
+const schemaCache = new Map<string, Pick<LocaleData, 'schema' | 'indices' | 'config'>>();
+
+const schemaFor = (config: SchemaConfig) => {
+  const key = JSON.stringify(config);
+  let s = schemaCache.get(key);
+  if (s === undefined) {
+    const origin = buildOrigin(config);
+    s = { schema: buildSchema(origin), indices: origin.indices, config };
+    schemaCache.set(key, s);
+  }
+  return s;
+};
+
 /**
- * Load a resource bundle for a given language. If resource file does
- * not exist it is generated.
+ * Load the locale data for a given language tag: the resource bundle plus the schema for the
+ * config. If resource file does not exist it is generated.
  */
-export const languageBundle = (tag: string, config?: SchemaConfig): Bundle => {
+export const languageBundle = (tag: string, config?: SchemaConfig): LocaleData => {
   const locale = resolveLanguageTag(tag);
   const language = tagLanguage(locale);
   let spec: PackSpec | undefined;
@@ -116,7 +141,8 @@ export const languageBundle = (tag: string, config?: SchemaConfig): Bundle => {
   let bundle = lruGet(bundleCache, key);
   if (bundle === undefined) {
     const pack = loadPack(language, spec);
-    bundle = packGet(pack, locale);
+    const s = schemaFor(config || defaultconfig);
+    bundle = localeData(resolveLocaleId(tag), packGet(pack, locale), s.schema, s.indices, s.config);
     lruSet(bundleCache, key, bundle);
   }
   return bundle;

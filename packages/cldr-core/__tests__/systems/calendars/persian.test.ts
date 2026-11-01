@@ -1,8 +1,23 @@
 import { DayOfWeek } from '../../../src/systems/calendars/fields';
 import { PersianDate } from '../../../src/systems/calendars/persian';
 import { NEW_YORK } from './_referencedates';
+import {
+  dateDayOfMonth,
+  dateDayOfWeek,
+  dateEra,
+  dateIsLeapYear,
+  dateModifiedJulianDay,
+  dateMonth,
+  dateSubtract,
+  dateToString,
+  dateType,
+  dateWeekOfYear,
+  dateWithZone,
+  dateYear,
+  persianDateFromUnixEpoch,
+} from '../../../src';
 
-const make = (e: number, z: string) => PersianDate.fromUnixEpoch(e, z, DayOfWeek.SUNDAY, 1);
+const make = (e: number, z: string) => persianDateFromUnixEpoch(e, z, DayOfWeek.SUNDAY, 1);
 
 // Wednesday, April 11, 2018 11:59:59.123 PM UTC
 const APR_11_2018 = 1523491199123;
@@ -14,24 +29,24 @@ test('persian calendar', () => {
   let d: PersianDate;
 
   d = make(APR_11_2018, NEW_YORK);
-  expect(d.toString()).toEqual('Persian 1397-01-22 19:59:59.123 America/New_York');
-  expect(d.type()).toEqual('persian');
-  expect(d.modifiedJulianDay()).toEqual(2458220);
-  expect(d.era()).toEqual(0);
-  expect(d.year()).toEqual(1397);
-  expect(d.month()).toEqual(1); // Farvardin
-  expect(d.dayOfMonth()).toEqual(22);
-  expect(d.dayOfWeek()).toEqual(4);
-  expect(d.weekOfYear()).toEqual(4);
+  expect(dateToString(d)).toEqual('Persian 1397-01-22 19:59:59.123 America/New_York');
+  expect(dateType(d)).toEqual('persian');
+  expect(dateModifiedJulianDay(d)).toEqual(2458220);
+  expect(dateEra(d)).toEqual(0);
+  expect(dateYear(d)).toEqual(1397);
+  expect(dateMonth(d)).toEqual(1); // Farvardin
+  expect(dateDayOfMonth(d)).toEqual(22);
+  expect(dateDayOfWeek(d)).toEqual(4);
+  expect(dateWeekOfYear(d)).toEqual(4);
 
   d = make(JAN_24_620, 'UTC');
-  expect(d.modifiedJulianDay()).toEqual(1947533);
-  expect(d.era()).toEqual(0);
-  expect(d.year()).toEqual(-2);
-  expect(d.month()).toEqual(11); // Bahman
-  expect(d.dayOfMonth()).toEqual(3);
-  expect(d.dayOfWeek()).toEqual(2);
-  expect(d.weekOfYear()).toEqual(45);
+  expect(dateModifiedJulianDay(d)).toEqual(1947533);
+  expect(dateEra(d)).toEqual(0);
+  expect(dateYear(d)).toEqual(-2);
+  expect(dateMonth(d)).toEqual(11); // Bahman
+  expect(dateDayOfMonth(d)).toEqual(3);
+  expect(dateDayOfWeek(d)).toEqual(2);
+  expect(dateWeekOfYear(d)).toEqual(45);
 });
 
 test('persian leaps', () => {
@@ -39,49 +54,49 @@ test('persian leaps', () => {
 
   // March 19, 2020
   d = make(1584633586000, 'UTC');
-  expect(d.year()).toEqual(1398);
-  expect(d.month()).toEqual(12); // Esfand
-  expect(d.dayOfMonth()).toEqual(29); // 29 in non-leap
-  expect(d.isLeapYear()).toEqual(false);
+  expect(dateYear(d)).toEqual(1398);
+  expect(dateMonth(d)).toEqual(12); // Esfand
+  expect(dateDayOfMonth(d)).toEqual(29); // 29 in non-leap
+  expect(dateIsLeapYear(d)).toEqual(false);
 
   // March 20, 2020
   d = make(1584719986000, 'UTC');
-  expect(d.year()).toEqual(1399);
-  expect(d.month()).toEqual(1); // Favardin
-  expect(d.dayOfMonth()).toEqual(1);
-  expect(d.isLeapYear()).toEqual(true);
+  expect(dateYear(d)).toEqual(1399);
+  expect(dateMonth(d)).toEqual(1); // Favardin
+  expect(dateDayOfMonth(d)).toEqual(1);
+  expect(dateIsLeapYear(d)).toEqual(true);
 
   // March 20, 2021
   d = make(1616255986000, 'UTC');
-  expect(d.month()).toEqual(12); // Esfand
-  expect(d.dayOfMonth()).toEqual(30); // 30 in leap
-  expect(d.isLeapYear()).toEqual(true);
+  expect(dateMonth(d)).toEqual(12); // Esfand
+  expect(dateDayOfMonth(d)).toEqual(30); // 30 in leap
+  expect(dateIsLeapYear(d)).toEqual(true);
 });
 
 test('with zone', () => {
   let d: PersianDate;
 
   d = make(APR_11_2018, 'UTC');
-  expect(d.toString()).toEqual('Persian 1397-01-22 23:59:59.123 Etc/UTC');
+  expect(dateToString(d)).toEqual('Persian 1397-01-22 23:59:59.123 Etc/UTC');
 
-  d = d.withZone(NEW_YORK);
-  expect(d.toString()).toEqual('Persian 1397-01-22 19:59:59.123 America/New_York');
+  d = dateWithZone(d, NEW_YORK);
+  expect(dateToString(d)).toEqual('Persian 1397-01-22 19:59:59.123 America/New_York');
 
-  d = d.withZone('America/Los_Angeles');
-  expect(d.toString()).toEqual('Persian 1397-01-22 16:59:59.123 America/Los_Angeles');
+  d = dateWithZone(d, 'America/Los_Angeles');
+  expect(dateToString(d)).toEqual('Persian 1397-01-22 16:59:59.123 America/Los_Angeles');
 });
 
 test('subtract', () => {
   let end: PersianDate;
 
   const start = make(APR_11_2018, 'UTC');
-  expect(start.toString()).toEqual('Persian 1397-01-22 23:59:59.123 Etc/UTC');
+  expect(dateToString(start)).toEqual('Persian 1397-01-22 23:59:59.123 Etc/UTC');
 
-  end = start.subtract({ year: 1, month: 1, day: 1 });
-  expect(end.toString()).toEqual('Persian 1395-12-21 23:59:59.123 Etc/UTC');
+  end = dateSubtract(start, { year: 1, month: 1, day: 1 });
+  expect(dateToString(end)).toEqual('Persian 1395-12-21 23:59:59.123 Etc/UTC');
 
-  end = start.subtract({ year: -1, month: -1, day: -1 });
-  expect(end.toString()).toEqual('Persian 1398-02-23 23:59:59.123 Etc/UTC');
+  end = dateSubtract(start, { year: -1, month: -1, day: -1 });
+  expect(dateToString(end)).toEqual('Persian 1398-02-23 23:59:59.123 Etc/UTC');
 });
 
 test('days in month/year', () => {
@@ -89,15 +104,15 @@ test('days in month/year', () => {
 
   d = make(APR_11_2018, 'UTC');
 
-  // Test protected methods
-  expect((d as any).daysInMonth(2025, 0)).toEqual(31);
-  expect((d as any).daysInMonth(2022, 0)).toEqual(31);
+  // Calendar rules (protected methods in 1.x)
+  expect(d.calendar.daysInMonth(2025, 0)).toEqual(31);
+  expect(d.calendar.daysInMonth(2022, 0)).toEqual(31);
 
   // Persian leap years
-  expect((d as any).daysInMonth(2025, 11)).toEqual(29);
-  expect((d as any).daysInMonth(2022, 11)).toEqual(30);
+  expect(d.calendar.daysInMonth(2025, 11)).toEqual(29);
+  expect(d.calendar.daysInMonth(2022, 11)).toEqual(30);
 
   // Persian leap years
-  expect((d as any).daysInYear(2022)).toEqual(366);
-  expect((d as any).daysInYear(2025)).toEqual(365);
+  expect(d.calendar.daysInYear(2022)).toEqual(366);
+  expect(d.calendar.daysInYear(2025)).toEqual(365);
 });

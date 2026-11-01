@@ -1,4 +1,4 @@
-import { PluralType, RelativeTimes, RelativeTimeFields, RelativeTimeFieldType } from '@phensley/cldr-types';
+import { PluralType, RelativeTimeFields, RelativeTimeFieldType } from '@phensley/cldr-types';
 
 import {
   DecimalArg,
@@ -9,96 +9,85 @@ import {
   decimalNegate,
 } from '@phensley/decimal';
 
-import { DateFieldInternals, Internals } from '../internals';
 import { RelativeTimeFieldFormatOptions } from '../../common';
-import { Bundle } from '../../resource';
+import { LocaleData } from '../../locale-data';
 import { ContextTransformInfo, NumberParams } from '../../common/private';
 import { vectorGet } from '../../schema/schema/arrows';
 import { pluralCardinal } from '@phensley/plurals';
+import { adjustNumber } from '../numbers/internal';
+import { contextTransform, formatWrapper } from '../general/internal';
+import { numberingFormatString } from '../../systems/numbering/decimal';
 
 // TODO: expose a method to calculate field difference with different options, e.g.
 // include weekdays
 
 /**
+ * Format a relative time for a single field, e.g. "in 3 days", "yesterday".
+ *
  * @internal
  */
-export class DateFieldInternalsImpl implements DateFieldInternals {
-  private relativeTimes: RelativeTimes;
+export const renderRelativeTimeField = (
+  data: LocaleData,
+  value: DecimalArg,
+  field: RelativeTimeFieldType,
+  options: RelativeTimeFieldFormatOptions,
+  params: NumberParams,
+  transform: ContextTransformInfo,
+): string => {
+  const width = options.width || 'wide';
+  const format: RelativeTimeFields =
+    data.schema.DateFields.relativeTimes[width] || data.schema.DateFields.relativeTimes.wide;
+  const group = options.group === undefined ? true : options.group;
 
-  constructor(private internals: Internals) {
-    this.relativeTimes = internals.schema.DateFields.relativeTimes;
+  let n = decimal(value);
+  n = adjustNumber(n, options);
+  const negative = decimalIsNegative(n);
+  if (negative) {
+    n = decimalNegate(n);
   }
 
-  // formatRelativeTime(bundle: Bundle, start: CalendarDate, end: CalendarDate,
-  // options: RelativeTimeFormatOptions, params: NumberParams): string {
-  // TODO: need to compute integral difference for multiple fields. for example, year
-  // may differ between 2017-12-01 and 2018-02-02 but they are only 3 months apart, so
-  // we might format "3 months" or "9 weeks" or "9 Fridays" or "63 days".
-  // return '';
-  // }
+  const iszero = decimalCompare(n, DecimalConstants.ZERO) === 0;
+  let res = '';
 
-  formatRelativeTimeField(
-    bundle: Bundle,
-    value: DecimalArg,
-    field: RelativeTimeFieldType,
-    options: RelativeTimeFieldFormatOptions,
-    params: NumberParams,
-    transform: ContextTransformInfo,
-  ): string {
-    const width = options.width || 'wide';
-    const format: RelativeTimeFields = this.relativeTimes[width] || this.relativeTimes.wide;
-    const group = options.group === undefined ? true : options.group;
-
-    let n = decimal(value);
-    n = this.internals.numbers.adjustDecimal(n, options);
-    const negative = decimalIsNegative(n);
-    if (negative) {
-      n = decimalNegate(n);
+  if (iszero) {
+    if (options.alwaysNow || !options.numericOnly) {
+      res = vectorGet(format.current, data, field);
     }
-
-    const iszero = decimalCompare(n, DecimalConstants.ZERO) === 0;
-    let res = '';
-
-    if (iszero) {
-      if (options.alwaysNow || !options.numericOnly) {
-        res = vectorGet(format.current, bundle, field);
-      }
-    } else if (!options.numericOnly) {
-      switch (field) {
-        case 'hour':
-        case 'minute':
-        case 'second':
-          break;
-        default:
-          if (decimalCompare(n, DecimalConstants.TWO) === 0) {
-            const p = negative ? vectorGet(format.previous2, bundle, field) : vectorGet(format.next2, bundle, field);
-            if (p !== '') {
-              res = p;
-            }
-            // Fall through
-          } else if (decimalCompare(n, DecimalConstants.ONE) === 0) {
-            res = negative ? vectorGet(format.previous, bundle, field) : vectorGet(format.next, bundle, field);
+  } else if (!options.numericOnly) {
+    switch (field) {
+      case 'hour':
+      case 'minute':
+      case 'second':
+        break;
+      default:
+        if (decimalCompare(n, DecimalConstants.TWO) === 0) {
+          const p = negative ? vectorGet(format.previous2, data, field) : vectorGet(format.next2, data, field);
+          if (p !== '') {
+            res = p;
           }
-          break;
-      }
+          // Fall through
+        } else if (decimalCompare(n, DecimalConstants.ONE) === 0) {
+          res = negative ? vectorGet(format.previous, data, field) : vectorGet(format.next, data, field);
+        }
+        break;
     }
-
-    // If we output anything above, return it
-    if (res) {
-      if (options.context) {
-        res = this.internals.general.contextTransform(res, transform, options.context, 'relative');
-      }
-      return res;
-    }
-
-    // Format a pluralized future / past.
-    const plural = pluralCardinal(bundle.plurals, n) as PluralType;
-    const arrow = negative ? format.past : format.future;
-    let raw = vectorGet(arrow, bundle, plural, field);
-    if (options.context) {
-      raw = this.internals.general.contextTransform(raw, transform, options.context, 'relative');
-    }
-    const num = params.system.formatString(n, group, 1);
-    return this.internals.general.formatWrapper(raw, [num]);
   }
-}
+
+  // If we output anything above, return it
+  if (res) {
+    if (options.context) {
+      res = contextTransform(res, transform, options.context, 'relative');
+    }
+    return res;
+  }
+
+  // Format a pluralized future / past.
+  const plural = pluralCardinal(data.plurals, n) as PluralType;
+  const arrow = negative ? format.past : format.future;
+  let raw = vectorGet(arrow, data, plural, field);
+  if (options.context) {
+    raw = contextTransform(raw, transform, options.context, 'relative');
+  }
+  const num = numberingFormatString(params.system, n, group, 1);
+  return formatWrapper(raw, [num]);
+};

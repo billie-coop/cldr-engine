@@ -1,138 +1,138 @@
 import { calendarsApi } from '../../_helpers';
-import { EraWidthType, FieldWidthType } from '../../../src';
+import { EraWidthType, FieldWidthType, dayPeriods, eras, months, quarters, weekdays } from '../../../src';
 
 test('era', () => {
   const en = calendarsApi('en');
-  let e = en.eras();
+  let e = eras(en);
 
   expect(e[0]).toEqual({ none: 'Before Christ', sensitive: 'Before Common Era' });
   expect(e[1]).toEqual({ none: 'Anno Domini', sensitive: 'Common Era' });
 
-  e = en.eras({ width: 'abbr' });
+  e = eras(en, { width: 'abbr' });
   expect(e[0]).toEqual({ none: 'BC', sensitive: 'BCE' });
   expect(e[1]).toEqual({ none: 'AD', sensitive: 'CE' });
 
-  e = en.eras({ width: 'narrow' });
+  e = eras(en, { width: 'narrow' });
   expect(e[0]).toEqual({ none: 'B', sensitive: 'BCE' });
   expect(e[1]).toEqual({ none: 'A', sensitive: 'CE' });
 
-  e = en.eras({ width: 'names' });
+  e = eras(en, { width: 'names' });
   expect(e[0]).toEqual({ none: 'Before Christ', sensitive: 'Before Common Era' });
   expect(e[1]).toEqual({ none: 'Anno Domini', sensitive: 'Common Era' });
 
-  e = en.eras({ width: 'invalid' as EraWidthType });
+  e = eras(en, { width: 'invalid' as EraWidthType });
   expect(e[0]).toEqual(undefined);
   expect(e[1]).toEqual(undefined);
 
   const es = calendarsApi('es');
-  e = es.eras();
+  e = eras(es);
   expect(e[0]).toEqual({ none: 'antes de Cristo', sensitive: 'antes de la era común' });
 
-  e = es.eras({ context: 'begin-sentence' });
+  e = eras(es, { context: 'begin-sentence' });
   expect(e[0]).toEqual({ none: 'Antes de Cristo', sensitive: 'Antes de la era común' });
 });
 
 test('month', () => {
   const en = calendarsApi('en');
-  let m = en.months();
+  let m = months(en);
 
-  m = en.months({ width: 'narrow' });
+  m = months(en, { width: 'narrow' });
   expect(m[1]).toEqual('J');
   expect(m[10]).toEqual('O');
 
   // short same as narrow for months
-  m = en.months({ width: 'short' });
+  m = months(en, { width: 'short' });
   expect(m[1]).toEqual('J');
   expect(m[10]).toEqual('O');
 
-  m = en.months({ width: 'abbreviated' });
+  m = months(en, { width: 'abbreviated' });
   expect(m[1]).toEqual('Jan');
   expect(m[10]).toEqual('Oct');
 
-  m = en.months({ width: 'wide' });
+  m = months(en, { width: 'wide' });
   expect(m[1]).toEqual('January');
   expect(m[10]).toEqual('October');
 
-  m = en.months({ width: 'invalid' as FieldWidthType });
+  m = months(en, { width: 'invalid' as FieldWidthType });
   expect(m[1]).toEqual(undefined);
   expect(m[10]).toEqual(undefined);
 
-  m = en.months({ ca: 'persian' });
+  m = months(en, { ca: 'persian' });
   expect(m[2]).toEqual('Ordibehesht');
 });
 
 test('weekdays', () => {
   const en = calendarsApi('en');
-  let w = en.weekdays();
+  let w = weekdays(en);
   expect(w[2]).toEqual('Monday');
 
   // fetch twice to exercise caching
-  w = en.weekdays({ width: 'short' });
+  w = weekdays(en, { width: 'short' });
   expect(w[6]).toEqual('Fr');
 
-  w = en.weekdays({ width: 'narrow' });
+  w = weekdays(en, { width: 'narrow' });
   expect(w[6]).toEqual('F');
 
-  w = en.weekdays({ width: 'wide' });
+  w = weekdays(en, { width: 'wide' });
   expect(w[6]).toEqual('Friday');
 
-  w = en.weekdays({ ca: 'persian' });
+  w = weekdays(en, { ca: 'persian' });
   expect(w[2]).toEqual('Monday');
 
   const es = calendarsApi('es');
 
-  w = es.weekdays();
+  w = weekdays(es);
   expect(w[6]).toEqual('viernes');
 
-  w = es.weekdays({ context: 'middle-of-text' });
+  w = weekdays(es, { context: 'middle-of-text' });
   expect(w[6]).toEqual('viernes');
 
-  w = es.weekdays({ context: 'standalone' });
+  w = weekdays(es, { context: 'standalone' });
   expect(w[6]).toEqual('Viernes');
 
-  w = es.weekdays({ context: 'ui-list-or-menu' });
+  w = weekdays(es, { context: 'ui-list-or-menu' });
   expect(w[6]).toEqual('Viernes');
 
-  w = es.weekdays({ context: 'begin-sentence' });
+  w = weekdays(es, { context: 'begin-sentence' });
   expect(w[6]).toEqual('Viernes');
 });
 
 test('day periods', () => {
   let api = calendarsApi('en');
 
-  let d = api.dayPeriods();
+  let d = dayPeriods(api);
   expect(d.am).toEqual({ none: 'AM', casing: 'am' });
   expect(d.noon).toEqual({ none: 'noon' });
 
-  d = api.dayPeriods({ ca: 'persian' });
+  d = dayPeriods(api, { ca: 'persian' });
   expect(d.noon).toEqual({ none: 'noon' });
 
   api = calendarsApi('es');
 
-  d = api.dayPeriods();
+  d = dayPeriods(api);
   expect(d.noon).toEqual({ none: 'mediodía' });
 
-  d = api.dayPeriods({ context: 'begin-sentence' });
+  d = dayPeriods(api, { context: 'begin-sentence' });
   expect(d.noon).toEqual({ none: 'Mediodía' });
 
-  d = api.dayPeriods({ context: 'ui-list-or-menu' });
+  d = dayPeriods(api, { context: 'ui-list-or-menu' });
   expect(d.noon).toEqual({ none: 'mediodía' });
 });
 
 test('quarter', () => {
   let api = calendarsApi('en');
 
-  let q = api.quarters();
+  let q = quarters(api);
   expect(q[2]).toEqual('2nd quarter');
 
-  q = api.quarters({ ca: 'persian' });
+  q = quarters(api, { ca: 'persian' });
   expect(q[2]).toEqual('2nd quarter');
 
   api = calendarsApi('es');
 
-  q = api.quarters();
+  q = quarters(api);
   expect(q[2]).toEqual('2.º trimestre');
 
-  q = api.quarters({ context: 'standalone' });
+  q = quarters(api, { context: 'standalone' });
   expect(q[2]).toEqual('2.º trimestre');
 });

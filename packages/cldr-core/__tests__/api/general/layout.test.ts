@@ -1,17 +1,18 @@
 import { generalApi } from '../../_helpers';
+import { characterOrder, lineOrder } from '../../../src';
 
 test('character order', () => {
   let api = generalApi('en');
-  expect(api.characterOrder()).toEqual('ltr');
+  expect(characterOrder(api)).toEqual('ltr');
 
   api = generalApi('ar-IL');
-  expect(api.characterOrder()).toEqual('rtl');
+  expect(characterOrder(api)).toEqual('rtl');
 });
 
 test('line order', () => {
   let api = generalApi('en');
-  expect(api.lineOrder()).toEqual('ttb');
+  expect(lineOrder(api)).toEqual('ttb');
 
   api = generalApi('ar-IL');
-  expect(api.lineOrder()).toEqual('ttb');
+  expect(lineOrder(api)).toEqual('ttb');
 });

@@ -1,12 +1,12 @@
 import { numbersApi } from '../../_helpers';
-import { Decimal, DecimalAdjustOptions } from '../../../src';
-import { decimalToString } from '@phensley/decimal';
+import { Decimal, DecimalAdjustOptions, adjustDecimal } from '../../../src';
+import { decimalToString, decimal } from '@phensley/decimal';
 
 const API = numbersApi('en');
 
-const adjust = (s: string, opts?: DecimalAdjustOptions): string => decimalToString(API.adjustDecimal(s, opts));
+const adjust = (s: string, opts?: DecimalAdjustOptions): string => decimalToString(adjustDecimal(API, s, opts));
 
-const parse = (n: number | string): Decimal => API.parseDecimal(n);
+const parse = (n: number | string): Decimal => decimal(n);
 
 test('parse decimal', () => {
   let d: Decimal;

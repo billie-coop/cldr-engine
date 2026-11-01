@@ -1,152 +1,128 @@
-import {
-  ContextTransformFieldType,
-  ContextType,
-  LayoutSchema,
-  ListPatternsSchema,
-  ListPatternPositionType,
-  Vector1Arrow,
-} from '@phensley/cldr-types';
-
-import { Part } from '@phensley/decimal';
+import { ContextTransformFieldType, ContextType, ListPatternPositionType, Vector1Arrow } from '@phensley/cldr-types';
 import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
-import { GeneralInternals, Internals } from '../../internals/internals';
-import { Bundle } from '../../resource';
 import { ListPatternType } from '../../common';
 import { ContextTransformInfo } from '../../common/private';
-import { AbstractValue, PartsValue, StringValue } from '../../utils/render';
+import { LocaleData } from '../../locale-data';
+import { AbstractValue } from '../../utils/render';
 import { parseWrapperPattern, WrapperNode } from '../../parsing/wrapper';
-import { fieldGet, vectorMapping } from '../../schema/schema/arrows';
+import { vectorMapping } from '../../schema/schema/arrows';
 
 /**
+ * Size of the shared caches of parsed patterns.
+ *
  * @internal
  */
-export class GeneralInternalsImpl implements GeneralInternals {
-  private layout: LayoutSchema;
-  private listPatterns: ListPatternsSchema;
+export const PATTERN_CACHE_SIZE = 200;
 
-  private wrapperPatternCache: Cache<WrapperNode[]>;
+let wrapperPatternCache: Cache<WrapperNode[]> | undefined;
 
-  constructor(
-    private internals: Internals,
-    cacheSize: number,
-  ) {
-    const schema = internals.schema;
-    this.layout = schema.Layout;
-    this.listPatterns = schema.ListPatterns;
-    this.wrapperPatternCache = createCache(parseWrapperPattern, cacheSize);
+/**
+ * Parse a wrapper pattern like '{0} {1}' (cached).
+ *
+ * @internal
+ */
+export const parseWrapper = (raw: string): WrapperNode[] =>
+  cacheGet(wrapperPatternCache || (wrapperPatternCache = createCache(parseWrapperPattern, PATTERN_CACHE_SIZE)), raw);
+
+/**
+ * Contextually transform a string,
+ *
+ * @internal
+ */
+export const contextTransform = (
+  value: string,
+  info: ContextTransformInfo,
+  context?: ContextType,
+  field?: ContextTransformFieldType,
+): string => {
+  if (!value) {
+    return value;
   }
 
-  characterOrder(bundle: Bundle): string {
-    return fieldGet(this.layout.characterOrder, bundle);
+  const flag = field ? info[field] : '';
+  let title = false;
+  switch (context) {
+    case 'begin-sentence':
+      title = true;
+      break;
+    case 'standalone':
+      title = flag !== undefined && flag[0] === 'T';
+      break;
+    case 'ui-list-or-menu':
+      title = flag !== undefined && flag[1] === 'T';
+      break;
   }
 
-  lineOrder(bundle: Bundle): string {
-    return fieldGet(this.layout.lineOrder, bundle);
+  return title ? value[0].toUpperCase() + value.slice(1) : value;
+};
+
+/**
+ * Format a list of items (strings or parts) using the locale's list pattern.
+ *
+ * @internal
+ */
+export const formatListValue = <R>(data: LocaleData, value: AbstractValue<R>, items: R[], type: ListPatternType): R => {
+  const pattern = vectorMapping(selectListPattern(data, type), data);
+  let len = items.length;
+  if (len < 2) {
+    return len === 1 ? items[0] : value.empty();
   }
 
-  /**
-   * Contextually transform a string,
-   */
-  contextTransform(
-    value: string,
-    info: ContextTransformInfo,
-    context?: ContextType,
-    field?: ContextTransformFieldType,
-  ): string {
-    if (!value) {
-      return value;
-    }
-
-    const flag = field ? info[field] : '';
-    let title = false;
-    switch (context) {
-      case 'begin-sentence':
-        title = true;
-        break;
-      case 'standalone':
-        title = flag !== undefined && flag[0] === 'T';
-        break;
-      case 'ui-list-or-menu':
-        title = flag !== undefined && flag[1] === 'T';
-        break;
-    }
-
-    // TODO: in Unicode "title case" is slightly different than "upper case"
-    // but for now we use `toUpperCase` the first character.
-    return title ? value[0].toUpperCase() + value.slice(1) : value;
+  if (len === 2) {
+    return wrap(pattern.two, value, [items[0], items[1]]);
   }
 
-  formatList(bundle: Bundle, items: string[], type: ListPatternType): string {
-    return this.formatListImpl(bundle, new StringValue(), items, type);
+  let res = wrap(pattern.end, value, [items[len - 2], items[len - 1]]);
+  len -= 2;
+  while (len-- > 1) {
+    res = wrap(pattern.middle, value, [items[len], res]);
   }
+  return wrap(pattern.start, value, [items[0], res]);
+};
 
-  formatListToParts(bundle: Bundle, items: string[], type: ListPatternType): Part[] {
-    const parts: Part[][] = items.map((i) => [{ type: 'item', value: i }]);
-    return this.formatListImpl(bundle, new PartsValue(), parts, type);
-  }
-
-  formatListImpl<R>(bundle: Bundle, value: AbstractValue<R>, items: R[], type: ListPatternType): R {
-    const pattern = vectorMapping(this.selectListPattern(type), bundle);
-    let len = items.length;
-    if (len < 2) {
-      return len === 1 ? items[0] : value.empty();
-    }
-
-    if (len === 2) {
-      return this._wrap(pattern.two, value, [items[0], items[1]]);
-    }
-
-    let res = this._wrap(pattern.end, value, [items[len - 2], items[len - 1]]);
-    len -= 2;
-    while (len-- > 1) {
-      res = this._wrap(pattern.middle, value, [items[len], res]);
-    }
-    return this._wrap(pattern.start, value, [items[0], res]);
-  }
-
-  formatWrapper(format: string, args: string[]): string {
-    const pattern = cacheGet(this.wrapperPatternCache, format);
-    let res = '';
-    for (const node of pattern) {
-      if (typeof node === 'string') {
-        res += node;
-      } else {
-        const s = args[node];
-        if (s) {
-          res += s;
-        }
+/**
+ * Fill a wrapper pattern with string arguments.
+ *
+ * @internal
+ */
+export const formatWrapper = (format: string, args: string[]): string => {
+  const pattern = parseWrapper(format);
+  let res = '';
+  for (const node of pattern) {
+    if (typeof node === 'string') {
+      res += node;
+    } else {
+      const s = args[node];
+      if (s) {
+        res += s;
       }
     }
-    return res;
   }
+  return res;
+};
 
-  parseWrapper(raw: string): WrapperNode[] {
-    return cacheGet(this.wrapperPatternCache, raw);
-  }
+const wrap = <R>(pattern: string, value: AbstractValue<R>, args: R[]): R => {
+  const wrapper = parseWrapper(pattern);
+  value.wrap(wrapper, args);
+  return value.render();
+};
 
-  private _wrap<R>(pattern: string, value: AbstractValue<R>, args: R[]): R {
-    const wrapper = this.internals.general.parseWrapper(pattern);
-    value.wrap(wrapper, args);
-    return value.render();
+const selectListPattern = (data: LocaleData, type: ListPatternType): Vector1Arrow<ListPatternPositionType> => {
+  const p = data.schema.ListPatterns;
+  switch (type) {
+    case 'unit-long':
+      return p.unitLong;
+    case 'unit-narrow':
+      return p.unitNarrow;
+    case 'unit-short':
+      return p.unitShort;
+    case 'or':
+      return p.or;
+    case 'and-short':
+      return p.andShort;
+    case 'and':
+    default:
+      return p.and;
   }
-
-  private selectListPattern(type: ListPatternType): Vector1Arrow<ListPatternPositionType> {
-    const p = this.listPatterns;
-    switch (type) {
-      case 'unit-long':
-        return p.unitLong;
-      case 'unit-narrow':
-        return p.unitNarrow;
-      case 'unit-short':
-        return p.unitShort;
-      case 'or':
-        return p.or;
-      case 'and-short':
-        return p.andShort;
-      case 'and':
-      default:
-        return p.and;
-    }
-  }
-}
+};

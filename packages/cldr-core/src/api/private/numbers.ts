@@ -1,127 +1,147 @@
-import { NumbersSchema, NumberSystemInfo, NumberSystemName } from '@phensley/cldr-types';
+import { NumberSystemInfo, NumberSystemName } from '@phensley/cldr-types';
 
-import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
-
-import { Internals } from '../../internals';
 import { NumberSystemType } from '../../common';
 import { NumberingSystem, NumberParams } from '../../common/private';
-import { DecimalNumberingSystem } from '../../systems';
 import { decimalNumberingDigits } from '../../systems/numbering/autogen.names';
-import { Bundle } from '../../resource';
+import { decimalNumberingSystem } from '../../systems/numbering/decimal';
+import { LocaleData } from '../../locale-data';
 import { scopeGet, vectorExists, vectorGet, vectorMapping, fieldGet } from '../../schema/schema/arrows';
+import { getNumberPattern } from '../../internals/numbers/internal';
+
+// Per-locale state for number params: the latn system (the fallback for every other system) and
+// the params built so far, keyed by real number system name.
+interface NumberParamsState {
+  readonly latnSystemInfo: NumberSystemInfo;
+  readonly latnSystem: NumberingSystem;
+  readonly params: Map<string, NumberParams>;
+}
+
+const STATE = /*#__PURE__*/ new WeakMap<LocaleData, NumberParamsState>();
+
+const state = (data: LocaleData): NumberParamsState => {
+  let s = STATE.get(data);
+  if (s === undefined) {
+    const latnSystemInfo = scopeGet(data.schema.Numbers.numberSystem, 'latn') as NumberSystemInfo;
+    const latnSystem = buildNumberSystem(data, latnSystemInfo, 'latn');
+    s = { latnSystemInfo, latnSystem, params: new Map() };
+    STATE.set(data, s);
+  }
+  return s;
+};
 
 /**
+ * Symbols, digits and grouping for a number system of the locale. The requested system may be a
+ * name ('arab') or a category ('native', 'finance', ...); invalid systems fall back to the given
+ * default, then the locale's default. Defaults to the locale's 'u-nu' extension.
+ *
  * @internal
  */
-export class NumberParamsCache {
-  private numberParamsCache: Cache<NumberParams>;
-  private numbers: NumbersSchema;
-  private latnSystem: NumberingSystem;
-  private latnSystemInfo: NumberSystemInfo;
+export const getNumberParams = (
+  data: LocaleData,
+  numberSystem?: NumberSystemType,
+  defaultSystem?: NumberSystemType,
+): NumberParams => {
+  const st = state(data);
 
-  constructor(
-    private bundle: Bundle,
-    private internals: Internals,
-  ) {
-    this.numberParamsCache = createCache((s: string) => this.build(s as NumberSystemName), 20);
-    this.numbers = internals.schema.Numbers;
-    this.latnSystemInfo = scopeGet(this.numbers.numberSystem, 'latn') as NumberSystemInfo;
-    this.latnSystem = this.buildNumberSystem('latn');
+  // Default numbering system for a locale unless explicitly overridden
+  // https://www.unicode.org/reports/tr35/tr35-33/tr35-numbers.html#defaultNumberingSystem
+  if (!defaultSystem) {
+    defaultSystem = 'default';
+  }
+  if (!numberSystem) {
+    numberSystem = data.numberSystem as NumberSystemType;
   }
 
-  getNumberParams(numberSystem?: NumberSystemType, defaultSystem?: NumberSystemType): NumberParams {
-    // Default numbering system for a locale unless explicitly overridden
-    // https://www.unicode.org/reports/tr35/tr35-33/tr35-numbers.html#defaultNumberingSystem
-    if (!defaultSystem) {
-      defaultSystem = 'default';
-    }
-    if (!numberSystem) {
-      numberSystem = this.bundle.numberSystem as NumberSystemType;
-    }
+  let realName: NumberSystemName = select(data, numberSystem);
 
-    let realName: NumberSystemName = this.select(numberSystem);
+  // Handle invalid number systems by returning the specified default
+  // TODO: include algorithmic number system check
+  if (!decimalNumberingDigits[realName]) {
+    realName = select(data, defaultSystem);
 
-    // Handle invalid number systems by returning the specified default
-    // TODO: include algorithmic number system check
+    // TODO: temporary double-check to default for zh finance until we
+    // have rbnf implemented.
+    /* istanbul ignore if -- @preserve */
     if (!decimalNumberingDigits[realName]) {
-      realName = this.select(defaultSystem);
-
-      // TODO: temporary double-check to default for zh finance until we
-      // have rbnf implemented.
-      /* istanbul ignore if -- @preserve */
-      if (!decimalNumberingDigits[realName]) {
-        realName = this.select('default');
-      }
-    }
-
-    return cacheGet(this.numberParamsCache, realName);
-  }
-
-  protected select(numberSystem: NumberSystemType): NumberSystemName {
-    switch (numberSystem) {
-      case 'default':
-      case 'native':
-      case 'finance':
-      case 'traditional':
-        // Dereference to find real name of number system
-        return vectorGet(this.numbers.numberSystems, this.bundle, numberSystem) as NumberSystemName;
-
-      default:
-        return numberSystem;
+      realName = select(data, 'default');
     }
   }
 
-  protected build(name: NumberSystemName): NumberParams {
-    const { latnSystem } = this;
-
-    const system = name === 'latn' ? latnSystem : this.buildNumberSystem(name);
-
-    const info = scopeGet(this.numbers.numberSystem, name) || this.latnSystemInfo;
-
-    const currencySpacing = vectorExists(info.currencyFormats.spacing, this.bundle)
-      ? vectorMapping(info.currencyFormats.spacing, this.bundle)
-      : vectorMapping(this.latnSystemInfo.currencyFormats.spacing, this.bundle);
-
-    const { minimumGroupingDigits, primaryGroupingSize, secondaryGroupingSize, symbols } = system;
-
-    return {
-      numberSystemName: name,
-      system,
-      latnSystem,
-      digits: makeDigits(name),
-      latinDigits: makeDigits('latn'),
-      symbols,
-      minimumGroupingDigits,
-      primaryGroupingSize,
-      secondaryGroupingSize,
-      currencySpacing,
-    };
+  let params = st.params.get(realName);
+  if (params === undefined) {
+    params = build(data, st, realName);
+    st.params.set(realName, params);
   }
+  return params;
+};
 
-  protected buildNumberSystem(name: NumberSystemName): NumberingSystem {
-    const { bundle } = this;
-    const system = this.numbers.numberSystem;
-    const info = scopeGet(system, name) || this.latnSystemInfo;
-    const symbols = vectorExists(info.symbols, bundle)
-      ? vectorMapping(info.symbols, bundle)
-      : vectorMapping(this.latnSystemInfo.symbols, bundle);
+const select = (data: LocaleData, numberSystem: NumberSystemType): NumberSystemName => {
+  switch (numberSystem) {
+    case 'default':
+    case 'native':
+    case 'finance':
+    case 'traditional':
+      // Dereference to find real name of number system
+      return vectorGet(data.schema.Numbers.numberSystems, data, numberSystem) as NumberSystemName;
 
-    const standardRaw =
-      fieldGet(info.decimalFormats.standard, bundle) || fieldGet(this.latnSystemInfo.decimalFormats.standard, bundle);
-
-    // Fetch standard pattern to determine grouping digits
-    const standard = this.internals.numbers.getNumberPattern(standardRaw, false);
-    const minimumGroupingDigits = Number(fieldGet(this.numbers.minimumGroupingDigits, this.bundle));
-    return new DecimalNumberingSystem(
-      name,
-      decimalNumberingDigits[name],
-      symbols,
-      minimumGroupingDigits,
-      standard.priGroup,
-      standard.secGroup,
-    );
+    default:
+      return numberSystem;
   }
-}
+};
+
+const build = (data: LocaleData, st: NumberParamsState, name: NumberSystemName): NumberParams => {
+  const { latnSystem, latnSystemInfo } = st;
+
+  const system = name === 'latn' ? latnSystem : buildNumberSystem(data, latnSystemInfo, name);
+
+  const info = scopeGet(data.schema.Numbers.numberSystem, name) || latnSystemInfo;
+
+  const currencySpacing = vectorExists(info.currencyFormats.spacing, data)
+    ? vectorMapping(info.currencyFormats.spacing, data)
+    : vectorMapping(latnSystemInfo.currencyFormats.spacing, data);
+
+  const { minimumGroupingDigits, primaryGroupingSize, secondaryGroupingSize, symbols } = system;
+
+  return {
+    numberSystemName: name,
+    system,
+    latnSystem,
+    digits: makeDigits(name),
+    latinDigits: makeDigits('latn'),
+    symbols,
+    minimumGroupingDigits,
+    primaryGroupingSize,
+    secondaryGroupingSize,
+    currencySpacing,
+  };
+};
+
+const buildNumberSystem = (
+  data: LocaleData,
+  latnSystemInfo: NumberSystemInfo,
+  name: NumberSystemName,
+): NumberingSystem => {
+  const numbers = data.schema.Numbers;
+  const info = scopeGet(numbers.numberSystem, name) || latnSystemInfo;
+  const symbols = vectorExists(info.symbols, data)
+    ? vectorMapping(info.symbols, data)
+    : vectorMapping(latnSystemInfo.symbols, data);
+
+  const standardRaw =
+    fieldGet(info.decimalFormats.standard, data) || fieldGet(latnSystemInfo.decimalFormats.standard, data);
+
+  // Fetch standard pattern to determine grouping digits
+  const standard = getNumberPattern(standardRaw, false);
+  const minimumGroupingDigits = Number(fieldGet(numbers.minimumGroupingDigits, data));
+  return decimalNumberingSystem(
+    name,
+    decimalNumberingDigits[name],
+    symbols,
+    minimumGroupingDigits,
+    standard.priGroup,
+    standard.secGroup,
+  );
+};
 
 /**
  * The codepoints for most Unicode decimal digit sets are in increasing order.

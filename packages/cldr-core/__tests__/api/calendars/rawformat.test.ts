@@ -1,6 +1,6 @@
 import { calendarsApi } from '../../_helpers';
 
-import { DateRawFormatOptions, ZonedDateTime } from '../../../src';
+import { DateRawFormatOptions, ZonedDateTime, formatDateRaw } from '../../../src';
 
 const unix = (date: number, zoneId: string): ZonedDateTime => ({ date, zoneId });
 
@@ -16,7 +16,7 @@ test('raw formats', () => {
 
   const widths = [1, 2, 3, 4, 5, 6];
   const format = (date: ZonedDateTime, ch: string, opts: DateRawFormatOptions = {}): string[] =>
-    widths.map((_, i) => api.formatDateRaw(date, { pattern: ch.repeat(widths[i]), ...opts }));
+    widths.map((_, i) => formatDateRaw(api, date, { pattern: ch.repeat(widths[i]), ...opts }));
 
   let res: string[];
 

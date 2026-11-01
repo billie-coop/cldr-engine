@@ -1,7 +1,9 @@
 import { generalApi } from '../../_helpers';
-import { tagCompact, tagExpanded } from '@phensley/language-tag';
+import { tagCompact, tagExpanded, parseLanguageTag } from '@phensley/language-tag';
+import { bindGeneral, resolveLocale } from '../../../src';
 
-const api = generalApi;
+// Exercises the convenience layer's bundle() / locale() accessors.
+const api = (tag: string) => bindGeneral(generalApi(tag));
 
 test('locales', () => {
   expect(api('en').bundle().id).toEqual('en-Latn-US');
@@ -12,17 +14,16 @@ test('locales', () => {
   expect(api('en_US').locale().id).toEqual('en_US');
   expect(api('zh_Hans').locale().id).toEqual('zh_Hans');
 
-  const en = api('en');
-  let locale = en.resolveLocale('und-Latn');
+  let locale = resolveLocale('und-Latn');
   expect(locale.id).toEqual('und-Latn');
   expect(tagCompact(locale.tag)).toEqual('en-Latn-US');
 
   const { tag } = locale;
-  locale = en.resolveLocale(tag);
+  locale = resolveLocale(tag);
   expect(locale.id).toEqual('en-Latn-US');
   expect(tagCompact(locale.tag)).toEqual('en-Latn-US');
 });
 
 test('language tags', () => {
-  expect(tagExpanded(api('en').parseLanguageTag('en'))).toEqual('en-Zzzz-ZZ');
+  expect(tagExpanded(parseLanguageTag('en'))).toEqual('en-Zzzz-ZZ');
 });

@@ -1,5 +1,5 @@
 import { calendarsApi } from '../../_helpers';
-import { ZonedDateTime } from '../../../src';
+import { ZonedDateTime, formatDate } from '../../../src';
 
 const unix = (date: number, zoneId: string): ZonedDateTime => ({ date, zoneId });
 
@@ -14,6 +14,6 @@ test('japanese', () => {
   const api = calendarsApi('en');
   let s: string;
 
-  s = api.formatDate(mar11, { datetime: 'full', ca: 'iso8601' });
+  s = formatDate(api, mar11, { datetime: 'full', ca: 'iso8601' });
   expect(s).toEqual('Saturday, March 10, 2018 at 11:00:25 PM Pacific Standard Time');
 });

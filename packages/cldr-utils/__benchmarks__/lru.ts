@@ -1,5 +1,5 @@
 import { makeSuite } from './util';
-import { LRU, createLRU, lruGet, lruSet } from '../src';
+import { createLRU, lruGet, lruSet } from '../src';
 
 export const lruSuite = makeSuite('LRU');
 export const mapSuite = makeSuite('Map');

@@ -1,6 +1,22 @@
 import { calendarsApi } from '../../_helpers';
 
-import { CalendarDate, GregorianDate } from '../../../src';
+import {
+  CalendarDate,
+  GregorianDate,
+  dateDayOfMonth,
+  dateHour,
+  dateHourOfDay,
+  dateMilliseconds,
+  dateMinute,
+  dateMonth,
+  dateSecond,
+  dateTimeZoneOffset,
+  dateToString,
+  dateUnixEpoch,
+  dateWithZone,
+  dateYear,
+  toGregorianDate,
+} from '../../../src';
 
 const NEW_YORK = 'America/New_York';
 const LOS_ANGELES = 'America/Los_Angeles';
@@ -25,29 +41,29 @@ test('zoned date time gregorian epoch', () => {
 
   // 1514828096789 UTC == Jan 1, 2018 12:34:56.789 EST (UTC-5)
   date = new Date(1514828096789);
-  d = api.toGregorianDate({ date, zoneId: NEW_YORK });
-  expect(d.toString()).toEqual('Gregorian 2018-01-01 12:34:56.789 America/New_York');
-  expect(d.unixEpoch()).toEqual(1514828096789);
-  expect(d.year()).toEqual(2018);
-  expect(d.month()).toEqual(1);
-  expect(d.dayOfMonth()).toEqual(1);
-  expect(d.hour()).toEqual(0);
-  expect(d.hourOfDay()).toEqual(12);
-  expect(d.minute()).toEqual(34);
-  expect(d.second()).toEqual(56);
-  expect(d.milliseconds()).toEqual(789);
+  d = toGregorianDate(api, { date, zoneId: NEW_YORK });
+  expect(dateToString(d)).toEqual('Gregorian 2018-01-01 12:34:56.789 America/New_York');
+  expect(dateUnixEpoch(d)).toEqual(1514828096789);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(1);
+  expect(dateDayOfMonth(d)).toEqual(1);
+  expect(dateHour(d)).toEqual(0);
+  expect(dateHourOfDay(d)).toEqual(12);
+  expect(dateMinute(d)).toEqual(34);
+  expect(dateSecond(d)).toEqual(56);
+  expect(dateMilliseconds(d)).toEqual(789);
 
-  d = api.toGregorianDate({ date, zoneId: LOS_ANGELES });
-  expect(d.toString()).toEqual('Gregorian 2018-01-01 09:34:56.789 America/Los_Angeles');
-  expect(d.unixEpoch()).toEqual(1514828096789);
-  expect(d.year()).toEqual(2018);
-  expect(d.month()).toEqual(1);
-  expect(d.dayOfMonth()).toEqual(1);
-  expect(d.hour()).toEqual(9);
-  expect(d.hourOfDay()).toEqual(9);
-  expect(d.minute()).toEqual(34);
-  expect(d.second()).toEqual(56);
-  expect(d.milliseconds()).toEqual(789);
+  d = toGregorianDate(api, { date, zoneId: LOS_ANGELES });
+  expect(dateToString(d)).toEqual('Gregorian 2018-01-01 09:34:56.789 America/Los_Angeles');
+  expect(dateUnixEpoch(d)).toEqual(1514828096789);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(1);
+  expect(dateDayOfMonth(d)).toEqual(1);
+  expect(dateHour(d)).toEqual(9);
+  expect(dateHourOfDay(d)).toEqual(9);
+  expect(dateMinute(d)).toEqual(34);
+  expect(dateSecond(d)).toEqual(56);
+  expect(dateMilliseconds(d)).toEqual(789);
 
   // -12219333903211 UTC
   // Gregorian cutover Thurs Oct 4, 1582 - Fri Oct 15, 1582
@@ -55,43 +71,43 @@ test('zoned date time gregorian epoch', () => {
 
   // NOTE: can't use new Date here, see note at top.
   let utc = -12219333903211;
-  d = api.toGregorianDate({ date: utc, zoneId: ROME });
+  d = toGregorianDate(api, { date: utc, zoneId: ROME });
 
   // Rome's LMT offset is 0:49:56
-  expect(d.timeZoneOffset()).toEqual(2996000);
+  expect(dateTimeZoneOffset(d)).toEqual(2996000);
 
   // Skip checking seconds for Node > v8
-  expect(d.toString()).toEqual('Gregorian 1582-10-04 13:24:52.789 Europe/Rome');
-  expect(d.unixEpoch()).toEqual(-12219333903211);
-  expect(d.year()).toEqual(1582);
-  expect(d.month()).toEqual(10);
-  expect(d.hour()).toEqual(1);
-  expect(d.hourOfDay()).toEqual(13);
-  expect(d.minute()).toEqual(24);
-  expect(d.second()).toEqual(52);
-  expect(d.milliseconds()).toEqual(789);
+  expect(dateToString(d)).toEqual('Gregorian 1582-10-04 13:24:52.789 Europe/Rome');
+  expect(dateUnixEpoch(d)).toEqual(-12219333903211);
+  expect(dateYear(d)).toEqual(1582);
+  expect(dateMonth(d)).toEqual(10);
+  expect(dateHour(d)).toEqual(1);
+  expect(dateHourOfDay(d)).toEqual(13);
+  expect(dateMinute(d)).toEqual(24);
+  expect(dateSecond(d)).toEqual(52);
+  expect(dateMilliseconds(d)).toEqual(789);
 
   // -12219247503211 UTC
   // date = new Date(1582, 9, 15, 12, 34, 56, 789);
 
   // NOTE: can't use new Date here, see note at top.
   utc = -12219247503211;
-  d = api.toGregorianDate({ date: utc, zoneId: ROME });
+  d = toGregorianDate(api, { date: utc, zoneId: ROME });
 
   // Rome's LMT offset is 0:49:56
-  expect(d.timeZoneOffset()).toEqual(2996000);
+  expect(dateTimeZoneOffset(d)).toEqual(2996000);
 
   // Skip checking seconds for Node > v8
-  expect(d.toString()).toEqual('Gregorian 1582-10-15 13:24:52.789 Europe/Rome');
-  expect(d.unixEpoch()).toEqual(-12219247503211);
-  expect(d.year()).toEqual(1582);
-  expect(d.month()).toEqual(10);
-  expect(d.dayOfMonth()).toEqual(15);
-  expect(d.hour()).toEqual(1);
-  expect(d.hourOfDay()).toEqual(13);
-  expect(d.minute()).toEqual(24);
-  expect(d.second()).toEqual(52);
-  expect(d.milliseconds()).toEqual(789);
+  expect(dateToString(d)).toEqual('Gregorian 1582-10-15 13:24:52.789 Europe/Rome');
+  expect(dateUnixEpoch(d)).toEqual(-12219247503211);
+  expect(dateYear(d)).toEqual(1582);
+  expect(dateMonth(d)).toEqual(10);
+  expect(dateDayOfMonth(d)).toEqual(15);
+  expect(dateHour(d)).toEqual(1);
+  expect(dateHourOfDay(d)).toEqual(13);
+  expect(dateMinute(d)).toEqual(24);
+  expect(dateSecond(d)).toEqual(52);
+  expect(dateMilliseconds(d)).toEqual(789);
 });
 
 test('bare date', () => {
@@ -99,19 +115,19 @@ test('bare date', () => {
   let d: CalendarDate;
 
   // Defaults to UTC. 1519148040000 == Feb 20, 2018 12:34 EST (UTC-5)
-  d = api.toGregorianDate(new Date(1519148040000));
-  expect(d.unixEpoch()).toEqual(1519148040000);
-  expect(d.year()).toEqual(2018);
-  expect(d.month()).toEqual(2);
-  expect(d.dayOfMonth()).toEqual(20);
-  expect(d.hour()).toEqual(5);
-  expect(d.hourOfDay()).toEqual(17);
-  expect(d.minute()).toEqual(34);
-  expect(d.second()).toEqual(0);
+  d = toGregorianDate(api, new Date(1519148040000));
+  expect(dateUnixEpoch(d)).toEqual(1519148040000);
+  expect(dateYear(d)).toEqual(2018);
+  expect(dateMonth(d)).toEqual(2);
+  expect(dateDayOfMonth(d)).toEqual(20);
+  expect(dateHour(d)).toEqual(5);
+  expect(dateHourOfDay(d)).toEqual(17);
+  expect(dateMinute(d)).toEqual(34);
+  expect(dateSecond(d)).toEqual(0);
 
-  d = d.withZone(NEW_YORK);
-  expect(d.hour()).toEqual(0);
-  expect(d.hourOfDay()).toEqual(12);
+  d = dateWithZone(d, NEW_YORK);
+  expect(dateHour(d)).toEqual(0);
+  expect(dateHourOfDay(d)).toEqual(12);
 });
 
 test('noop conversions', () => {
@@ -120,7 +136,7 @@ test('noop conversions', () => {
   let r: CalendarDate;
 
   // Feb 1, 2018 midnight UTC
-  d = api.toGregorianDate(new Date(1517443200000));
-  r = api.toGregorianDate(d);
+  d = toGregorianDate(api, new Date(1517443200000));
+  r = toGregorianDate(api, d);
   expect(d).toEqual(r);
 });

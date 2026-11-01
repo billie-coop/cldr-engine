@@ -1,5 +1,14 @@
 import { Temporal } from '@js-temporal/polyfill';
-import { CalendarDate, GregorianDate, TimePeriod, TimePeriodField } from '../../../src';
+import {
+  CalendarDate,
+  TimePeriod,
+  TimePeriodField,
+  dateAdd,
+  dateSince,
+  dateToDateString,
+  dateToDateTimeString,
+  gregorianDateFromUnixEpoch,
+} from '../../../src';
 import {
   FEB_28_2024,
   FEB_29_2024,
@@ -14,13 +23,13 @@ import {
 } from './_referencedates';
 import { CLDRFormatter, durationToPeriod, enumerate, periodToDurationLike, TemporalFormatter } from './_utils';
 
-const gregorian = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, 1, 1);
+const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const tempstr = (t: Temporal.ZonedDateTime): string =>
   `${t.toPlainDate().toString()} ${t.toPlainTime().toString()}${t.offset}`;
 
 const cldrstr = (c: CalendarDate): string =>
-  c.toDateTimeString({ includeZoneOffset: true, optionalMilliseconds: true });
+  dateToDateTimeString(c, { includeZoneOffset: true, optionalMilliseconds: true });
 
 const edgeCaseEpochs = (epoch1: number, epoch2: number, zone: string) => {
   const tempfmt = new TemporalFormatter({ includeZoneOffset: true });
@@ -29,7 +38,7 @@ const edgeCaseEpochs = (epoch1: number, epoch2: number, zone: string) => {
   const cldr2 = gregorian(epoch2, zone);
   const temp1 = Temporal.Instant.fromEpochMilliseconds(epoch1).toZonedDateTimeISO(zone);
   const temp2 = Temporal.Instant.fromEpochMilliseconds(epoch2).toZonedDateTimeISO(zone);
-  const csince = cldr1.since(cldr2);
+  const csince = dateSince(cldr1, cldr2);
   const tsince = temp1.since(temp2, { largestUnit: 'year', smallestUnit: 'millisecond' });
   expect(cldrfmt.periodString(csince)).toEqual(tempfmt.durationString(tsince));
 };
@@ -118,10 +127,10 @@ test('dates', () => {
       const cldr1 = gregorian(epoch, zone);
 
       const cldrtime: Partial<TimePeriod> = { day };
-      const cldr2 = cldr1.add(cldrtime);
-      const msg = `case ${index}: ${cldr1.toDateString()} days ${day}`;
-      expect(cldr2.toDateString(), msg).toEqual(expDate);
-      const cldrsince = cldr1.since(cldr2, { fields });
+      const cldr2 = dateAdd(cldr1, cldrtime);
+      const msg = `case ${index}: ${dateToDateString(cldr1)} days ${day}`;
+      expect(dateToDateString(cldr2), msg).toEqual(expDate);
+      const cldrsince = dateSince(cldr1, cldr2, { fields });
       expect(cldrfmt.periodString(cldrsince), msg).toEqual(expDiff);
 
       // Temporal only supports specifying a largest and smallest field, creating a range.
@@ -256,14 +265,14 @@ test('dates and times', () => {
     const temp1 = Temporal.Instant.fromEpochMilliseconds(epoch).toZonedDateTimeISO(zone || 'UTC');
     const cldr1 = gregorian(epoch, zone || 'UTC');
     const temp2 = temp1.add(periodToDurationLike(added));
-    const cldr2 = cldr1.add(added);
+    const cldr2 = dateAdd(cldr1, added);
 
     const msg = `case ${index}: ${cldrstr(cldr1)} ${zone} ${JSON.stringify(added)} fields ${JSON.stringify(fields)}`;
 
-    const csince = cldr1.since(cldr2, { fields });
+    const csince = dateSince(cldr1, cldr2, { fields });
 
     expect(cldrstr(cldr2), msg).toEqual(tempstr(temp2));
-    expect(cldr2.toDateString(), msg).toEqual(expDate);
+    expect(dateToDateString(cldr2), msg).toEqual(expDate);
     expect(cldrfmt.periodString(csince), msg).toEqual(expDiff);
 
     // Compare to Temporal result when no rollup fields are defined.

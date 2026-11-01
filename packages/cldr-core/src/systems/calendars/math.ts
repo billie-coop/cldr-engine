@@ -1,9 +1,9 @@
-import { CalendarDate } from './calendar';
 import { CalendarConstants } from './constants';
 import { DateField, DayOfWeek } from './fields';
 import { daysInMonth } from './gregorianmath';
 import { TIME_PERIOD_FIELDS, TimePeriod } from './interval';
-import { substituteZoneAlias, ZoneInfo, zoneInfoFromUTC } from './timezone';
+import { substituteZoneAlias, DateZoneInfo, zoneInfoFromUTC } from './timezone';
+import { CalendarDate, CalendarDateFields } from './types';
 
 const { floor } = Math;
 
@@ -22,9 +22,9 @@ export interface YearMonth {
  * Extract year, month, and day fields.
  */
 export const toYMD = (d: CalendarDate): YearMonthDay => ({
-  year: d.extendedYear(),
-  month: d.month(),
-  day: d.dayOfMonth(),
+  year: d.fields[DateField.EXTENDED_YEAR],
+  month: d.fields[DateField.MONTH],
+  day: d.fields[DateField.DAY_OF_MONTH],
 });
 
 /**
@@ -102,6 +102,16 @@ export const timeToMillis = (period: Partial<TimePeriod>): number => {
 };
 
 /**
+ * Rollup just the wall-clock time fields into number of milliseconds, clamping each
+ * to its valid range.
+ */
+export const wallTimeToMillis = (f: Partial<CalendarDateFields>): number =>
+  (clamp(f.hour || 0, 0, 23) | 0) * CalendarConstants.ONE_HOUR_MS +
+  (clamp(f.minute || 0, 0, 59) | 0) * CalendarConstants.ONE_MINUTE_MS +
+  (clamp(f.second || 0, 0, 59) | 0) * CalendarConstants.ONE_SECOND_MS +
+  (clamp(f.millis || 0, 0, 999) | 0);
+
+/**
  * Keep the integral part of each field and replace undefined with zero.
  */
 export const truncateFields = (fields: Partial<TimePeriod>): TimePeriod => {
@@ -134,7 +144,7 @@ export const jdFromUnixEpoch = (ms: number): [number, number] => {
 /**
  * Initialize base calendar fields.
  */
-export const initBaseFromUnixEpoch = (f: number[], ms: number, zoneId: string): ZoneInfo => {
+export const initBaseFromUnixEpoch = (f: number[], ms: number, zoneId: string): DateZoneInfo => {
   zoneId = substituteZoneAlias(zoneId);
   const zoneInfo = zoneInfoFromUTC(zoneId, ms);
   fieldsFromUnixEpoch(ms + zoneInfo.offset, f);

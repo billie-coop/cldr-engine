@@ -1,8 +1,8 @@
 import { calendarsApi } from '../../_helpers';
-import { Calendars, TimeData } from '../../../src';
+import { bindCalendars, timeData, Calendars, TimeData } from '../../../src';
 
 test('time data', () => {
-  let api: Calendars = calendarsApi('en-US');
+  let api: Calendars = bindCalendars(calendarsApi('en-US'));
   let t: TimeData;
 
   const date = {
@@ -22,7 +22,7 @@ test('time data', () => {
     '1 in the afternoon',
   ]);
 
-  api = calendarsApi('es-ES');
+  api = bindCalendars(calendarsApi('es-ES'));
   t = api.timeData();
   expect(t.preferred).toEqual('H');
   expect(t.allowed).toEqual(['H', 'h', 'hB', 'hb']);
@@ -35,23 +35,23 @@ test('time data', () => {
     '1 p. m.',
   ]);
 
-  t = calendarsApi('es-419').timeData();
+  t = timeData(calendarsApi('es-419'));
   expect(t.preferred).toEqual('h');
   expect(t.allowed).toEqual(['h', 'H', 'hB', 'hb']);
 
-  t = calendarsApi('und-AR').timeData();
+  t = timeData(calendarsApi('und-AR'));
   expect(t.preferred).toEqual('h');
   expect(t.allowed).toEqual(['h', 'H', 'hB', 'hb']);
 
-  t = calendarsApi('es-AR').timeData();
+  t = timeData(calendarsApi('es-AR'));
   expect(t.preferred).toEqual('h');
   expect(t.allowed).toEqual(['h', 'H', 'hB', 'hb']);
 
-  t = calendarsApi('es-BR').timeData();
+  t = timeData(calendarsApi('es-BR'));
   expect(t.preferred).toEqual('H');
   expect(t.allowed).toEqual(['H', 'h', 'hB', 'hb']);
 
-  t = calendarsApi('und-BR').timeData();
+  t = timeData(calendarsApi('und-BR'));
   expect(t.preferred).toEqual('H');
   expect(t.allowed).toEqual(['H', 'hB']);
 });

@@ -1,50 +1,21 @@
 import { config as defaultconfig } from '../../../cldr/src/config';
 
 import { languageBundle } from './bundle';
-import {
-  Bundle,
-  CalendarsImpl,
-  GeneralImpl,
-  InternalsImpl,
-  NumbersImpl,
-  PrivateApiImpl,
-  SchemaConfig,
-  UnitsImpl,
-} from '../../src';
+import { LocaleData, SchemaConfig } from '../../src';
 
 import { VERSION as _VERSION } from '../../src/utils/version';
-import { resolveLocaleId } from '@phensley/locale';
 
 export const VERSION = _VERSION;
 
 export const buildConfig = (cfg: SchemaConfig): SchemaConfig => ({ ...defaultconfig, ...cfg }) as SchemaConfig;
 
-export const INTERNALS = (): InternalsImpl => new InternalsImpl(defaultconfig as SchemaConfig, VERSION);
+// The 1.x helpers built a separate API object per area; with the function API they all return
+// the locale data that the functions take as their first argument.
 
-export const privateApi = (bundle: Bundle, config?: SchemaConfig): PrivateApiImpl =>
-  new PrivateApiImpl(bundle, new InternalsImpl(config || defaultconfig, VERSION));
+export const calendarsApi = (tag: string, config?: SchemaConfig): LocaleData => languageBundle(tag, config);
 
-export const calendarsApi = (tag: string, config?: SchemaConfig): CalendarsImpl => {
-  const bundle = languageBundle(tag, config);
-  const internals = new InternalsImpl(config || defaultconfig, VERSION);
-  const _private = new PrivateApiImpl(bundle, internals);
-  return new CalendarsImpl(bundle, internals, _private);
-};
+export const generalApi = (tag: string, config?: SchemaConfig): LocaleData => languageBundle(tag, config);
 
-export const generalApi = (tag: string, config?: SchemaConfig): GeneralImpl => {
-  const bundle = languageBundle(tag, config);
-  const internals = new InternalsImpl(config || defaultconfig, VERSION);
-  return new GeneralImpl(bundle, resolveLocaleId(tag), internals, privateApi(bundle, config));
-};
+export const numbersApi = (tag: string, config?: SchemaConfig): LocaleData => languageBundle(tag, config);
 
-export const numbersApi = (tag: string, config?: SchemaConfig): NumbersImpl => {
-  const bundle = languageBundle(tag, config);
-  const internals = new InternalsImpl(config || defaultconfig, VERSION);
-  return new NumbersImpl(bundle, internals.numbers, internals.general, privateApi(bundle, config));
-};
-
-export const unitsApi = (tag: string, config?: SchemaConfig): UnitsImpl => {
-  const bundle = languageBundle(tag, config);
-  const internals = new InternalsImpl(config || defaultconfig, VERSION);
-  return new UnitsImpl(bundle, internals, new PrivateApiImpl(bundle, internals));
-};
+export const unitsApi = (tag: string, config?: SchemaConfig): LocaleData => languageBundle(tag, config);

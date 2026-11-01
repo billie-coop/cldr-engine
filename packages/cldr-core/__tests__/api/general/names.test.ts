@@ -1,149 +1,157 @@
 import { AltType } from '@phensley/cldr-types';
-import { generalApi, languageBundle, INTERNALS } from '../../_helpers';
-import { parseLanguageTag, DisplayNameOptions, LanguageTag, vectorGet } from '../../../src';
+import { generalApi, languageBundle } from '../../_helpers';
+import {
+  parseLanguageTag,
+  DisplayNameOptions,
+  LanguageTag,
+  vectorGet,
+  getLanguageDisplayName,
+  getRegionDisplayName,
+  getScriptDisplayName,
+} from '../../../src';
 
 test('languages', () => {
   let tag: LanguageTag;
 
   let api = generalApi('en');
-  expect(api.getLanguageDisplayName('en')).toEqual('English');
-  expect(api.getLanguageDisplayName('en-US')).toEqual('American English');
-  expect(api.getLanguageDisplayName('es-419')).toEqual('Latin American Spanish');
-  expect(api.getLanguageDisplayName('de')).toEqual('German');
-  expect(api.getLanguageDisplayName('fr')).toEqual('French');
-  expect(api.getLanguageDisplayName('ko')).toEqual('Korean');
-  expect(api.getLanguageDisplayName('de-CH')).toEqual('Swiss High German');
-  expect(api.getLanguageDisplayName('en-GB')).toEqual('British English');
-  expect(api.getLanguageDisplayName('en-GB', { type: 'short' })).toEqual('UK English');
-  expect(api.getLanguageDisplayName('zh-Hans')).toEqual('Simplified Chinese');
-  expect(api.getLanguageDisplayName('zh-Hans', { type: 'long' })).toEqual('Simplified Mandarin Chinese');
-  expect(api.getLanguageDisplayName('zh-Hant')).toEqual('Traditional Chinese');
-  expect(api.getLanguageDisplayName('zh-Hant', { type: 'long' })).toEqual('Traditional Mandarin Chinese');
-  expect(api.getLanguageDisplayName('yue')).toEqual('Cantonese');
-  expect(api.getLanguageDisplayName('yue', { type: 'menu' })).toEqual('Chinese, Cantonese');
-  expect(api.getLanguageDisplayName('zh', { type: 'menu' })).toEqual('Chinese, Mandarin');
+  expect(getLanguageDisplayName(api, 'en')).toEqual('English');
+  expect(getLanguageDisplayName(api, 'en-US')).toEqual('American English');
+  expect(getLanguageDisplayName(api, 'es-419')).toEqual('Latin American Spanish');
+  expect(getLanguageDisplayName(api, 'de')).toEqual('German');
+  expect(getLanguageDisplayName(api, 'fr')).toEqual('French');
+  expect(getLanguageDisplayName(api, 'ko')).toEqual('Korean');
+  expect(getLanguageDisplayName(api, 'de-CH')).toEqual('Swiss High German');
+  expect(getLanguageDisplayName(api, 'en-GB')).toEqual('British English');
+  expect(getLanguageDisplayName(api, 'en-GB', { type: 'short' })).toEqual('UK English');
+  expect(getLanguageDisplayName(api, 'zh-Hans')).toEqual('Simplified Chinese');
+  expect(getLanguageDisplayName(api, 'zh-Hans', { type: 'long' })).toEqual('Simplified Mandarin Chinese');
+  expect(getLanguageDisplayName(api, 'zh-Hant')).toEqual('Traditional Chinese');
+  expect(getLanguageDisplayName(api, 'zh-Hant', { type: 'long' })).toEqual('Traditional Mandarin Chinese');
+  expect(getLanguageDisplayName(api, 'yue')).toEqual('Cantonese');
+  expect(getLanguageDisplayName(api, 'yue', { type: 'menu' })).toEqual('Chinese, Cantonese');
+  expect(getLanguageDisplayName(api, 'zh', { type: 'menu' })).toEqual('Chinese, Mandarin');
 
   // unknown subtags
-  expect(api.getLanguageDisplayName('en-Zzzz-ZZ')).toEqual('English');
-  expect(api.getLanguageDisplayName('und-Zzzz-ZZ')).toEqual('Unknown language');
+  expect(getLanguageDisplayName(api, 'en-Zzzz-ZZ')).toEqual('English');
+  expect(getLanguageDisplayName(api, 'und-Zzzz-ZZ')).toEqual('Unknown language');
 
   // tags
   tag = parseLanguageTag('und');
-  expect(api.getLanguageDisplayName(tag)).toEqual('Unknown language');
+  expect(getLanguageDisplayName(api, tag)).toEqual('Unknown language');
   tag = parseLanguageTag('en');
-  expect(api.getLanguageDisplayName(tag)).toEqual('English');
+  expect(getLanguageDisplayName(api, tag)).toEqual('English');
   tag = parseLanguageTag('en-US');
-  expect(api.getLanguageDisplayName(tag)).toEqual('American English');
+  expect(getLanguageDisplayName(api, tag)).toEqual('American English');
   tag = parseLanguageTag('zh-Zzzz');
-  expect(api.getLanguageDisplayName(tag)).toEqual('Chinese');
+  expect(getLanguageDisplayName(api, tag)).toEqual('Chinese');
   tag = parseLanguageTag('zh-Hans');
-  expect(api.getLanguageDisplayName(tag)).toEqual('Simplified Chinese');
+  expect(getLanguageDisplayName(api, tag)).toEqual('Simplified Chinese');
   tag = parseLanguageTag('zh-Zzzz-CN');
-  expect(api.getLanguageDisplayName(tag)).toEqual('Simplified Chinese');
+  expect(getLanguageDisplayName(api, tag)).toEqual('Simplified Chinese');
   tag = parseLanguageTag('zh-Zzzz-TW');
-  expect(api.getLanguageDisplayName(tag)).toEqual('Traditional Chinese');
+  expect(getLanguageDisplayName(api, tag)).toEqual('Traditional Chinese');
 
   api = generalApi('es');
-  expect(api.getLanguageDisplayName('en')).toEqual('Inglés');
-  expect(api.getLanguageDisplayName('es-419')).toEqual('Español latinoamericano');
-  expect(api.getLanguageDisplayName('de')).toEqual('Alemán');
-  expect(api.getLanguageDisplayName('fr')).toEqual('Francés');
-  expect(api.getLanguageDisplayName('ko')).toEqual('Coreano');
+  expect(getLanguageDisplayName(api, 'en')).toEqual('Inglés');
+  expect(getLanguageDisplayName(api, 'es-419')).toEqual('Español latinoamericano');
+  expect(getLanguageDisplayName(api, 'de')).toEqual('Alemán');
+  expect(getLanguageDisplayName(api, 'fr')).toEqual('Francés');
+  expect(getLanguageDisplayName(api, 'ko')).toEqual('Coreano');
 
   const opts: DisplayNameOptions = { context: 'middle-of-text' };
-  expect(api.getLanguageDisplayName('en', opts)).toEqual('inglés');
-  expect(api.getLanguageDisplayName('de', opts)).toEqual('alemán');
-  expect(api.getLanguageDisplayName('fr', opts)).toEqual('francés');
-  expect(api.getLanguageDisplayName('ko', opts)).toEqual('coreano');
+  expect(getLanguageDisplayName(api, 'en', opts)).toEqual('inglés');
+  expect(getLanguageDisplayName(api, 'de', opts)).toEqual('alemán');
+  expect(getLanguageDisplayName(api, 'fr', opts)).toEqual('francés');
+  expect(getLanguageDisplayName(api, 'ko', opts)).toEqual('coreano');
 
   api = generalApi('de');
-  expect(api.getLanguageDisplayName('en')).toEqual('Englisch');
-  expect(api.getLanguageDisplayName('de')).toEqual('Deutsch');
-  expect(api.getLanguageDisplayName('fr')).toEqual('Französisch');
-  expect(api.getLanguageDisplayName('ko')).toEqual('Koreanisch');
+  expect(getLanguageDisplayName(api, 'en')).toEqual('Englisch');
+  expect(getLanguageDisplayName(api, 'de')).toEqual('Deutsch');
+  expect(getLanguageDisplayName(api, 'fr')).toEqual('Französisch');
+  expect(getLanguageDisplayName(api, 'ko')).toEqual('Koreanisch');
 
   api = generalApi('ko');
-  expect(api.getLanguageDisplayName('en')).toEqual('영어');
-  expect(api.getLanguageDisplayName('de')).toEqual('독일어');
-  expect(api.getLanguageDisplayName('fr')).toEqual('프랑스어');
-  expect(api.getLanguageDisplayName('ko')).toEqual('한국어');
+  expect(getLanguageDisplayName(api, 'en')).toEqual('영어');
+  expect(getLanguageDisplayName(api, 'de')).toEqual('독일어');
+  expect(getLanguageDisplayName(api, 'fr')).toEqual('프랑스어');
+  expect(getLanguageDisplayName(api, 'ko')).toEqual('한국어');
 });
 
 test('scripts', () => {
   let tag: LanguageTag;
 
   let api = generalApi('en');
-  expect(api.getScriptDisplayName('Latn')).toEqual('Latin');
-  expect(api.getScriptDisplayName('Cyrl')).toEqual('Cyrillic');
-  expect(api.getScriptDisplayName('Hant')).toEqual('Traditional');
-  expect(api.getScriptDisplayName('Arab')).toEqual('Arabic');
-  expect(api.getScriptDisplayName('Arab', { type: 'variant' })).toEqual('Perso-Arabic');
-  expect(api.getScriptDisplayName('Cans', { type: 'short' })).toEqual('UCAS');
-  expect(api.getScriptDisplayName('Zzzz')).toEqual('Unknown Script');
+  expect(getScriptDisplayName(api, 'Latn')).toEqual('Latin');
+  expect(getScriptDisplayName(api, 'Cyrl')).toEqual('Cyrillic');
+  expect(getScriptDisplayName(api, 'Hant')).toEqual('Traditional');
+  expect(getScriptDisplayName(api, 'Arab')).toEqual('Arabic');
+  expect(getScriptDisplayName(api, 'Arab', { type: 'variant' })).toEqual('Perso-Arabic');
+  expect(getScriptDisplayName(api, 'Cans', { type: 'short' })).toEqual('UCAS');
+  expect(getScriptDisplayName(api, 'Zzzz')).toEqual('Unknown Script');
 
   // tags
   tag = parseLanguageTag('en-Zzzz');
-  expect(api.getScriptDisplayName(tag)).toEqual('Latin');
+  expect(getScriptDisplayName(api, tag)).toEqual('Latin');
   tag = parseLanguageTag('und-Zzzz');
-  expect(api.getScriptDisplayName(tag)).toEqual('Unknown Script');
+  expect(getScriptDisplayName(api, tag)).toEqual('Unknown Script');
   tag = parseLanguageTag('en');
-  expect(api.getScriptDisplayName(tag)).toEqual('Latin');
+  expect(getScriptDisplayName(api, tag)).toEqual('Latin');
   tag = parseLanguageTag('zh-CN');
-  expect(api.getScriptDisplayName(tag)).toEqual('Simplified');
+  expect(getScriptDisplayName(api, tag)).toEqual('Simplified');
   tag = parseLanguageTag('zh-TW');
-  expect(api.getScriptDisplayName(tag)).toEqual('Traditional');
+  expect(getScriptDisplayName(api, tag)).toEqual('Traditional');
 
   api = generalApi('es');
-  expect(api.getScriptDisplayName('Latn')).toEqual('Latino');
-  expect(api.getScriptDisplayName('Cyrl')).toEqual('Cirílico');
-  expect(api.getScriptDisplayName('Hant')).toEqual('Tradicional');
-  expect(api.getScriptDisplayName('Arab')).toEqual('Árabe');
-  expect(api.getScriptDisplayName('Zzzz')).toEqual('Alfabeto desconocido');
+  expect(getScriptDisplayName(api, 'Latn')).toEqual('Latino');
+  expect(getScriptDisplayName(api, 'Cyrl')).toEqual('Cirílico');
+  expect(getScriptDisplayName(api, 'Hant')).toEqual('Tradicional');
+  expect(getScriptDisplayName(api, 'Arab')).toEqual('Árabe');
+  expect(getScriptDisplayName(api, 'Zzzz')).toEqual('Alfabeto desconocido');
 
   const opts: DisplayNameOptions = { context: 'middle-of-text' };
-  expect(api.getScriptDisplayName('Latn', opts)).toEqual('latino');
-  expect(api.getScriptDisplayName('Cyrl', opts)).toEqual('cirílico');
-  expect(api.getScriptDisplayName('Hant', opts)).toEqual('tradicional');
-  expect(api.getScriptDisplayName('Arab', opts)).toEqual('árabe');
-  expect(api.getScriptDisplayName('Zzzz', opts)).toEqual('alfabeto desconocido');
+  expect(getScriptDisplayName(api, 'Latn', opts)).toEqual('latino');
+  expect(getScriptDisplayName(api, 'Cyrl', opts)).toEqual('cirílico');
+  expect(getScriptDisplayName(api, 'Hant', opts)).toEqual('tradicional');
+  expect(getScriptDisplayName(api, 'Arab', opts)).toEqual('árabe');
+  expect(getScriptDisplayName(api, 'Zzzz', opts)).toEqual('alfabeto desconocido');
 });
 
 test('regions', () => {
   let tag: LanguageTag;
 
   let api = generalApi('en');
-  expect(api.getRegionDisplayName('US')).toEqual('United States');
-  expect(api.getRegionDisplayName('US', { type: 'short' })).toEqual('US');
-  expect(api.getRegionDisplayName('US', { type: 'INVALID' as AltType })).toEqual('United States');
+  expect(getRegionDisplayName(api, 'US')).toEqual('United States');
+  expect(getRegionDisplayName(api, 'US', { type: 'short' })).toEqual('US');
+  expect(getRegionDisplayName(api, 'US', { type: 'INVALID' as AltType })).toEqual('United States');
 
-  expect(api.getRegionDisplayName('ZZ')).toEqual('Unknown Region');
+  expect(getRegionDisplayName(api, 'ZZ')).toEqual('Unknown Region');
 
-  expect(api.getRegionDisplayName('DE', { type: 'variant' })).toEqual('Germany');
-  expect(api.getRegionDisplayName('DE', { type: 'narrow' })).toEqual('Germany');
+  expect(getRegionDisplayName(api, 'DE', { type: 'variant' })).toEqual('Germany');
+  expect(getRegionDisplayName(api, 'DE', { type: 'narrow' })).toEqual('Germany');
 
   // tags
   tag = parseLanguageTag('und-US');
-  expect(api.getRegionDisplayName(tag)).toEqual('United States');
+  expect(getRegionDisplayName(api, tag)).toEqual('United States');
   tag = parseLanguageTag('und-ZZ');
-  expect(api.getRegionDisplayName(tag)).toEqual('Unknown Region');
+  expect(getRegionDisplayName(api, tag)).toEqual('Unknown Region');
   tag = parseLanguageTag('en-ZZ');
-  expect(api.getRegionDisplayName(tag)).toEqual('United States');
+  expect(getRegionDisplayName(api, tag)).toEqual('United States');
 
   api = generalApi('es');
-  expect(api.getRegionDisplayName('US')).toEqual('Estados Unidos');
-  expect(api.getRegionDisplayName('US', { type: 'short' })).toEqual('EE. UU.');
-  expect(api.getRegionDisplayName('ZZ')).toEqual('Región desconocida');
+  expect(getRegionDisplayName(api, 'US')).toEqual('Estados Unidos');
+  expect(getRegionDisplayName(api, 'US', { type: 'short' })).toEqual('EE. UU.');
+  expect(getRegionDisplayName(api, 'ZZ')).toEqual('Región desconocida');
 
   // Confirmation of the CLDR 44 name change for Ivory Coast
   api = generalApi('sv');
-  expect(api.getRegionDisplayName('CI', { type: 'long' })).toEqual('Elfenbenskusten');
+  expect(getRegionDisplayName(api, 'CI', { type: 'long' })).toEqual('Elfenbenskusten');
 });
 
 test('internals', () => {
   const en = languageBundle('en');
   const es = languageBundle('es');
 
-  const { schema } = INTERNALS();
+  const { schema } = en;
   let s: string;
   s = vectorGet(schema.Names.regions.displayName, en, 'none', '001');
   expect(s).toEqual('world');

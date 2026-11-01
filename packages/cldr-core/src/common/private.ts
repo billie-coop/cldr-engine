@@ -6,8 +6,6 @@ import {
   NumberSystemName,
 } from '@phensley/cldr-types';
 
-import { DecimalArg } from '@phensley/decimal';
-
 import { DateTimeNode } from '../parsing/date';
 
 // TODO: move these
@@ -28,22 +26,18 @@ export type CurrencySpacing = { [P in CurrencySpacingPos]: CurrencySpacingPatter
 export type NumberSymbols = { [P in NumberSymbolType]: string };
 
 /**
+ * A decimal numbering system: its digits, symbols and grouping sizes. Format numbers with it
+ * using `numberingFormatString`.
+ *
  * @internal
  */
-export abstract class NumberingSystem {
-  constructor(
-    readonly name: string,
-    readonly symbols: NumberSymbols,
-    readonly minimumGroupingDigits: number,
-    readonly primaryGroupingSize: number,
-    readonly secondaryGroupingSize: number,
-  ) {}
-
-  /**
-   * Format a number directly to a string. This is used for things like low-level field
-   * formatting for Calendars.
-   */
-  abstract formatString(n: DecimalArg, groupDigits: boolean, minInt: number): string;
+export interface NumberingSystem {
+  readonly name: string;
+  readonly digits: string[];
+  readonly symbols: NumberSymbols;
+  readonly minimumGroupingDigits: number;
+  readonly primaryGroupingSize: number;
+  readonly secondaryGroupingSize: number;
 }
 
 /**

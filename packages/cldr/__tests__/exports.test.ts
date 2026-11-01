@@ -1,10 +1,6 @@
 import {
-  BuddhistDate,
   CalendarDate,
   DecimalConstants,
-  GregorianDate,
-  ISO8601Date,
-  JapaneseDate,
   PersianDate,
   buildMessageMatcher,
   getCurrencyForRegion,
@@ -24,6 +20,15 @@ import {
   pluralCardinal,
   defaultMessageArgConverter,
 } from '../src';
+import {
+  buddhistDateFromUnixEpoch,
+  dateType,
+  dateYear,
+  gregorianDateFromUnixEpoch,
+  iso8601DateFromUnixEpoch,
+  japaneseDateFromUnixEpoch,
+  persianDateFromUnixEpoch,
+} from '@phensley/cldr-core';
 
 // These tests are simply to ensure that all top-level exported symbols are present and functional.
 
@@ -66,21 +71,21 @@ test('currency regions', () => {
 test('dates', () => {
   const zoneId = 'America/Los_Angeles';
   const epoch = 1520751625000;
-  const buddhist: CalendarDate = BuddhistDate.fromUnixEpoch(epoch, zoneId, 0, 0);
-  expect(buddhist.year()).toEqual(2561);
+  const buddhist: CalendarDate = buddhistDateFromUnixEpoch(epoch, zoneId, 0, 0);
+  expect(dateYear(buddhist)).toEqual(2561);
 
-  const gregorian: CalendarDate = GregorianDate.fromUnixEpoch(epoch, zoneId, 0, 0);
-  expect(gregorian.year()).toEqual(2018);
-  expect(gregorian.type()).toEqual('gregory');
+  const gregorian: CalendarDate = gregorianDateFromUnixEpoch(epoch, zoneId, 0, 0);
+  expect(dateYear(gregorian)).toEqual(2018);
+  expect(dateType(gregorian)).toEqual('gregory');
 
-  const japanese: CalendarDate = JapaneseDate.fromUnixEpoch(epoch, zoneId, 0, 0);
-  expect(japanese.year()).toEqual(30);
+  const japanese: CalendarDate = japaneseDateFromUnixEpoch(epoch, zoneId, 0, 0);
+  expect(dateYear(japanese)).toEqual(30);
 
-  const persian: PersianDate = PersianDate.fromUnixEpoch(epoch, zoneId, 0, 0);
-  expect(persian.year()).toEqual(1396);
+  const persian: PersianDate = persianDateFromUnixEpoch(epoch, zoneId, 0, 0);
+  expect(dateYear(persian)).toEqual(1396);
 
-  const iso: CalendarDate = ISO8601Date.fromUnixEpoch(epoch, zoneId, 0, 0);
-  expect(iso.year()).toEqual(2018);
+  const iso: CalendarDate = iso8601DateFromUnixEpoch(epoch, zoneId, 0, 0);
+  expect(dateYear(iso)).toEqual(2018);
 });
 
 test('rational', () => {

@@ -1,33 +1,33 @@
 import { generalApi } from '../../_helpers';
-import { MeasurementCategory } from '../../../src';
+import { MeasurementCategory, measurementSystem } from '../../../src';
 
 const api = generalApi;
 
 test('measurement system', () => {
   // US
-  expect(api('en').measurementSystem()).toEqual('us');
-  expect(api('und-LR').measurementSystem()).toEqual('us');
-  expect(api('und-MM').measurementSystem()).toEqual('us');
-  expect(api('es-US').measurementSystem()).toEqual('us');
+  expect(measurementSystem(api('en'))).toEqual('us');
+  expect(measurementSystem(api('und-LR'))).toEqual('us');
+  expect(measurementSystem(api('und-MM'))).toEqual('us');
+  expect(measurementSystem(api('es-US'))).toEqual('us');
 
   // UK
-  expect(api('und-GB').measurementSystem()).toEqual('uk');
+  expect(measurementSystem(api('und-GB'))).toEqual('uk');
 
   // Metric
-  expect(api('und-001').measurementSystem()).toEqual('metric');
-  expect(api('de').measurementSystem()).toEqual('metric');
+  expect(measurementSystem(api('und-001'))).toEqual('metric');
+  expect(measurementSystem(api('de'))).toEqual('metric');
 });
 
 test('temperature', () => {
   const c: MeasurementCategory = 'temperature';
 
   // US
-  expect(api('und-BS').measurementSystem(c)).toEqual('us');
-  expect(api('und-BZ').measurementSystem(c)).toEqual('us');
-  expect(api('es-PR').measurementSystem(c)).toEqual('us');
-  expect(api('en-PW').measurementSystem(c)).toEqual('us');
+  expect(measurementSystem(api('und-BS'), c)).toEqual('us');
+  expect(measurementSystem(api('und-BZ'), c)).toEqual('us');
+  expect(measurementSystem(api('es-PR'), c)).toEqual('us');
+  expect(measurementSystem(api('en-PW'), c)).toEqual('us');
 
   // Metric
-  expect(api('und-001').measurementSystem(c)).toEqual('metric');
-  expect(api('de').measurementSystem(c)).toEqual('metric');
+  expect(measurementSystem(api('und-001'), c)).toEqual('metric');
+  expect(measurementSystem(api('de'), c)).toEqual('metric');
 });

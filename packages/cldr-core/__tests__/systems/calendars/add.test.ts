@@ -1,5 +1,12 @@
 import { Temporal } from '@js-temporal/polyfill';
-import { CalendarDate, GregorianDate, TimePeriod } from '../../../src';
+import {
+  CalendarDate,
+  TimePeriod,
+  dateAdd,
+  dateToDateTimeString,
+  dateUnixEpoch,
+  gregorianDateFromUnixEpoch,
+} from '../../../src';
 import {
   APR_02_2000,
   FEB_28_2024,
@@ -13,7 +20,7 @@ import { CLDRFormatter, enumerate, periodToDurationLike, TemporalFormatter } fro
 
 type TestCase = [number, Partial<TimePeriod>, string?];
 
-const gregorian = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, 1, 1);
+const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const NY = 'America/New_York';
 
@@ -24,14 +31,14 @@ const tempstr = (t: Temporal.ZonedDateTime): string =>
   `${t.toPlainDate().toString()} ${t.toPlainTime().toString()}${t.offset}`;
 
 const cldrstr = (c: CalendarDate): string =>
-  c.toDateTimeString({ includeZoneOffset: true, optionalMilliseconds: true });
+  dateToDateTimeString(c, { includeZoneOffset: true, optionalMilliseconds: true });
 
 const edgeCase = (epoch: number, zone: string, added: Partial<TimePeriod>) => {
   const tempfmt = new TemporalFormatter({ includeZoneOffset: true });
   const cldrfmt = new CLDRFormatter({ includeZoneOffset: true });
   const temp1 = Temporal.Instant.fromEpochMilliseconds(epoch).toZonedDateTimeISO(zone);
   const cldr1 = gregorian(epoch, zone);
-  const cldr2 = cldr1.add(added);
+  const cldr2 = dateAdd(cldr1, added);
   const temp2 = temp1.add(periodToDurationLike(added));
   expect(cldrfmt.dateTimeString(cldr2)).toEqual(tempfmt.dateTimeString(temp2));
 };
@@ -90,7 +97,7 @@ test('bad timezone', () => {
   // Foo/Bar will resolve to UTC
   const cldr1 = gregorian(FEB_29_2024, 'Foo/Bar');
 
-  cldr2 = cldr1.add({ year: 1, month: 2, day: 3 });
+  cldr2 = dateAdd(cldr1, { year: 1, month: 2, day: 3 });
   expect(cldrstr(cldr2)).toEqual('2025-05-02 13:30:00+00:00');
 });
 
@@ -104,10 +111,10 @@ test('future years timezone issues', () => {
 
   const cldr1 = gregorian(FEB_29_2024, NY);
 
-  cldr2 = cldr1.add({ year: 50 });
+  cldr2 = dateAdd(cldr1, { year: 50 });
   expect(cldrstr(cldr2)).toEqual('2074-02-28 08:30:00-05:00');
 
-  cldr2 = cldr1.add({ year: 50, month: 2 });
+  cldr2 = dateAdd(cldr1, { year: 50, month: 2 });
   expect(cldrstr(cldr2)).toEqual('2074-04-29 08:30:00-05:00'); // should be -04:00
 });
 
@@ -123,10 +130,10 @@ test('mixed values', () => {
 
   const cldr1 = gregorian(FEB_29_2024, NY);
 
-  cldr2 = cldr1.add({ month: 1 });
+  cldr2 = dateAdd(cldr1, { month: 1 });
   expect(cldrstr(cldr2)).toEqual('2024-03-29 08:30:00-04:00');
 
-  cldr2 = cldr1.add({ month: 1, second: -1 });
+  cldr2 = dateAdd(cldr1, { month: 1, second: -1 });
   expect(cldrstr(cldr2)).toEqual('2024-03-29 08:29:59-04:00');
 });
 
@@ -149,53 +156,53 @@ test('addition temporal compat spring dst', () => {
 
   // Adding days DOES perform wall clock adjustment
   temp2 = temp1.add({ days: 1 });
-  cldr2 = cldr1.add({ day: 1 });
+  cldr2 = dateAdd(cldr1, { day: 1 });
   expected = '2025-03-10 01:59:00-04:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
   // Time moved forward exactly 23 hours even though 1 day requested.
   expect((temp2.epochMilliseconds - temp1.epochMilliseconds) / ONE_HOUR_MS).toEqual(23);
-  expect((cldr2.unixEpoch() - cldr1.unixEpoch()) / ONE_HOUR_MS).toEqual(23);
+  expect((dateUnixEpoch(cldr2) - dateUnixEpoch(cldr1)) / ONE_HOUR_MS).toEqual(23);
 
   temp2 = temp1.add({ days: 1, hours: 1 });
-  cldr2 = cldr1.add({ day: 1, hour: 1 });
+  cldr2 = dateAdd(cldr1, { day: 1, hour: 1 });
   expected = '2025-03-10 02:59:00-04:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
   // Time moved forward 23 hours + 1 hour = 24 hours
   expect((temp2.epochMilliseconds - temp1.epochMilliseconds) / ONE_HOUR_MS).toEqual(24);
-  expect((cldr2.unixEpoch() - cldr1.unixEpoch()) / ONE_HOUR_MS).toEqual(24);
+  expect((dateUnixEpoch(cldr2) - dateUnixEpoch(cldr1)) / ONE_HOUR_MS).toEqual(24);
 
   // Adding hours DOES NOT perform wall clock adjustment
   temp2 = temp1.add({ hours: 24 });
-  cldr2 = cldr1.add({ hour: 24 });
+  cldr2 = dateAdd(cldr1, { hour: 24 });
   expected = '2025-03-10 02:59:00-04:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
   // Time moved forward exactly 24 hours as requested
   expect((temp2.epochMilliseconds - temp1.epochMilliseconds) / ONE_HOUR_MS).toEqual(24);
-  expect((cldr2.unixEpoch() - cldr1.unixEpoch()) / ONE_HOUR_MS).toEqual(24);
+  expect((dateUnixEpoch(cldr2) - dateUnixEpoch(cldr1)) / ONE_HOUR_MS).toEqual(24);
 
   temp2 = temp1.add({ months: 3 });
-  cldr2 = cldr1.add({ month: 3 });
+  cldr2 = dateAdd(cldr1, { month: 3 });
   expected = '2025-06-09 01:59:00-04:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
 
   temp2 = temp1.add({ months: 3, hours: 1 });
-  cldr2 = cldr1.add({ month: 3, hour: 1 });
+  cldr2 = dateAdd(cldr1, { month: 3, hour: 1 });
   expected = '2025-06-09 02:59:00-04:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
 
   temp2 = temp1.add({ years: 1, months: 1, hours: 1, minutes: 10 });
-  cldr2 = cldr1.add({ year: 1, month: 1, hour: 1, minute: 10 });
+  cldr2 = dateAdd(cldr1, { year: 1, month: 1, hour: 1, minute: 10 });
   expected = '2026-04-09 03:09:00-04:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
 
   temp2 = temp1.add({ years: 2, months: 9 });
-  cldr2 = cldr1.add({ year: 2, month: 9 });
+  cldr2 = dateAdd(cldr1, { year: 2, month: 9 });
   expected = '2027-12-09 01:59:00-05:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
@@ -219,47 +226,47 @@ test('addition temporal compat fall dst', () => {
   expect(cldrstr(cldr1)).toEqual(expected);
 
   temp2 = temp1.add({ hours: 1 });
-  cldr2 = cldr1.add({ hour: 1 });
+  cldr2 = dateAdd(cldr1, { hour: 1 });
   expected = '2025-11-02 01:59:00-05:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
 
   // Adding hours DOES NOT perform wall clock adjustment
   temp2 = temp1.add({ hours: 24 });
-  cldr2 = cldr1.add({ hour: 24 });
+  cldr2 = dateAdd(cldr1, { hour: 24 });
   expected = '2025-11-03 00:59:00-05:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
   // Time moved forward exactly 24 hours as requested
   expect((temp2.epochMilliseconds - temp1.epochMilliseconds) / ONE_HOUR_MS).toEqual(24);
-  expect((cldr2.unixEpoch() - cldr1.unixEpoch()) / ONE_HOUR_MS).toEqual(24);
+  expect((dateUnixEpoch(cldr2) - dateUnixEpoch(cldr1)) / ONE_HOUR_MS).toEqual(24);
 
   // Adding days DOES perform wall clock adjustment
   temp2 = temp1.add({ days: 1 });
-  cldr2 = cldr1.add({ day: 1 });
+  cldr2 = dateAdd(cldr1, { day: 1 });
   expected = '2025-11-03 01:59:00-05:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
   // Time moved forward exactly 25 hours even though 1 day requested.
   expect((temp2.epochMilliseconds - temp1.epochMilliseconds) / ONE_HOUR_MS).toEqual(25);
-  expect((cldr2.unixEpoch() - cldr1.unixEpoch()) / ONE_HOUR_MS).toEqual(25);
+  expect((dateUnixEpoch(cldr2) - dateUnixEpoch(cldr1)) / ONE_HOUR_MS).toEqual(25);
 
   temp2 = temp1.add({ days: 1, hours: 1 });
-  cldr2 = cldr1.add({ day: 1, hour: 1 });
+  cldr2 = dateAdd(cldr1, { day: 1, hour: 1 });
   expected = '2025-11-03 02:59:00-05:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
 
   // DOES perform wall clock adjustment
   temp2 = temp1.add({ months: 1 });
-  cldr2 = cldr1.add({ month: 1 });
+  cldr2 = dateAdd(cldr1, { month: 1 });
   expected = '2025-12-02 01:59:00-05:00';
   expect(tempstr(temp2)).toEqual(expected);
   expect(cldrstr(cldr2)).toEqual(expected);
   expect((temp2.epochMilliseconds - temp1.epochMilliseconds) / ONE_HOUR_MS)
     // 721 hours = 30 days, 1 hour
     .toEqual(721);
-  expect((cldr2.unixEpoch() - cldr1.unixEpoch()) / ONE_HOUR_MS).toEqual(721);
+  expect((dateUnixEpoch(cldr2) - dateUnixEpoch(cldr1)) / ONE_HOUR_MS).toEqual(721);
 });
 
 test('addition temporal compat general', () => {
@@ -321,7 +328,7 @@ const checkCases = (cases: TestCase[], datefunc: DateFunc) => {
     const temp1 = Temporal.Instant.fromEpochMilliseconds(epoch).toZonedDateTimeISO(NY);
     const cldr1 = datefunc(epoch, NY);
     let temp2 = temp1.add(periodToDurationLike(added));
-    let cldr2 = cldr1.add(added);
+    let cldr2 = dateAdd(cldr1, added);
 
     let msg = `case ${index} ${JSON.stringify(added)}`;
     if (expected !== undefined) {

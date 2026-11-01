@@ -1,4 +1,12 @@
-import { CalendarDate, DateIntervalFormatOptions, TimePeriod } from '../../../src';
+import {
+  CalendarDate,
+  DateIntervalFormatOptions,
+  TimePeriod,
+  dateAdd,
+  dateCompare,
+  formatDateInterval,
+  toGregorianDate,
+} from '../../../src';
 import { calendarsApi } from '../../_helpers';
 
 // March 11, 2018 7:00:25 AM UTC
@@ -10,7 +18,7 @@ type TestCases = [DateIntervalFormatOptions, TestCase[]][];
 
 const runt = (name: string, locale: string, base: number, zone: string, tests: TestCases) => {
   const api = calendarsApi(locale);
-  const start = api.toGregorianDate({ date: base, zoneId: zone });
+  const start = toGregorianDate(api, { date: base, zoneId: zone });
   let actual: string;
   let i = 1;
   let j = 1;
@@ -18,9 +26,9 @@ const runt = (name: string, locale: string, base: number, zone: string, tests: T
     const [opts, cases] = tst;
     for (const [time, expected] of cases) {
       test(`${name} test ${i} case ${j}`, () => {
-        const end = start.add(time);
-        const [s, e] = end.compare(start) === -1 ? [end, start] : [start, end];
-        actual = api.formatDateInterval(s, e, opts);
+        const end = dateAdd(start, time);
+        const [s, e] = dateCompare(end, start) === -1 ? [end, start] : [start, end];
+        actual = formatDateInterval(api, s, e, opts);
         expect(actual).toEqual(expected);
       });
       j++;
@@ -31,21 +39,21 @@ const runt = (name: string, locale: string, base: number, zone: string, tests: T
 
 test('same day', () => {
   const api = calendarsApi('en');
-  const base = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId: 'America/New_York' });
-  const later = base.add({ hour: 1 });
+  const base = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId: 'America/New_York' });
+  const later = dateAdd(base, { hour: 1 });
 
-  let s = api.formatDateInterval(base, later, { skeleton: 'yMMMd' });
+  let s = formatDateInterval(api, base, later, { skeleton: 'yMMMd' });
   expect(s).toEqual('Mar 11, 2018');
 });
 
 test('same time', () => {
   const api = calendarsApi('en');
-  const base = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId: 'America/New_York' });
-  const later = base.add({ second: 1 });
+  const base = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId: 'America/New_York' });
+  const later = dateAdd(base, { second: 1 });
 
   // No interal patterns currently exist in CLDR for seconds. We would have
   // to generate our own, so for now we format as a standalone date.
-  let s = api.formatDateInterval(base, later, { skeleton: 'jms' });
+  let s = formatDateInterval(api, base, later, { skeleton: 'jms' });
   expect(s).toEqual('3:00:25 AM');
 });
 
@@ -174,144 +182,144 @@ runt('German defaults', 'de', MARCH_11_2018_070025_UTC, 'Europe/Berlin', [
 test('interval defaulting', () => {
   const api = calendarsApi('en');
   const zoneId = 'America/New_York';
-  const start = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId });
+  const start = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId });
 
   let end: CalendarDate;
   let s: string;
 
   // Omitting the skeleton will choose a reasonable default
 
-  end = start.add({ hour: 2, minute: 24 });
-  s = api.formatDateInterval(start, end);
+  end = dateAdd(start, { hour: 2, minute: 24 });
+  s = formatDateInterval(api, start, end);
   expect(s).toEqual('3:00 – 5:24 AM');
 
-  end = start.add({ hour: 14, minute: 24 });
-  s = api.formatDateInterval(start, end);
+  end = dateAdd(start, { hour: 14, minute: 24 });
+  s = formatDateInterval(api, start, end);
   expect(s).toEqual('3:00 AM – 5:24 PM');
 
-  end = start.add({ hour: 22, minute: 10 });
-  s = api.formatDateInterval(start, end);
+  end = dateAdd(start, { hour: 22, minute: 10 });
+  s = formatDateInterval(api, start, end);
   expect(s).toEqual('Mar 11 – 12, 2018');
 
-  end = start.add({ day: 6, hour: 10 });
-  s = api.formatDateInterval(start, end);
+  end = dateAdd(start, { day: 6, hour: 10 });
+  s = formatDateInterval(api, start, end);
   expect(s).toEqual('Mar 11 – 17, 2018');
 
-  end = start.add({ day: 28 });
-  s = api.formatDateInterval(start, end);
+  end = dateAdd(start, { day: 28 });
+  s = formatDateInterval(api, start, end);
   expect(s).toEqual('Mar 11 – Apr 8, 2018');
 
-  end = start.add({ year: 2, month: 10, day: 23 });
-  s = api.formatDateInterval(start, end);
+  end = dateAdd(start, { year: 2, month: 10, day: 23 });
+  s = formatDateInterval(api, start, end);
   expect(s).toEqual('Mar 11, 2018 – Feb 3, 2021');
 });
 
 test('interval date/time choice', () => {
   const api = calendarsApi('en');
   const zoneId = 'America/New_York';
-  const start = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId });
+  const start = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId });
 
   let end: CalendarDate;
   let s: string;
 
   const opts: DateIntervalFormatOptions = { date: 'EEEyMMMd', time: 'jms' };
 
-  end = start.add({ minute: 33 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { minute: 33 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('3:00\u2009–\u20093:33\u202fAM');
 
-  end = start.add({ hour: 2, minute: 24 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { hour: 2, minute: 24 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('3:00 – 5:24\u202fAM');
 
-  end = start.add({ hour: 9, minute: 36 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { hour: 9, minute: 36 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('3:00 AM – 12:36 PM');
 
-  end = start.add({ hour: 23 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { hour: 23 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Sun, Mar 11 – Mon, Mar 12, 2018');
 
-  end = start.add({ day: 72.3 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { day: 72.3 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Sun, Mar 11 – Tue, May 22, 2018');
 
-  end = start.add({ year: 2, month: 11 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { year: 2, month: 11 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Sun, Mar 11, 2018 – Thu, Feb 11, 2021');
 
   opts.date = 'yMMM';
-  end = start.add({ year: 2, month: 11 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { year: 2, month: 11 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Mar 2018 – Feb 2021');
 
   // If date differs, always include some time fields
   opts.date = 'EEEyMMMdHm';
-  end = start.add({ hour: 23, minute: 36 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { hour: 23, minute: 36 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Sun, Mar 11, 2018, 03:00 – Mon, Mar 12, 2018, 02:36');
 
   opts.date = 'EEEB';
-  end = start.add({ hour: 23, minute: 36 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { hour: 23, minute: 36 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Sun, 3 in the morning – Mon, 2 in the morning');
 
   opts.atTime = false;
-  s = api.formatDateInterval(start, end, opts);
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Sun, 3 in the morning – Mon, 2 in the morning');
 
   // If time differs, always include some date fields
   opts.date = undefined;
   opts.time = 'EBhm';
-  end = start.add({ hour: 7, minute: 12 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { hour: 7, minute: 12 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Sun, 3:00 – 10:12 in the morning');
 
   opts.time = 'MMMdh';
-  end = start.add({ hour: 7, minute: 10 });
-  s = api.formatDateInterval(start, end, opts);
+  end = dateAdd(start, { hour: 7, minute: 10 });
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Mar 11, 3 – 10 AM');
 
   opts.alt = { dayPeriod: 'casing' };
-  s = api.formatDateInterval(start, end, opts);
+  s = formatDateInterval(api, start, end, opts);
   expect(s).toEqual('Mar 11, 3 – 10 am');
 });
 
 test('interval mismatch', () => {
   const api = calendarsApi('en');
   const zoneId = 'America/New_York';
-  const start = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId });
+  const start = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId });
 
   let end: CalendarDate;
   let s: string;
 
-  end = start.add({ week: 2 });
-  s = api.formatDateInterval(start, end, { skeleton: 'hm' });
+  end = dateAdd(start, { week: 2 });
+  s = formatDateInterval(api, start, end, { skeleton: 'hm' });
   expect(s).toEqual('Mar 11, 2018, 3:00 AM – Mar 25, 2018, 3:00 AM');
 
-  s = api.formatDateInterval(start, end, { skeleton: 'hm', strict: true });
+  s = formatDateInterval(api, start, end, { skeleton: 'hm', strict: true });
   expect(s).toEqual('3:00 – 3:00 AM');
 
-  end = start.add({ month: 2 });
-  s = api.formatDateInterval(start, end, { skeleton: 'hm' });
+  end = dateAdd(start, { month: 2 });
+  s = formatDateInterval(api, start, end, { skeleton: 'hm' });
   expect(s).toEqual('Mar 11, 2018, 3:00 AM – May 11, 2018, 3:00 AM');
 
-  s = api.formatDateInterval(start, end, { skeleton: 'hm', strict: true });
+  s = formatDateInterval(api, start, end, { skeleton: 'hm', strict: true });
   expect(s).toEqual('3:00 – 3:00 AM');
 });
 
 test('interval context', () => {
   const api = calendarsApi('fr');
   const zoneId = 'America/New_York';
-  const start = api.toGregorianDate({ date: MARCH_11_2018_070025_UTC, zoneId });
+  const start = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId });
 
   let end: CalendarDate;
   let s: string;
 
-  end = start.add({ week: 2 });
-  s = api.formatDateInterval(start, end, { skeleton: 'yMMMEd', context: 'middle-of-text' });
+  end = dateAdd(start, { week: 2 });
+  s = formatDateInterval(api, start, end, { skeleton: 'yMMMEd', context: 'middle-of-text' });
   expect(s).toEqual('dim. 11 – dim. 25 mars 2018');
 
-  s = api.formatDateInterval(start, end, { skeleton: 'yMMMEd', context: 'begin-sentence' });
+  s = formatDateInterval(api, start, end, { skeleton: 'yMMMEd', context: 'begin-sentence' });
   expect(s).toEqual('Dim. 11 – dim. 25 mars 2018');
 });

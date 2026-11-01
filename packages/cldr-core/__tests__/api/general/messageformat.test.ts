@@ -1,5 +1,6 @@
 import { MessageArg, formatMessage, messageFormatterToString } from '@phensley/messageformat';
 import { generalApi } from '../../_helpers';
+import { messageFormatter } from '../../../src';
 
 const formatters = {
   foo: (args: MessageArg[], options: string[]): string =>
@@ -8,7 +9,7 @@ const formatters = {
 
 test('basic formatter', () => {
   const api = generalApi('en');
-  const f = api.messageFormatter({ formatters });
+  const f = messageFormatter(api, { formatters });
 
   expect(formatMessage(f, '{0}', ['Hello'], {})).toEqual('Hello');
   expect(formatMessage(f, '{0 foo upper}', ['Hello'], {})).toEqual('HELLO');

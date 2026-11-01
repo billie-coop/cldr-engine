@@ -10,7 +10,7 @@ import {
 import { DecimalArg, Part } from '@phensley/decimal';
 import { ZoneInfo, tzFromUTC, tzFromWall, tzResolveId, tzZoneIds, tzZoneMeta } from '@phensley/timezone';
 
-import { Bundle } from '../resource';
+import { LocaleData } from '../locale-data';
 
 import {
   CalendarFieldsOptions,
@@ -30,7 +30,6 @@ import {
 } from '../common';
 
 import { Quantity } from '../common';
-import { Internals } from '../internals';
 
 import {
   BuddhistDate,
@@ -46,605 +45,700 @@ import {
   TimePeriod,
 } from '../systems/calendars';
 
-import { CalendarManager } from '../internals/calendars/manager';
-import { CalendarPatterns } from '../internals/calendars/patterns';
-import { AbstractValue, PartsValue, StringValue } from '../utils/render';
+import {
+  getCalendarPatterns,
+  getDateFormatRequest,
+  getDateIntervalFormatRequest,
+} from '../internals/calendars/manager';
+import {
+  CalendarPatterns,
+  patternsDayPeriods,
+  patternsEras,
+  patternsMonths,
+  patternsQuarters,
+  patternsTimeData,
+  patternsWeekdays,
+  patternsWrapperPattern,
+} from '../internals/calendars/patterns';
+import { AbstractValue, partsValue, stringValue } from '../utils/render';
 
 import { NumberParams } from '../common/private';
 import { CalendarContext } from '../internals/calendars/formatter';
 import { TimeZoneTypeIndex } from '../schema';
 import { currentMetazone, getStableTimeZoneId, substituteZoneAlias } from '../systems/calendars/timezone';
-import { Calendars } from './api';
-import { PrivateApiImpl } from './private';
+import { getContextTransformInfo } from './private/api';
+import { getNumberParams } from './private/numbers';
 import { vectorGet, vectorMapping } from '../schema/schema/arrows';
+import {
+  parseDatePattern,
+  renderDateInterval,
+  renderDateTime,
+  selectCalendar,
+  weekFirstDay,
+  weekMinDays,
+} from '../internals/calendars/internal';
+import { renderRelativeTimeField } from '../internals/datefields/internal';
+import { contextTransform, parseWrapper } from '../internals/general/internal';
+import {
+  buddhistDateFromFields,
+  buddhistDateFromUnixEpoch,
+  dateDayOfWeek,
+  dateFieldOfVisualDifference,
+  dateRelativeTime,
+  dateTimeZoneId,
+  dateType,
+  dateUnixEpoch,
+  gregorianDateFromFields,
+  gregorianDateFromUnixEpoch,
+  isCalendarDate,
+  iso8601DateFromFields,
+  iso8601DateFromUnixEpoch,
+  japaneseDateFromFields,
+  japaneseDateFromUnixEpoch,
+  persianDateFromFields,
+  persianDateFromUnixEpoch,
+} from '../systems/calendars/index';
 
 const DOW_FIELDS: RelativeTimeFieldType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+// Exemplar city names, per locale data, read on first use.
+const EXEMPLAR_CITIES = /*#__PURE__*/ new WeakMap<LocaleData, { [x: string]: string }>();
+
+export const firstDayOfWeek = (data: LocaleData): number => {
+  return weekFirstDay(data.region);
+};
+
+export const minDaysInFirstWeek = (data: LocaleData): number => {
+  return weekMinDays(data.region);
+};
+
+export const dateField = (data: LocaleData, type: DateFieldType, opt?: DateFieldFormatOptions): string => {
+  opt = opt || {};
+  const field = vectorGet(data.schema.DateFields.displayName, data, type, opt.width || 'wide');
+  return _transformField(data, field, 'calendar-field', opt.context);
+};
+
+export const dayPeriods = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
+  opt = opt || {};
+  const fields = patternsDayPeriods(_getPatterns(data, opt.ca))[opt.width || 'wide'];
+  return _transformFields(data, fields, undefined, opt.context);
+};
+
+export const eras = (data: LocaleData, opt?: EraFieldOptions): any => {
+  opt = opt || {};
+  const w = opt.width || 'names';
+  const fields = patternsEras(_getPatterns(data, opt.ca))[w];
+  const tx = w === 'abbr' ? 'era-abbr' : w === 'names' ? 'era-name' : undefined;
+  return _transformFields(data, fields, tx, opt.context);
+};
+
+export const months = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
+  opt = opt || {};
+  const w = opt.width === 'short' ? 'narrow' : opt.width || 'wide';
+  const fields = patternsMonths(_getPatterns(data, opt.ca))[w];
+  const tx = w !== 'narrow' ? 'month-standalone-except-narrow' : undefined;
+  return _transformFields(data, fields, tx, opt.context);
+};
+
+export const quarters = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
+  opt = opt || {};
+  const fields = patternsQuarters(_getPatterns(data, opt.ca))[opt.width || 'wide'];
+  return _transformFields(data, fields, undefined, opt.context);
+};
+
+export const weekdays = (data: LocaleData, opt?: CalendarFieldsOptions): any => {
+  opt = opt || {};
+  const w = opt.width || 'wide';
+  const fields = patternsWeekdays(_getPatterns(data, opt.ca))[w];
+  const tx = w !== 'narrow' ? 'day-standalone-except-narrow' : undefined;
+  return _transformFields(data, fields, tx, opt.context);
+};
+
 /**
- * @internal
+ * Alias for nowGregorian()
  */
-export class CalendarsImpl implements Calendars {
-  private manager: CalendarManager;
-  private _firstDay: number;
-  private _minDays: number;
-  private exemplarCities: { [x: string]: string } | undefined;
+export const now = (data: LocaleData, zoneId?: string): GregorianDate => {
+  return nowGregorian(data, zoneId);
+};
 
-  constructor(
-    private readonly bundle: Bundle,
-    private readonly internals: Internals,
-    private readonly privateApi: PrivateApiImpl,
-  ) {
-    this.manager = new CalendarManager(bundle, internals);
-    const region = bundle.region;
-    this._firstDay = internals.calendars.weekFirstDay(region);
-    this._minDays = internals.calendars.weekMinDays(region);
+/**
+ * Convert the given date to the Buddhist calendar.
+ */
+export const toBuddhistDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): BuddhistDate => {
+  return convertDate(data, buddhistDateFromUnixEpoch, date);
+};
+
+/**
+ * Construct a new date in the Buddhist calendar with the given fields.
+ */
+export const newBuddhistDate = (data: LocaleData, fields: Partial<CalendarDateFields>): BuddhistDate => {
+  return buddhistDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
+};
+
+/**
+ * Construct a new date in the Buddhist calendar representing the current date and time.
+ */
+export const nowBuddhist = (data: LocaleData, zoneId?: string): BuddhistDate => {
+  return buddhistDateFromUnixEpoch(
+    new Date().getTime(),
+    zoneId || '',
+    weekFirstDay(data.region),
+    weekMinDays(data.region),
+  );
+};
+
+/**
+ * Convert the given date to the Gregorian calendar.
+ */
+export const toGregorianDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): GregorianDate => {
+  return convertDate(data, gregorianDateFromUnixEpoch, date);
+};
+
+/**
+ * Construct a new date in the Gregorian calendar with the given fields.
+ */
+export const newGregorianDate = (data: LocaleData, fields: Partial<CalendarDateFields>): GregorianDate => {
+  return gregorianDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
+};
+
+/**
+ * Construct a new date in the Gregorian calendar representing the current date and time.
+ */
+export const nowGregorian = (data: LocaleData, zoneId?: string): GregorianDate => {
+  return gregorianDateFromUnixEpoch(
+    new Date().getTime(),
+    zoneId || '',
+    weekFirstDay(data.region),
+    weekMinDays(data.region),
+  );
+};
+
+/**
+ * Convert the given date to the ISO-8601 calendar.
+ */
+export const toISO8601Date = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): ISO8601Date => {
+  return convertDate(data, iso8601DateFromUnixEpoch, date);
+};
+
+/**
+ * Construct a new date in the ISO-8601 calendar with the given fields.
+ */
+export const newISO8601Date = (data: LocaleData, fields: Partial<CalendarDateFields>): ISO8601Date => {
+  return iso8601DateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
+};
+
+/**
+ * Construct a new date in the ISO8601 calendar representing the current date and time.
+ */
+export const nowISO8601 = (data: LocaleData, zoneId?: string): ISO8601Date => {
+  return iso8601DateFromUnixEpoch(
+    new Date().getTime(),
+    zoneId || '',
+    weekFirstDay(data.region),
+    weekMinDays(data.region),
+  );
+};
+
+/**
+ * Convert the given date to the Japanese calendar.
+ */
+export const toJapaneseDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): JapaneseDate => {
+  return convertDate(data, japaneseDateFromUnixEpoch, date);
+};
+
+/**
+ * Construct a new date in the Japanese calendar with the given fields.
+ */
+export const newJapaneseDate = (data: LocaleData, fields: Partial<CalendarDateFields>): JapaneseDate => {
+  return japaneseDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
+};
+
+/**
+ * Construct a new date in the Japanese calendar representing the current date and time.
+ */
+export const nowJapanese = (data: LocaleData, zoneId?: string): JapaneseDate => {
+  return japaneseDateFromUnixEpoch(
+    new Date().getTime(),
+    zoneId || '',
+    weekFirstDay(data.region),
+    weekMinDays(data.region),
+  );
+};
+
+/**
+ * Convert the given date to the Persian calendar.
+ */
+export const toPersianDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): PersianDate => {
+  return convertDate(data, persianDateFromUnixEpoch, date);
+};
+
+/**
+ * Construct a new date in the Persian calendar with the given fields.
+ */
+export const newPersianDate = (data: LocaleData, fields: Partial<CalendarDateFields>): PersianDate => {
+  return persianDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
+};
+
+/**
+ * Construct a new date in the Persian calendar representing the current date and time.
+ */
+export const nowPersian = (data: LocaleData, zoneId?: string): PersianDate => {
+  return persianDateFromUnixEpoch(
+    new Date().getTime(),
+    zoneId || '',
+    weekFirstDay(data.region),
+    weekMinDays(data.region),
+  );
+};
+
+/**
+ * Find the field of visual difference between two dates. For example, the
+ * dates "2019-03-31" and "2019-04-01" differ visually in the month field,
+ * even though the dates are only 1 day apart.
+ *
+ * This can be used by applications to select an appropriate skeleton for date
+ * interval formatting, e.g. to format "March 31 - April 01, 2019"
+ */
+export const fieldOfVisualDifference = (
+  data: LocaleData,
+  a: CalendarDate | ZonedDateTime | Date,
+  b: CalendarDate | ZonedDateTime | Date,
+): DateTimePatternFieldType | undefined => {
+  // Date is interpreted as UTC
+  if (a instanceof Date) {
+    a = { date: a } as ZonedDateTime;
+  }
+  if (b instanceof Date) {
+    b = { date: b } as ZonedDateTime;
   }
 
-  firstDayOfWeek(): number {
-    return this._firstDay;
+  // Determine calendar type to use for comparison, falling back to the default for the
+  // current locale.
+  const type: CalendarType = isCalendarDate(a) ? dateType(a) : isCalendarDate(b) ? dateType(b) : selectCalendar(data);
+
+  // Convert a and b to CalendarDate having the correct type, ensuring their types and timezones match.
+  if (!isCalendarDate(a) || type !== dateType(a)) {
+    a = convertDateTo(data, type, a);
+  }
+  if (!isCalendarDate(b) || type !== dateType(b) || dateTimeZoneId(a) !== dateTimeZoneId(b)) {
+    b = convertDateTo(data, type, b, dateTimeZoneId(a));
+  }
+  return dateFieldOfVisualDifference(a, b);
+};
+
+/**
+ * Format a calendar date to string using the given options.
+ */
+export const formatDate = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+  options?: DateFormatOptions,
+): string => {
+  return _formatDate(data, stringValue(), date, options);
+};
+
+/**
+ * Format a calendar date to a parts array using the given options.
+ */
+export const formatDateToParts = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+  options?: DateFormatOptions,
+): Part[] => {
+  return _formatDate(data, partsValue(), date, options);
+};
+
+export const formatDateInterval = (
+  data: LocaleData,
+  start: CalendarDate | ZonedDateTime | Date,
+  end: CalendarDate | ZonedDateTime | Date,
+  options?: DateIntervalFormatOptions,
+): string => {
+  return _formatInterval(data, stringValue(), start, end, options);
+};
+
+export const formatDateIntervalToParts = (
+  data: LocaleData,
+  start: CalendarDate | ZonedDateTime | Date,
+  end: CalendarDate | ZonedDateTime | Date,
+  options?: DateIntervalFormatOptions,
+): Part[] => {
+  return _formatInterval(data, partsValue(), start, end, options);
+};
+
+// TODO: need to sort out the options
+// formatRelativeTime(start: CalendarDate | ZonedDateTime, end: CalendarDate | ZonedDateTime,
+//     options?: RelativeTimeFormatOptions): string {
+//   options = options || DEFAULT_RELTIME_OPTIONS;
+//   const params = getNumberParams(data, options.nu);
+//   const calendar = this.internals.calendars.selectCalendar(data);
+//   start = convertDateTo(data, calendar, start);
+//   end = convertDateTo(data, calendar, end, start.timeZoneId());
+//   return this.internals.dateFields.formatRelativeTime(
+//     data, start, end, options, params);
+// }
+
+export const formatRelativeTimeField = (
+  data: LocaleData,
+  value: DecimalArg,
+  field: RelativeTimeFieldType,
+  options?: RelativeTimeFieldFormatOptions,
+): string => {
+  options = options || { width: 'wide' };
+  const transform = getContextTransformInfo(data);
+  const params = getNumberParams(data, options.nu);
+  return renderRelativeTimeField(data, value, field, options, params, transform);
+};
+
+export const formatRelativeTime = (
+  data: LocaleData,
+  start: CalendarDate | ZonedDateTime | Date,
+  end: CalendarDate | ZonedDateTime | Date,
+  options?: RelativeTimeFormatOptions,
+): string => {
+  options = options || { width: 'wide', maximumFractionDigits: 0, group: true };
+
+  const calendar = selectCalendar(data, options.ca);
+  const _start = convertDateTo(data, calendar, start);
+  const _end = convertDateTo(data, calendar, end);
+
+  let [field, amount] = dateRelativeTime(_start, _end, options.field, {
+    rollupFractional: true,
+    includeWeeks: options.allowWeeks,
+  });
+  if (field === 'millis') {
+    amount /= 1000.0;
+    field = 'second';
   }
 
-  minDaysInFirstWeek(): number {
-    return this._minDays;
+  // See if we can use day of week formatting
+  let _field = field as RelativeTimeFieldType;
+  if (options.dayOfWeek && field === 'week' && dateDayOfWeek(_start) === dateDayOfWeek(_end)) {
+    const dow = dateDayOfWeek(_end) - 1;
+    _field = DOW_FIELDS[dow];
   }
 
-  dateField(type: DateFieldType, opt?: DateFieldFormatOptions): string {
-    opt = opt || {};
-    const field = vectorGet(this.internals.schema.DateFields.displayName, this.bundle, type, opt.width || 'wide');
-    return this._transformField(field, 'calendar-field', opt.context);
-  }
+  return formatRelativeTimeField(data, amount, _field, options);
+};
 
-  dayPeriods(opt?: CalendarFieldsOptions): any {
-    opt = opt || {};
-    const fields = this._getPatterns(opt.ca).dayPeriods()[opt.width || 'wide'];
-    return this._transformFields(fields, undefined, opt.context);
-  }
+/**
+ * Format a raw date pattern. Note: This should not be used, but is available for debugging or
+ * extreme cases where an application must implement a custom format.
+ */
+export const formatDateRaw = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+  options?: DateRawFormatOptions,
+): string => {
+  return _formatDateRaw(data, stringValue(), date, options || {});
+};
 
-  eras(opt?: EraFieldOptions): any {
-    opt = opt || {};
-    const w = opt.width || 'names';
-    const fields = this._getPatterns(opt.ca).eras()[w];
-    const tx = w === 'abbr' ? 'era-abbr' : w === 'names' ? 'era-name' : undefined;
-    return this._transformFields(fields, tx, opt.context);
-  }
+export const formatDateRawToParts = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+  options?: DateRawFormatOptions,
+): Part[] => {
+  return _formatDateRaw(data, partsValue(), date, options || {});
+};
 
-  months(opt?: CalendarFieldsOptions): any {
-    opt = opt || {};
-    const w = opt.width === 'short' ? 'narrow' : opt.width || 'wide';
-    const fields = this._getPatterns(opt.ca).months()[w];
-    const tx = w !== 'narrow' ? 'month-standalone-except-narrow' : undefined;
-    return this._transformFields(fields, tx, opt.context);
-  }
+export const formatDateWrapper = (
+  data: LocaleData,
+  date: string,
+  time: string,
+  options?: DateWrapperFormatOptions,
+): string => {
+  return _formatDateWrapper(data, stringValue(), date, time, options || {});
+};
 
-  quarters(opt?: CalendarFieldsOptions): any {
-    opt = opt || {};
-    const fields = this._getPatterns(opt.ca).quarters()[opt.width || 'wide'];
-    return this._transformFields(fields, undefined, opt.context);
-  }
+export const formatDateWrapperToParts = (
+  data: LocaleData,
+  date: Part[],
+  time: Part[],
+  options?: DateWrapperFormatOptions,
+): Part[] => {
+  return _formatDateWrapper(data, partsValue(), date, time, options || {});
+};
 
-  weekdays(opt?: CalendarFieldsOptions): any {
-    opt = opt || {};
-    const w = opt.width || 'wide';
-    const fields = this._getPatterns(opt.ca).weekdays()[w];
-    const tx = w !== 'narrow' ? 'day-standalone-except-narrow' : undefined;
-    return this._transformFields(fields, tx, opt.context);
-  }
+export const timeData = (data: LocaleData): TimeData => {
+  const patterns = _getPatterns(data, 'gregory');
+  const [allowed, preferred] = patternsTimeData(patterns);
+  return {
+    preferred,
+    allowed: allowed.split(' '),
+  };
+};
 
-  /**
-   * Alias for nowGregorian()
-   */
-  now(zoneId?: string): GregorianDate {
-    return this.nowGregorian(zoneId);
-  }
+export const timeZoneIds = (): string[] => tzZoneIds();
 
-  /**
-   * Convert the given date to the Buddhist calendar.
-   */
-  toBuddhistDate(date: CalendarDate | ZonedDateTime | Date): BuddhistDate {
-    return this.convertDate(BuddhistDate.fromUnixEpoch, date);
-  }
+export const resolveTimeZoneId = (zoneid: string): string | undefined => tzResolveId(substituteZoneAlias(zoneid));
 
-  /**
-   * Construct a new date in the Buddhist calendar with the given fields.
-   */
-  newBuddhistDate(fields: Partial<CalendarDateFields>): BuddhistDate {
-    return BuddhistDate.fromFields(fields, this._firstDay, this._minDays);
+export const timeZoneInfo = (data: LocaleData, zoneid: string): TimeZoneInfo => {
+  const tz = data.schema.TimeZones;
+  let exemplarCities = EXEMPLAR_CITIES.get(data);
+  if (!exemplarCities) {
+    exemplarCities = vectorMapping(tz.exemplarCity, data);
+    EXEMPLAR_CITIES.set(data, exemplarCities);
   }
-
-  /**
-   * Construct a new date in the Buddhist calendar representing the current date and time.
-   */
-  nowBuddhist(zoneId?: string): BuddhistDate {
-    return BuddhistDate.fromUnixEpoch(new Date().getTime(), zoneId || '', this._firstDay, this._minDays);
+  const id = resolveTimeZoneId(zoneid) || 'Factory';
+  const stableid = getStableTimeZoneId(id);
+  const city = exemplarCities[stableid] || exemplarCities['Etc/Unknown'];
+  const metazone = (currentMetazone(id) || '') as MetaZoneType;
+  const names: MetazoneNames = {
+    long: { generic: '', standard: '', daylight: '' },
+    short: { generic: '', standard: '', daylight: '' },
+  };
+  for (const key of TimeZoneTypeIndex.keys) {
+    names.long[key] = vectorGet(tz.metaZones.long, data, key, metazone);
+    names.short[key] = vectorGet(tz.metaZones.short, data, key, metazone);
   }
+  const { countries, latitude, longitude, stdoffset } = tzZoneMeta(id)!; // Factory fallback will return a record
+  return {
+    id,
+    city: {
+      name: city,
+    },
+    countries,
+    latitude,
+    longitude,
+    stdoffset,
+    metazone,
+    names,
+  };
+};
 
-  /**
-   * Convert the given date to the Gregorian calendar.
-   */
-  toGregorianDate(date: CalendarDate | ZonedDateTime | Date): GregorianDate {
-    return this.convertDate(GregorianDate.fromUnixEpoch, date);
-  }
+export const timeZoneFromUTC = (utc: number, zoneid: string): ZoneInfo | undefined => tzFromUTC(zoneid, utc);
 
-  /**
-   * Construct a new date in the Gregorian calendar with the given fields.
-   */
-  newGregorianDate(fields: Partial<CalendarDateFields>): GregorianDate {
-    return GregorianDate.fromFields(fields, this._firstDay, this._minDays);
-  }
+export const timeZoneFromWall = (wall: number, zoneid: string): [number, ZoneInfo] | undefined =>
+  tzFromWall(zoneid, wall);
 
-  /**
-   * Construct a new date in the Gregorian calendar representing the current date and time.
-   */
-  nowGregorian(zoneId?: string): GregorianDate {
-    return GregorianDate.fromUnixEpoch(new Date().getTime(), zoneId || '', this._firstDay, this._minDays);
-  }
-
-  /**
-   * Convert the given date to the ISO-8601 calendar.
-   */
-  toISO8601Date(date: CalendarDate | ZonedDateTime | Date): ISO8601Date {
-    return this.convertDate(ISO8601Date.fromUnixEpoch, date);
-  }
-
-  /**
-   * Construct a new date in the ISO-8601 calendar with the given fields.
-   */
-  newISO8601Date(fields: Partial<CalendarDateFields>): ISO8601Date {
-    return ISO8601Date.fromFields(fields, this._firstDay, this._minDays);
-  }
-
-  /**
-   * Construct a new date in the ISO8601 calendar representing the current date and time.
-   */
-  nowISO8601(zoneId?: string): ISO8601Date {
-    return ISO8601Date.fromUnixEpoch(new Date().getTime(), zoneId || '', this._firstDay, this._minDays);
-  }
-
-  /**
-   * Convert the given date to the Japanese calendar.
-   */
-  toJapaneseDate(date: CalendarDate | ZonedDateTime | Date): JapaneseDate {
-    return this.convertDate(JapaneseDate.fromUnixEpoch, date);
-  }
-
-  /**
-   * Construct a new date in the Japanese calendar with the given fields.
-   */
-  newJapaneseDate(fields: Partial<CalendarDateFields>): JapaneseDate {
-    return JapaneseDate.fromFields(fields, this._firstDay, this._minDays);
-  }
-
-  /**
-   * Construct a new date in the Japanese calendar representing the current date and time.
-   */
-  nowJapanese(zoneId?: string): JapaneseDate {
-    return JapaneseDate.fromUnixEpoch(new Date().getTime(), zoneId || '', this._firstDay, this._minDays);
-  }
-
-  /**
-   * Convert the given date to the Persian calendar.
-   */
-  toPersianDate(date: CalendarDate | ZonedDateTime | Date): PersianDate {
-    return this.convertDate(PersianDate.fromUnixEpoch, date);
-  }
-
-  /**
-   * Construct a new date in the Persian calendar with the given fields.
-   */
-  newPersianDate(fields: Partial<CalendarDateFields>): PersianDate {
-    return PersianDate.fromFields(fields, this._firstDay, this._minDays);
-  }
-
-  /**
-   * Construct a new date in the Persian calendar representing the current date and time.
-   */
-  nowPersian(zoneId?: string): PersianDate {
-    return PersianDate.fromUnixEpoch(new Date().getTime(), zoneId || '', this._firstDay, this._minDays);
-  }
-
-  /**
-   * Find the field of visual difference between two dates. For example, the
-   * dates "2019-03-31" and "2019-04-01" differ visually in the month field,
-   * even though the dates are only 1 day apart.
-   *
-   * This can be used by applications to select an appropriate skeleton for date
-   * interval formatting, e.g. to format "March 31 - April 01, 2019"
-   */
-  fieldOfVisualDifference(
-    a: CalendarDate | ZonedDateTime | Date,
-    b: CalendarDate | ZonedDateTime | Date,
-  ): DateTimePatternFieldType | undefined {
-    // Date is interpreted as UTC
-    if (a instanceof Date) {
-      a = { date: a } as ZonedDateTime;
+export const timePeriodToQuantity = (period: Partial<TimePeriod>): Quantity[] => {
+  const q: Quantity[] = [];
+  for (const f of TIME_PERIOD_FIELDS) {
+    const v = period[f];
+    if (v) {
+      const unit = f === 'millis' ? 'millisecond' : f;
+      q.push({ unit, value: v });
     }
-    if (b instanceof Date) {
-      b = { date: b } as ZonedDateTime;
+  }
+  return q;
+};
+
+const _getPatterns = (data: LocaleData, type?: CalendarType): CalendarPatterns => {
+  const calendar = selectCalendar(data, type);
+  return getCalendarPatterns(data, calendar);
+};
+
+/**
+ * Copy fields, applying an optional context transform to the values.
+ */
+const _transformFields = (
+  data: LocaleData,
+  fields: any,
+  type?: ContextTransformFieldType,
+  context?: ContextType,
+): any => {
+  const res: any = {};
+  if (fields) {
+    for (const key of Object.keys(fields)) {
+      const val = fields[key];
+      res[key] =
+        typeof val === 'string'
+          ? _transformField(data, val, type, context)
+          : _transformFields(data, val, type, context);
     }
-
-    // Determine calendar type to use for comparison, falling back to the default for the
-    // current locale.
-    const type: CalendarType =
-      a instanceof CalendarDate
-        ? a.type()
-        : b instanceof CalendarDate
-          ? b.type()
-          : this.internals.calendars.selectCalendar(this.bundle);
-
-    // Convert a and b to CalendarDate having the correct type, ensuring their types and timezones match.
-    if (!(a instanceof CalendarDate) || type !== a.type()) {
-      a = this.convertDateTo(type, a);
-    }
-    if (!(b instanceof CalendarDate) || type !== b.type() || a.timeZoneId() !== b.timeZoneId()) {
-      b = this.convertDateTo(type, b, a.timeZoneId());
-    }
-    return a.fieldOfVisualDifference(b);
   }
+  return res;
+};
 
-  /**
-   * Format a calendar date to string using the given options.
-   */
-  formatDate(date: CalendarDate | ZonedDateTime | Date, options?: DateFormatOptions): string {
-    return this._formatDate(new StringValue(), date, options);
-  }
+const _transformField = (
+  data: LocaleData,
+  field: string,
+  type?: ContextTransformFieldType,
+  context?: ContextType,
+): string => {
+  const info = getContextTransformInfo(data);
+  return context ? contextTransform(field, info, context, type) : field;
+};
 
-  /**
-   * Format a calendar date to a parts array using the given options.
-   */
-  formatDateToParts(date: CalendarDate | ZonedDateTime | Date, options?: DateFormatOptions): Part[] {
-    return this._formatDate(new PartsValue(), date, options);
-  }
+const _formatDate = <R>(
+  data: LocaleData,
+  value: AbstractValue<R>,
+  date: CalendarDate | ZonedDateTime | Date,
+  options?: DateFormatOptions,
+): R => {
+  options = options || { date: 'full' };
+  const calendar = selectCalendar(data, options.ca);
+  const params = getNumberParams(data, options.nu, 'default');
 
-  formatDateInterval(
-    start: CalendarDate | ZonedDateTime | Date,
-    end: CalendarDate | ZonedDateTime | Date,
-    options?: DateIntervalFormatOptions,
-  ): string {
-    return this._formatInterval(new StringValue(), start, end, options);
-  }
+  date = convertDateTo(data, calendar, date);
+  const req = getDateFormatRequest(data, date, options, params);
+  const ctx = _context(data, date, params, options.context, options.alt);
+  return renderDateTime(calendar, ctx, value, true, req.date, req.time, req.wrapper);
+};
 
-  formatDateIntervalToParts(
-    start: CalendarDate | ZonedDateTime | Date,
-    end: CalendarDate | ZonedDateTime | Date,
-    options?: DateIntervalFormatOptions,
-  ): Part[] {
-    return this._formatInterval(new PartsValue(), start, end, options);
-  }
+const _formatInterval = <R>(
+  data: LocaleData,
+  value: AbstractValue<R>,
+  start: CalendarDate | ZonedDateTime | Date,
+  end: CalendarDate | ZonedDateTime | Date,
+  options?: DateIntervalFormatOptions,
+): R => {
+  // options = options || { skeleton: 'yMd' };
+  options = options || {};
+  const calendar = selectCalendar(data, options.ca);
+  start = convertDateTo(data, calendar, start);
+  end = convertDateTo(data, calendar, end);
 
-  // TODO: need to sort out the options
-  // formatRelativeTime(start: CalendarDate | ZonedDateTime, end: CalendarDate | ZonedDateTime,
-  //     options?: RelativeTimeFormatOptions): string {
-  //   options = options || DEFAULT_RELTIME_OPTIONS;
-  //   const params = this.privateApi.getNumberParams(options.nu);
-  //   const calendar = this.internals.calendars.selectCalendar(this.bundle);
-  //   start = this.convertDateTo(calendar, start);
-  //   end = this.convertDateTo(calendar, end, start.timeZoneId());
-  //   return this.internals.dateFields.formatRelativeTime(
-  //     this.bundle, start, end, options, params);
-  // }
+  // const fieldDiff = fieldOfVisualDifference(data, start, end);
+  const wrap = options.wrap || 'medium';
+  const params = getNumberParams(data, options.nu, 'default');
+  const req = getDateIntervalFormatRequest(data, calendar, start, end, options, params);
 
-  formatRelativeTimeField(
-    value: DecimalArg,
-    field: RelativeTimeFieldType,
-    options?: RelativeTimeFieldFormatOptions,
-  ): string {
-    options = options || { width: 'wide' };
-    const transform = this.privateApi.getContextTransformInfo();
-    const params = this.privateApi.getNumberParams(options.nu);
-    return this.internals.dateFields.formatRelativeTimeField(this.bundle, value, field, options, params, transform);
-  }
-
-  formatRelativeTime(
-    start: CalendarDate | ZonedDateTime | Date,
-    end: CalendarDate | ZonedDateTime | Date,
-    options?: RelativeTimeFormatOptions,
-  ): string {
-    options = options || { width: 'wide', maximumFractionDigits: 0, group: true };
-
-    const calendar = this.internals.calendars.selectCalendar(this.bundle, options.ca);
-    const _start = this.convertDateTo(calendar, start);
-    const _end = this.convertDateTo(calendar, end);
-
-    let [field, amount] = _start.relativeTime(_end, options.field, {
-      rollupFractional: true,
-      includeWeeks: options.allowWeeks,
-    });
-    if (field === 'millis') {
-      amount /= 1000.0;
-      field = 'second';
-    }
-
-    // See if we can use day of week formatting
-    let _field = field as RelativeTimeFieldType;
-    if (options.dayOfWeek && field === 'week' && _start.dayOfWeek() === _end.dayOfWeek()) {
-      const dow = _end.dayOfWeek() - 1;
-      _field = DOW_FIELDS[dow];
-    }
-
-    return this.formatRelativeTimeField(amount, _field, options);
-  }
-
-  /**
-   * Format a raw date pattern. Note: This should not be used, but is available for debugging or
-   * extreme cases where an application must implement a custom format.
-   */
-  formatDateRaw(date: CalendarDate | ZonedDateTime | Date, options?: DateRawFormatOptions): string {
-    return this._formatDateRaw(new StringValue(), date, options || {});
-  }
-
-  formatDateRawToParts(date: CalendarDate | ZonedDateTime | Date, options?: DateRawFormatOptions): Part[] {
-    return this._formatDateRaw(new PartsValue(), date, options || {});
-  }
-
-  formatDateWrapper(date: string, time: string, options?: DateWrapperFormatOptions): string {
-    return this._formatDateWrapper(new StringValue(), date, time, options || {});
-  }
-
-  formatDateWrapperToParts(date: Part[], time: Part[], options?: DateWrapperFormatOptions): Part[] {
-    return this._formatDateWrapper(new PartsValue(), date, time, options || {});
-  }
-
-  timeData(): TimeData {
-    const patterns = this._getPatterns('gregory');
-    const [allowed, preferred] = patterns.getTimeData();
-    return {
-      preferred,
-      allowed: allowed.split(' '),
-    };
-  }
-
-  timeZoneIds(): string[] {
-    return tzZoneIds();
-  }
-
-  resolveTimeZoneId(zoneid: string): string | undefined {
-    return tzResolveId(substituteZoneAlias(zoneid));
-  }
-
-  timeZoneInfo(zoneid: string): TimeZoneInfo {
-    const tz = this.internals.schema.TimeZones;
-    if (!this.exemplarCities) {
-      this.exemplarCities = vectorMapping(tz.exemplarCity, this.bundle);
-    }
-    const id = this.resolveTimeZoneId(zoneid) || 'Factory';
-    const stableid = getStableTimeZoneId(id);
-    const city = this.exemplarCities[stableid] || this.exemplarCities['Etc/Unknown'];
-    const metazone = (currentMetazone(id) || '') as MetaZoneType;
-    const names: MetazoneNames = {
-      long: { generic: '', standard: '', daylight: '' },
-      short: { generic: '', standard: '', daylight: '' },
-    };
-    for (const key of TimeZoneTypeIndex.keys) {
-      names.long[key] = vectorGet(tz.metaZones.long, this.bundle, key, metazone);
-      names.short[key] = vectorGet(tz.metaZones.short, this.bundle, key, metazone);
-    }
-    const { countries, latitude, longitude, stdoffset } = tzZoneMeta(id)!; // Factory fallback will return a record
-    return {
-      id,
-      city: {
-        name: city,
-      },
-      countries,
-      latitude,
-      longitude,
-      stdoffset,
-      metazone,
-      names,
-    };
-  }
-
-  timeZoneFromUTC(utc: number, zoneid: string): ZoneInfo | undefined {
-    return tzFromUTC(zoneid, utc);
-  }
-
-  timeZoneFromWall(wall: number, zoneid: string): [number, ZoneInfo] | undefined {
-    return tzFromWall(zoneid, wall);
-  }
-
-  timePeriodToQuantity(period: Partial<TimePeriod>): Quantity[] {
-    const q: Quantity[] = [];
-    for (const f of TIME_PERIOD_FIELDS) {
-      const v = period[f];
-      if (v) {
-        const unit = f === 'millis' ? 'millisecond' : f;
-        q.push({ unit, value: v });
-      }
-    }
-    return q;
-  }
-
-  private _getPatterns(type?: CalendarType): CalendarPatterns {
-    const calendar = this.internals.calendars.selectCalendar(this.bundle, type);
-    return this.manager.getCalendarPatterns(calendar);
-  }
-
-  /**
-   * Copy fields, applying an optional context transform to the values.
-   */
-  private _transformFields(fields: any, type?: ContextTransformFieldType, context?: ContextType): any {
-    const res: any = {};
-    if (fields) {
-      for (const key of Object.keys(fields)) {
-        const val = fields[key];
-        res[key] =
-          typeof val === 'string'
-            ? this._transformField(val, type, context)
-            : this._transformFields(val, type, context);
-      }
-    }
-    return res;
-  }
-
-  private _transformField(field: string, type?: ContextTransformFieldType, context?: ContextType): string {
-    const info = this.privateApi.getContextTransformInfo();
-    return context ? this.internals.general.contextTransform(field, info, context, type) : field;
-  }
-
-  private _formatDate<R>(
-    value: AbstractValue<R>,
-    date: CalendarDate | ZonedDateTime | Date,
-    options?: DateFormatOptions,
-  ): R {
-    const calendars = this.internals.calendars;
-    options = options || { date: 'full' };
-    const calendar = calendars.selectCalendar(this.bundle, options.ca);
-    const params = this.privateApi.getNumberParams(options.nu, 'default');
-
-    date = this.convertDateTo(calendar, date);
-    const req = this.manager.getDateFormatRequest(date, options, params);
-    const ctx = this._context(date, params, options.context, options.alt);
-    return calendars.formatDateTime(calendar, ctx, value, true, req.date, req.time, req.wrapper);
-  }
-
-  private _formatInterval<R>(
-    value: AbstractValue<R>,
-    start: CalendarDate | ZonedDateTime | Date,
-    end: CalendarDate | ZonedDateTime | Date,
-    options?: DateIntervalFormatOptions,
-  ): R {
-    // options = options || { skeleton: 'yMd' };
-    options = options || {};
-    const calendar = this.internals.calendars.selectCalendar(this.bundle, options.ca);
-    start = this.convertDateTo(calendar, start);
-    end = this.convertDateTo(calendar, end);
-
-    // const fieldDiff = this.fieldOfVisualDifference(start, end);
-    const wrap = options.wrap || 'medium';
-    const params = this.privateApi.getNumberParams(options.nu, 'default');
-    const req = this.manager.getDateIntervalFormatRequest(calendar, start, end, options, params);
-
-    const ctx = this._context(start, params, options.context, options.alt);
-    if (req.skeleton) {
-      const { ca, nu } = options;
-      const r = this.manager.getDateFormatRequest(
-        start,
-        { ca, nu, skeleton: req.skeleton, wrap: options.wrap, atTime: options.atTime },
-        params,
-      );
-      const _start = this.internals.calendars.formatDateTime(calendar, ctx, value, true, r.date, r.time, r.wrapper);
-      ctx.date = end;
-      const _end = this.internals.calendars.formatDateTime(calendar, ctx, value, false, r.date, r.time, r.wrapper);
-      const wrapper = this.internals.general.parseWrapper(req.wrapper);
-      value.wrap(wrapper, [_start, _end]);
-      return value.render();
-    }
-
-    const patterns = this.manager.getCalendarPatterns(calendar);
-    const atTime = options.atTime === false ? false : true;
-
-    let _date: R | undefined;
-    if (req.date) {
-      _date = this.internals.calendars.formatDateTime(calendar, ctx, value, true, req.date);
-    }
-
-    if (req.time) {
-      const _time = this.internals.calendars.formatDateTime(calendar, ctx, value, true, req.time);
-      const wrapper = this.internals.general.parseWrapper(patterns.getWrapperPattern(wrap, atTime));
-      value.wrap(wrapper, [_time, _date!]);
-      return value.render();
-    }
-
-    if (req.range) {
-      const ctx = this._context(start, params, options.context, options.alt);
-      const _range = this.internals.calendars.formatInterval(calendar, ctx, value, !_date, end, req.range);
-      if (!_date) {
-        return _range;
-      }
-      // Note: This case is covered in ICU but not mentioned in the CLDR docs. Use the MEDIUM
-      // dateTimeFormat to join a common date with a time range.
-      // Ticket referencing the discrepancy:
-      // https://www.unicode.org/cldr/trac/ticket/11158
-      // Docs don't mention this edge case:
-      // https://www.unicode.org/reports/tr35/tr35-dates.html#intervalFormats
-      const wrapper = this.internals.general.parseWrapper(patterns.getWrapperPattern(wrap, atTime));
-      value.wrap(wrapper, [_range, _date]);
-      return value.render();
-    }
-    // Here, the request should always be:
-    //   { date }
-    //   { date, range }
-    //   { range }
-    // Unless the schema config contains no relevant patterns.
-    return _date || value.empty();
-  }
-
-  private _context<T extends CalendarDate>(
-    date: T,
-    params: NumberParams,
-    context?: ContextType,
-    alt: DateFormatAltOptions = {},
-  ): CalendarContext<T> {
-    return {
-      alt,
-      date,
-      bundle: this.bundle,
-      system: params.system,
-      latnSystem: params.latnSystem,
-      context,
-      transform: this.privateApi.getContextTransformInfo(),
-    };
-  }
-
-  private _formatDateRaw<R>(
-    value: AbstractValue<R>,
-    date: CalendarDate | ZonedDateTime | Date,
-    options: DateRawFormatOptions,
-  ): R {
-    if (!options.pattern) {
-      return value.empty();
-    }
-    const pattern = this.internals.calendars.parseDatePattern(options.pattern);
-    const calendar = this.internals.calendars.selectCalendar(this.bundle, options.ca);
-    const params = this.privateApi.getNumberParams(options.nu, 'default');
-    const ctx = this._context(this.convertDateTo(calendar, date), params, options.context, options.alt);
-    return this.internals.calendars.formatDateTime(calendar, ctx, value, true, pattern);
-  }
-
-  private _formatDateWrapper<R>(value: AbstractValue<R>, date: R, time: R, options: DateWrapperFormatOptions): R {
-    const calendar = this.internals.calendars.selectCalendar(this.bundle, options.ca);
-    const patterns = this.manager.getCalendarPatterns(calendar);
-    const atTime = options.atTime === false ? false : true;
-    const wrapper = this.internals.general.parseWrapper(patterns.getWrapperPattern(options.width || 'medium', atTime));
-    value.wrap(wrapper, [time, date]);
+  const ctx = _context(data, start, params, options.context, options.alt);
+  if (req.skeleton) {
+    const { ca, nu } = options;
+    const r = getDateFormatRequest(
+      data,
+      start,
+      { ca, nu, skeleton: req.skeleton, wrap: options.wrap, atTime: options.atTime },
+      params,
+    );
+    const _start = renderDateTime(calendar, ctx, value, true, r.date, r.time, r.wrapper);
+    ctx.date = end;
+    const _end = renderDateTime(calendar, ctx, value, false, r.date, r.time, r.wrapper);
+    const wrapper = parseWrapper(req.wrapper);
+    value.wrap(wrapper, [_start, _end]);
     return value.render();
   }
 
-  private convertDate<T>(cons: CalendarFromUnixEpoch<T>, date: CalendarDate | ZonedDateTime | Date): T {
-    if (date instanceof Date) {
-      date = { date, zoneId: 'UTC' } as ZonedDateTime;
-    }
-    return date instanceof CalendarDate
-      ? this.convertEpoch(cons, date.unixEpoch(), date.timeZoneId())
-      : this.convertEpoch(cons, getEpochUTC(date.date), date.zoneId || 'UTC');
+  const patterns = getCalendarPatterns(data, calendar);
+  const atTime = options.atTime === false ? false : true;
+
+  let _date: R | undefined;
+  if (req.date) {
+    _date = renderDateTime(calendar, ctx, value, true, req.date);
   }
 
-  private convertEpoch<T>(cons: CalendarFromUnixEpoch<T>, epoch: number, zoneId: string): T {
-    return cons(epoch, zoneId, this._firstDay, this._minDays);
+  if (req.time) {
+    const _time = renderDateTime(calendar, ctx, value, true, req.time);
+    const wrapper = parseWrapper(patternsWrapperPattern(patterns, wrap, atTime));
+    value.wrap(wrapper, [_time, _date!]);
+    return value.render();
   }
 
-  private convertDateTo(
-    target: CalendarType,
-    date: CalendarDate | ZonedDateTime | Date,
-    zoneId?: string,
-  ): CalendarDate {
-    if (date instanceof CalendarDate && target === date.type() && (!zoneId || zoneId === date.timeZoneId())) {
-      return date;
-    } else if (date instanceof Date) {
-      date = { date, zoneId } as ZonedDateTime;
+  if (req.range) {
+    const ctx = _context(data, start, params, options.context, options.alt);
+    const _range = renderDateInterval(calendar, ctx, value, !_date, end, req.range);
+    if (!_date) {
+      return _range;
     }
-
-    switch (target) {
-      case 'buddhist':
-        return this.toBuddhistDate(date);
-      case 'japanese':
-        return this.toJapaneseDate(date);
-      case 'persian':
-        return this.toPersianDate(date);
-    }
-    // All others convert to 'gregory'
-    return this.toGregorianDate(date);
+    // Note: This case is covered in ICU but not mentioned in the CLDR docs. Use the MEDIUM
+    // dateTimeFormat to join a common date with a time range.
+    // Ticket referencing the discrepancy:
+    // https://www.unicode.org/cldr/trac/ticket/11158
+    // Docs don't mention this edge case:
+    // https://www.unicode.org/reports/tr35/tr35-dates.html#intervalFormats
+    const wrapper = parseWrapper(patternsWrapperPattern(patterns, wrap, atTime));
+    value.wrap(wrapper, [_range, _date]);
+    return value.render();
   }
-}
+  // Here, the request should always be:
+  //   { date }
+  //   { date, range }
+  //   { range }
+  // Unless the schema config contains no relevant patterns.
+  return _date || value.empty();
+};
+
+const _context = <T extends CalendarDate>(
+  data: LocaleData,
+  date: T,
+  params: NumberParams,
+  context?: ContextType,
+  alt: DateFormatAltOptions = {},
+): CalendarContext<T> => {
+  return {
+    alt,
+    date,
+    bundle: data,
+    system: params.system,
+    latnSystem: params.latnSystem,
+    context,
+    transform: getContextTransformInfo(data),
+  };
+};
+
+const _formatDateRaw = <R>(
+  data: LocaleData,
+  value: AbstractValue<R>,
+  date: CalendarDate | ZonedDateTime | Date,
+  options: DateRawFormatOptions,
+): R => {
+  if (!options.pattern) {
+    return value.empty();
+  }
+  const pattern = parseDatePattern(options.pattern);
+  const calendar = selectCalendar(data, options.ca);
+  const params = getNumberParams(data, options.nu, 'default');
+  const ctx = _context(data, convertDateTo(data, calendar, date), params, options.context, options.alt);
+  return renderDateTime(calendar, ctx, value, true, pattern);
+};
+
+const _formatDateWrapper = <R>(
+  data: LocaleData,
+  value: AbstractValue<R>,
+  date: R,
+  time: R,
+  options: DateWrapperFormatOptions,
+): R => {
+  const calendar = selectCalendar(data, options.ca);
+  const patterns = getCalendarPatterns(data, calendar);
+  const atTime = options.atTime === false ? false : true;
+  const wrapper = parseWrapper(patternsWrapperPattern(patterns, options.width || 'medium', atTime));
+  value.wrap(wrapper, [time, date]);
+  return value.render();
+};
+
+const convertDate = <T>(
+  data: LocaleData,
+  cons: CalendarFromUnixEpoch<T>,
+  date: CalendarDate | ZonedDateTime | Date,
+): T => {
+  if (date instanceof Date) {
+    date = { date, zoneId: 'UTC' } as ZonedDateTime;
+  }
+  return isCalendarDate(date)
+    ? convertEpoch(data, cons, dateUnixEpoch(date), dateTimeZoneId(date))
+    : convertEpoch(data, cons, getEpochUTC(date.date), date.zoneId || 'UTC');
+};
+
+const convertEpoch = <T>(data: LocaleData, cons: CalendarFromUnixEpoch<T>, epoch: number, zoneId: string): T => {
+  return cons(epoch, zoneId, weekFirstDay(data.region), weekMinDays(data.region));
+};
+
+const convertDateTo = (
+  data: LocaleData,
+  target: CalendarType,
+  date: CalendarDate | ZonedDateTime | Date,
+  zoneId?: string,
+): CalendarDate => {
+  if (isCalendarDate(date) && target === dateType(date) && (!zoneId || zoneId === dateTimeZoneId(date))) {
+    return date;
+  } else if (date instanceof Date) {
+    date = { date, zoneId } as ZonedDateTime;
+  }
+
+  switch (target) {
+    case 'buddhist':
+      return toBuddhistDate(data, date);
+    case 'japanese':
+      return toJapaneseDate(data, date);
+    case 'persian':
+      return toPersianDate(data, date);
+  }
+  // All others convert to 'gregory'
+  return toGregorianDate(data, date);
+};
 
 const getEpochUTC = (date: Date | number): number => {
   const n = +date;

@@ -1,6 +1,6 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { hrtime } from 'process';
-import { CalendarDate, GregorianDate, TimePeriod } from '../../../src';
+import { CalendarDate, TimePeriod, dateAdd, dateSince, dateUntil, gregorianDateFromUnixEpoch } from '../../../src';
 import { CalendarConstants } from '../../../src/systems/calendars/constants';
 import {
   CLDRFormatter,
@@ -15,7 +15,7 @@ import {
 // This scans a large range of epoch timestamps and calculates the until / since
 // difference between them, comparing the output of all functions.
 
-const gregorian = (e: number, z: string) => GregorianDate.fromUnixEpoch(e, z, 1, 1);
+const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const VANCOUVER = 'America/Vancouver';
 
@@ -95,7 +95,7 @@ const scan = (epoch: number, zone: string, positive: Permutation[], negative: Pe
 
     for (const periods of [positive, negative]) {
       for (const [period, repr] of periods) {
-        const cldr2 = cldr1.add(period);
+        const cldr2 = dateAdd(cldr1, period);
         const cldr2str = cldrfmt.dateTimeString(cldr1);
 
         // Memoize to skip redundant comparisons
@@ -114,8 +114,8 @@ const scan = (epoch: number, zone: string, positive: Permutation[], negative: Pe
           continue;
         }
 
-        const cuntil1 = cldr1.until(cldr2);
-        const cuntil2 = cldr2.until(cldr1);
+        const cuntil1 = dateUntil(cldr1, cldr2);
+        const cuntil2 = dateUntil(cldr2, cldr1);
 
         let tuntil1: Temporal.Duration;
         let tuntil2: Temporal.Duration;
@@ -140,8 +140,8 @@ const scan = (epoch: number, zone: string, positive: Permutation[], negative: Pe
           console.log(`ERROR: "${c2}" != "${t2}" test: cldr2 until ${start} in ${zone} added ${repr}`);
         }
 
-        const csince1 = cldr1.since(cldr2);
-        const csince2 = cldr2.since(cldr1);
+        const csince1 = dateSince(cldr1, cldr2);
+        const csince2 = dateSince(cldr2, cldr1);
 
         let tsince1: Temporal.Duration;
         let tsince2: Temporal.Duration;

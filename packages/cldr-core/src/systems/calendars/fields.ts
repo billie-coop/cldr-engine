@@ -38,5 +38,7 @@ export const enum DateField {
   ISO_WEEK_OF_YEAR, // 24
 }
 
-// 25 fields
-export const dateFields = (): number[] => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+/**
+ * Fresh, zeroed field array (25 fields) indexed by DateField.
+ */
+export const emptyFields = (): number[] => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

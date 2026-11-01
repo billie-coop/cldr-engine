@@ -1,20 +1,17 @@
-import { INTERNALS } from '../../_helpers';
-import { GeneralInternalsImpl } from '../../../src';
+import { contextTransform, formatWrapper } from '../../../src';
 import { ContextTransformInfo } from '../../../src/common/private';
 
-const GENERAL = new GeneralInternalsImpl(INTERNALS(), 50);
-
 test('wrapper args', () => {
-  let s = GENERAL.formatWrapper('{0} {1}', ['a', 'b']);
+  let s = formatWrapper('{0} {1}', ['a', 'b']);
   expect(s).toEqual('a b');
 
-  s = GENERAL.formatWrapper('{0} {1}', ['a', 'b', 'c', 'd']);
+  s = formatWrapper('{0} {1}', ['a', 'b', 'c', 'd']);
   expect(s).toEqual('a b');
 
-  s = GENERAL.formatWrapper('{0} {1} {2} {3}', ['a', 'b', 'c', 'd']);
+  s = formatWrapper('{0} {1} {2} {3}', ['a', 'b', 'c', 'd']);
   expect(s).toEqual('a b c d');
 
-  s = GENERAL.formatWrapper('{0} {1} {2} {3}', ['a', '', 'c']);
+  s = formatWrapper('{0} {1} {2} {3}', ['a', '', 'c']);
   expect(s).toEqual('a  c ');
 });
 
@@ -24,22 +21,22 @@ test('context transform', () => {
   const no = {} as ContextTransformInfo;
   const field = 'calendar-field';
 
-  s = GENERAL.contextTransform('', yes, 'standalone', field);
+  s = contextTransform('', yes, 'standalone', field);
   expect(s).toEqual('');
 
-  s = GENERAL.contextTransform('', yes, 'ui-list-or-menu', field);
+  s = contextTransform('', yes, 'ui-list-or-menu', field);
   expect(s).toEqual('');
 
-  s = GENERAL.contextTransform('abc', yes, 'standalone', field);
+  s = contextTransform('abc', yes, 'standalone', field);
   expect(s).toEqual('Abc');
 
-  s = GENERAL.contextTransform('abc', yes, 'ui-list-or-menu', field);
+  s = contextTransform('abc', yes, 'ui-list-or-menu', field);
   expect(s).toEqual('abc');
 
-  s = GENERAL.contextTransform('abc', no, 'standalone', field);
+  s = contextTransform('abc', no, 'standalone', field);
   expect(s).toEqual('abc');
 
-  s = GENERAL.contextTransform('abc', no, 'ui-list-or-menu', field);
+  s = contextTransform('abc', no, 'ui-list-or-menu', field);
   expect(s).toEqual('abc');
 });
 

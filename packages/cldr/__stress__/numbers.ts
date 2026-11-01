@@ -2,7 +2,7 @@ import {
   CurrencyFormatOptions,
   CurrencyFormatStyleType,
   CurrencyType,
-  CLDRFramework,
+  availableLocales,
   Decimal,
   DecimalConstants,
   DecimalFormatOptions,
@@ -20,8 +20,6 @@ import { Timer } from './timer';
 const str = (n: string | Decimal): string => (typeof n === 'string' ? n : decimalToString(n));
 
 const VERBOSE = true;
-
-const { availableLocales } = CLDRFramework;
 
 const MAX = String(Number.MAX_SAFE_INTEGER);
 

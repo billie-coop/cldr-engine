@@ -1,22 +1,19 @@
-import { config as defaultconfig } from '../../../cldr/src/config';
-import { CalendarType, InternalsImpl, SchemaConfig } from '../../src';
+import { createFramework, CalendarType, SchemaConfig, getCalendarFormatter, selectCalendar } from '../../src';
 import { languageBundle } from '../_helpers';
 
 test('skip checksum', () => {
-  const internals = new InternalsImpl({} as SchemaConfig, '1.0', false, true);
-  expect(internals.checksum).toEqual('');
+  const framework = createFramework({ config: {} as SchemaConfig, skipChecksum: true });
+  expect(framework.checksum).toEqual('');
 });
 
 test('calendar lookup', () => {
-  const internals = new InternalsImpl(defaultconfig, '1.0', false, true);
-  const formatter = internals.calendars.getCalendarFormatter('x' as CalendarType);
+  const formatter = getCalendarFormatter(languageBundle('en'), 'x' as CalendarType);
   console.log(formatter);
 });
 
 test('select calendar', () => {
   const bundle = languageBundle('und-TH');
   console.log(bundle.languageRegion);
-  const internals = new InternalsImpl(defaultconfig, '1.0', false, true);
-  const cal = internals.calendars.selectCalendar(bundle);
+  const cal = selectCalendar(bundle);
   expect(cal).toEqual('buddhist');
 });
