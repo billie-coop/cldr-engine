@@ -2,7 +2,40 @@
 
 Branch: `functional-rewrite`. Started 2026-11-01 from `main` @ `3f51c5a4` (v1.16.0).
 
-_(Final summary goes here when the port is complete.)_
+## Summary
+
+The whole library is ported to plain data + exported functions. No classes remain in runtime code
+(the `cldr-compiler` build tool still uses some; it is not shipped to browsers).
+
+- **Tests:** 172 files / **1315 tests, all passing** — the 1.x baseline was 170 / 1309. All 1309
+  1.x tests run against the new code with their assertions unchanged (three read 1.x private fields
+  and now read the public equivalent, see Deviations); 6 tests are new.
+- **Lint / types:** `pnpm lint` (tsc for every package incl. tests, benchmarks, stress scripts +
+  eslint) is clean. `pnpm build` is clean. API Extractor reports are regenerated.
+- **Resource packs:** unchanged format; the packs the compiler builds are byte-identical to 1.x
+  (same sha256 for all 204 files). CLDR 48 / tzdb 2025b data untouched; `autogen.zonedata.ts`
+  and its `RawData` format are unchanged so the tzdb 2026f update merges cleanly.
+- **Tree-shaking** (rollup + terser, `examples/tree-shaking/`), same usage as 1.x, same output:
+
+  | usage | 2.x min+gzip | 1.x min+gzip |
+  |---|---|---|
+  | load a locale, formatDecimal + formatCurrency | **41.8 KB** (106.9 KB min) | 111.5 KB (363.9 KB min) |
+  | load a locale, formatDate | **86.4 KB** (270.8 KB min) | 111.5 KB (364.0 KB min) |
+  | Decimal arithmetic only | **2.7 KB** (6.1 KB min) | 5.9 KB (17.4 KB min) |
+  | convenience object (everything) | 102.4 KB (316.1 KB min) | — |
+
+  A bundle that uses one trivial export comes out at 30 bytes, so no module has import-time side
+  effects. Full UMD bundle of everything: 359 KB vs 384 KB.
+- **Differential checks against the 1.x build** (beyond the test suite): decimal and number
+  rendering via the suite; timezone ~714k lookups, language-tag/locale/matcher ~325k comparisons,
+  plurals/messageformat ~507k cases, unit-converter + rbnf ~830k output lines, calendar dates 620k
+  output lines — all identical. Whole locale API across all locales: see "Differential check
+  (locale API)" below.
+- **Performance:** micro-benchmark (en, node 24): formatDecimal / formatCurrency at parity with
+  1.x, compact numbers −7%, formatDate −5…10% (likely the date week fields, now computed per call
+  instead of memoized on a mutable object). Not tuned further.
+
+What's left / rough edges are listed at the end, with the things I wasn't sure about.
 
 ## Baseline (1.x on `main`, before any change)
 
@@ -115,20 +148,76 @@ Independent packages were ported in parallel by helper agents in separate worktr
 differential check against the 1.x code on top of the existing tests; their call-site mappings
 were then applied to the rest of the repo in this branch.
 
+## API overview (2.x)
+
+- **Locale data:** `createFramework({ loader, config? })` → `loadLocale(framework, 'en-US')`
+  (or `loadLocaleAsync`) returns a `LocaleData`: the plain `Bundle` of the locale plus
+  `{ locale, schema, indices, config }`. `@phensley/cldr` exports `createFramework` /
+  `cldrFramework` that default to the config its packs were built with.
+- **Locale functions** keep the 1.x method names: `formatDecimal(en, n, opts)`,
+  `formatCurrency`, `formatQuantity`, `formatDate`, `formatDateInterval`,
+  `formatRelativeTime(Field)`, `getLanguageDisplayName`, `formatList`, `messageFormatter`, …
+  Ones that never used locale data don't take it (`resolveTimeZoneId`, `timeZoneFromUTC`,
+  `timeZoneFromWall`, `timeZoneIds`, `timePeriodToQuantity`, `getCurrencyFractions`,
+  `getCurrencyForRegion`, `resolveLocale`, `parseLanguageTag`, `availableLocales`, `cldrVersion`).
+- **Value types:** `decimal(x)` + `decimal*`, `rational(...)` + `rational*`, `languageTag(...)` +
+  `tag*`, calendar dates: `gregorianDateFromUnixEpoch(...)` (etc. per calendar) + `date*`
+  (`dateAdd`, `dateYear`, `dateUntil`, `dateToISOString`, …). Calendar systems are records:
+  `gregorianCalendar`, `iso8601Calendar`, `buddhistCalendar`, `japaneseCalendar`, `persianCalendar`.
+- **Engines as records:** `getPluralRules` + `pluralCardinal/Ordinal/Range`,
+  `createMessageFormatter` + `formatMessage`, `createLocaleMatcher` + `matchLocale`,
+  `createUnitConverter` + `convertUnits`, `createRBNF` + `rbnfSetFormat`, `tz*` functions with
+  `setTimeZoneData`.
+- **Convenience layer:** `cldrFramework(options).get('en')` returns the 1.x-shaped object
+  (`.Numbers.formatDecimal(...)`, `.Calendars.formatDate(...)`, `.General`, `.Units`, `.Schema`,
+  plus `.data`, the bound `LocaleData`). Built by `bindCLDR` / `bindNumbers` / … from the functions.
+
+## Design decisions made along the way
+
+- **`LocaleData` extends `Bundle`.** Every 1.x internal took `bundle` plus a hidden `this.internals`
+  (schema, config). Making the locale data a bundle that also carries its schema/config let every
+  internal keep its shape (`renderDecimal(data, …)` where it was `formatDecimal(bundle, …)`) and let
+  the codemod rewrite the call sites mechanically. It is one flat plain object.
+- **Caches.** Per-locale derived data (number params, context transforms, calendar patterns,
+  exemplar cities) lives in module-level `WeakMap`s keyed by the `LocaleData`. Pattern parse caches
+  (number, date, wrapper, day-period rules) are module-level bounded LRUs created on first use;
+  `patternCacheSize` is accepted but no longer used (results never depended on it).
+- **Mutable containers, deliberately.** Caches and accumulators are mutable records owned by the
+  functions that use them: `LRU`/`Cache`/`Heap`/`Checksum` (cldr-utils), the pack's region-index
+  cache, the tz database's lazily decoded zone records, `NumberContext` (per format call),
+  `DateSkeleton`/`DatePatternMatcher` (1.x `split()` mutates its input; kept), and the string/parts
+  value builders. Value types (Decimal, Rational, LanguageTag, CalendarDate, Bundle, LocaleData,
+  schema arrows) are never mutated after creation.
+- **Records of functions** are used where 1.x had small strategy objects: `stringValue()` /
+  `partsValue()`, decimal formatters, number renderers, `MessageMatcher`, `MessageArgConverter`.
+  They are closures, not classes, and are created per use.
+- **No classes kept.** Nothing turned out to be worse without one.
+- **Time zone data** is the one swappable input in `@phensley/timezone` (`setTimeZoneData`), decoded
+  lazily; locale data comes in only through packs + loader.
+- **`@phensley/cldr`** no longer sets a global default config on import (that side effect is exactly
+  what prevents tree-shaking and would be dropped under `sideEffects: false`). It exports
+  `createFramework` / `cldrFramework` wrappers that default to its config instead.
+- **Internals are not exported from package indexes beyond what 1.x exported**; tests of internal
+  modules import them by module path.
+
 ## Progress
 
-| Package | Status | Tests (files/tests) |
+| Package | Status | Tests (files/tests), baseline → now |
 |---|---|---|
-| decimal | done — `Decimal`, `Rational` plain data; `decimal*`, `rational*` functions | 15/119 |
-| timezone | done — `tz*` functions over swappable tz data (`setTimeZoneData`) | 6/18 (+2 new) |
-| language-tag | done — `LanguageTag` plain record, `tag*` accessors | 3/13 |
-| locale | done — `resolveLanguageTag`, `resolveLocaleId`, … | 3/11 |
-| locale-matcher | done — `createLocaleMatcher` + `matchLocale` | 3/183 |
-| plurals, messageformat | in progress (helper) | |
-| unit-converter, cldr-ext-rbnf | in progress (helper) | |
-| cldr-utils | todo | |
-| cldr-core | todo | |
-| cldr (aggregate + convenience layer) | todo | |
+| decimal | done | 15/119 → 15/119 |
+| timezone | done | 5/16 → 6/18 (+2 for `setTimeZoneData`) |
+| language-tag | done | 3/13 → 3/13 |
+| locale | done | 3/11 → 3/11 |
+| locale-matcher | done | 3/183 → 3/183 |
+| plurals | done | 6/349 → 6/349 |
+| messageformat | done | 6/40 → 6/40 |
+| unit-converter | done | 7/27 → 7/28 (+1 immutability) |
+| cldr-ext-rbnf | done | 1/2 → 2/5 (+3 with values recorded from 1.x) |
+| cldr-utils | done | 5/9 → 5/9 |
+| cldr-types | done (types for the plain arrows/bundle) | — |
+| cldr-core | done | 106/508 → 106/508 |
+| cldr (aggregate + convenience) | done | 3/11 → 3/11 |
+| cldr-compiler | adapted to the new core API (still class-based internally) | 7/21 → 7/21 |
 
 ## Deviations from 1.x
 
@@ -146,6 +235,33 @@ were then applied to the rest of the repo in this branch.
 - locale-matcher: the matcher record's internal fields are `{ supported, defaultEntry, exactMap }`;
   `LocaleMatcherEntry` is newly exported because the public type refers to it.
 
+- Test ports that read 1.x private fields: `cldr-core/__tests__/cldr.test.ts` checked the path
+  `bundle._id` on the 1.x `CLDRImpl` object; it now checks `data.id` (async loader tests) and
+  `bundle.id`. Values asserted are unchanged.
+- `CLDRFramework` is no longer a class: `cldrFramework(options, defaultConfig?)` returns the
+  loader object; `setDefaultConfig`, `CLDRFramework.resolveLocale/parseLanguageTag/
+  availableLocales/version` are plain functions. The `CLDR` object has no `Internals`; it has
+  `data` (the bound `LocaleData`). Its function groups are non-enumerable getters, so `toEqual`
+  between two CLDR objects compares their data (as 1.x, where methods lived on the prototype).
+- `General.bundle()` (convenience layer) returns the `LocaleData`, which is a `Bundle`.
+- `patternCacheSize` no longer configures anything (shared fixed-size caches).
+- `buildOrigin` (1.x `CodeBuilder.origin()`) still sets `config.calendars = ['gregory']` on the
+  config object passed in when it is empty — mutation of the caller's config kept from 1.x.
+- messageformat: `evaluateMessage` is stateless; 1.x `MessageEngine` kept its output buffer on the
+  instance, so calling `evaluate` twice on one engine concatenated results (nothing in the library
+  did that).
+- unit-converter: `unitConverterAdd` returns a new converter (1.x `add` mutated in place).
+- cldr-ext-rbnf: the algorithmic numbering systems no longer append the root rule names into the
+  shared rule set's `pubnames` array (1.x mutated it, so building the systems twice duplicated
+  names). Only visible through `systems.rbnfset.pubnames`. **See "Unsure" below.**
+- calendars: the calendar module's own `ZoneInfo` type is `DateZoneInfo` (it clashed with the
+  timezone package's `ZoneInfo` in the flat exports). `CalendarDate`/`GregorianDate`/... are
+  types only; use `isCalendarDate`/`isGregorianDate`/... instead of `instanceof`
+  (`isGregorianDate` is true for iso8601/buddhist/japanese, as `instanceof GregorianDate` was).
+  `currentMetazone()` builds its index on first use (1.x threw if called before anything had
+  initialised it).
+- plurals: `getPluralRules` returns a plain record; `numberOperands` is a plain record.
+
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 
 - timezone 1.x `TzImpl` constructor mutated the `RawData` passed to it (blanked strings after
@@ -158,3 +274,59 @@ were then applied to the rest of the repo in this branch.
 - language-tag: parsing keeps only the first variant; resolving drops extlangs; `fr-u-ca` gives
   `{u: ['ca']}` (kept).
 - language-tag: the constructor keeps the caller's `extensions` object by reference (kept).
+- messageformat: the argument regexp `(0[1..9]+|\d+|…)` uses the class `[1..9]` (matches `1`, `.`,
+  `9`); `[1-9]` was clearly intended. Kept.
+- messageformat/plurals docs: `DefaultMessageArgConverter.asDecimal` says it returns zero but
+  returns NaN; `NumberOperands` docs list an `e` operand that isn't implemented; the plurals README
+  was titled "@phensley/timezone".
+- calendars: Persian `set`/`fromFields` ignore `zoneId` (keep the date's zone; `fromFields` builds
+  in UTC), so `add()`'s `set({zoneId:'UTC'})` is a no-op for Persian dates. Kept.
+- calendars: `add`/`until` for Persian dates use Gregorian month lengths and 12-month arithmetic.
+  Kept.
+- calendars: ISO8601 and Japanese `fromFields` apply no defaults, so e.g. `{ year: 2024 }` without a
+  month throws "Cannot read properties of undefined". Kept.
+- calendars: `millisToTimePeriod` never sets `day`, so the `time.day` added in `add()` is always 0.
+  `toLocalISOString` zero-pads possibly negative hour/minute offsets. Kept.
+- cldr-ext-rbnf: the id loop in the algorithmic systems never stops at the first match — the last id
+  wins, and an undefined last id falls back to root even when an earlier id matched. Kept.
+- unit-converter: categories are stored in a plain `{}`, so `unitConverterHas(c, 'constructor')`
+  is true and a category named `toString` throws; `convertUnits` rounds the combined factor to the
+  MathContext before multiplying (3 ft → 0.9999999 yd at precision 7). Kept.
+
+
+## Differential check (locale API)
+
+(pending — see below once it finishes)
+
+## What's left / rough edges
+
+- **Versioning and changelog.** Package versions are still 1.16.0 and there is no CHANGELOG
+  entry. The pack checksum is derived from `major.minor`, so bumping to 2.0 changes it and the
+  packs must be rebuilt at release (the build does that). Left for Stephen to decide.
+- **Docs.** The README has a short 2.x usage section and the per-package READMEs touched by the
+  ports were updated, but the documentation site / `docs` content still describes the 1.x API.
+- **cldr-compiler** (build-time CLI) still contains classes internally; it only had its imports
+  adapted. It isn't bundled into apps, so it was out of scope for tree-shaking.
+- **Date performance** is 5–10% below 1.x in a micro-benchmark (see Summary). An easy follow-up is
+  computing the week fields once per date instead of per accessor call.
+- **Naming.** The value-type prefix rule produces some long names (`decimalStripTrailingZeros`,
+  `dateYearOfWeekOfYearISO`). It keeps the flat export namespace collision-free and makes
+  autocomplete work by type; worth a look before the API is frozen.
+- **Merging the tzdb 2026f work.** The data file `packages/timezone/src/autogen.zonedata.ts` and its
+  format are unchanged here, so a data-only update merges cleanly. If the other clone also edited
+  `packages/timezone/src/index.ts`, that will conflict: the runtime code moved to `src/tz.ts` and
+  `src/database.ts`.
+- **`examples/tree-shaking/measure.mjs`** needs a built 1.x checkout for the 1.x columns
+  (`--v1 <path>`); the 2.x numbers don't.
+
+## Unsure / worth a second look
+
+- **cldr-ext-rbnf `pubnames`** (above): the helper that ported it removed a 1.x in-place mutation of
+  shared rule-set data instead of reproducing it. Reproducing it would mean mutating shared data;
+  the extension isn't used by cldr-core. I left the fix in and flagged it, since the brief says to
+  keep 1.x behaviour.
+- **`patternCacheSize`** is now a no-op. If anyone tuned it for memory, they'd want a way to size
+  the shared caches; easy to add back as a function if needed.
+- **Convenience object shape:** I dropped `Internals` (undocumented, `@internal`) and added `data`.
+- **`isLanguageTag` / `isCalendarDate` / `isDecimal`** are shape checks, so a hand-made object of the
+  right shape passes where 1.x `instanceof` failed.
