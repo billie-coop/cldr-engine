@@ -98,14 +98,63 @@ easy to find with autocomplete:
 - No assertion is deleted or loosened. Where 1.x behaviour is a bug, the 1.x behaviour is kept and
   the bug is listed below.
 
+## How the port is done
+
+Each value type / package goes through the same steps, keeping the full suite green between
+commits:
+
+1. Write the functional implementation (a faithful port of the class, method by method).
+2. While the old class still exists, run a type-aware codemod (ts-morph) over the whole repo:
+   it finds calls whose receiver/declaration is the old class and rewrites them
+   (`n.setScale(2).stripTrailingZeros()` → `decimalStripTrailingZeros(decimalSetScale(n, 2))`),
+   handles statics, `new`, `instanceof` and implicit string conversion, and adds imports.
+   Ambiguous receivers (e.g. `string | Decimal`) are reported and fixed by hand.
+3. Swap in the new implementation, build, run the full suite, lint, commit.
+
+Independent packages were ported in parallel by helper agents in separate worktrees, each with a
+differential check against the 1.x code on top of the existing tests; their call-site mappings
+were then applied to the rest of the repo in this branch.
+
 ## Progress
 
-(updated as packages land)
+| Package | Status | Tests (files/tests) |
+|---|---|---|
+| decimal | done — `Decimal`, `Rational` plain data; `decimal*`, `rational*` functions | 15/119 |
+| timezone | done — `tz*` functions over swappable tz data (`setTimeZoneData`) | 6/18 (+2 new) |
+| language-tag | done — `LanguageTag` plain record, `tag*` accessors | 3/13 |
+| locale | done — `resolveLanguageTag`, `resolveLocaleId`, … | 3/11 |
+| locale-matcher | done — `createLocaleMatcher` + `matchLocale` | 3/183 |
+| plurals, messageformat | in progress (helper) | |
+| unit-converter, cldr-ext-rbnf | in progress (helper) | |
+| cldr-utils | todo | |
+| cldr-core | todo | |
+| cldr (aggregate + convenience layer) | todo | |
 
 ## Deviations from 1.x
 
-(none yet)
+- Test ports: `decimal/__tests__/parse.test.ts` compared against literals with the private
+  1.x field name `_exp`; the plain-data field is the public `exp`, so the expected literals use
+  that key. Values asserted are unchanged.
+- `@phensley/cldr` re-exports `@phensley/cldr-core` wholesale instead of an explicit name list.
+- timezone: the raw tz data is no longer blanked after decoding (1.x mutated its input), so it
+  stays in memory next to the decoded records; that is what makes `setTimeZoneData` reversible.
+  The zone-type lookup table is replaced by `parseInt(c, 36)` (same result for every character
+  the encoder emits).
+- language-tag: `tagExtensions`/`tagExtensionSubtags`/`tagExtlangs` return readonly arrays.
+  `isLanguageTag` is a shape check, so a plain object shaped like a tag passes where 1.x
+  `instanceof` would fail.
+- locale-matcher: the matcher record's internal fields are `{ supported, defaultEntry, exactMap }`;
+  `LocaleMatcherEntry` is newly exported because the public type refers to it.
 
-## 1.x bugs found (behaviour preserved)
+## 1.x bugs / oddities found (behaviour preserved unless noted)
 
-(none yet)
+- timezone 1.x `TzImpl` constructor mutated the `RawData` passed to it (blanked strings after
+  decoding), so a second instance from the same data broke. Fixed as a side effect of making the
+  data swappable (no behaviour visible through the public API changes).
+- timezone README wall-clock example called `fromUTC` and destructured a pair; should be
+  `fromWall`. README fixed.
+- language-tag: the extlang pattern `/^[a-z]{3}$/i` also matches 3-letter region codes, so
+  `en-AAA` resolves to `aaa-Latn-AA` (asserted by a test; kept).
+- language-tag: parsing keeps only the first variant; resolving drops extlangs; `fr-u-ca` gives
+  `{u: ['ca']}` (kept).
+- language-tag: the constructor keeps the caller's `extensions` object by reference (kept).
