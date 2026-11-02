@@ -8,17 +8,18 @@ import { metazoneData } from './autogen.zonedata';
 import { numarray, stringToObject } from '../../utils/string';
 
 /**
- * Time zone information carried by a calendar date.
+ * Time zone information carried by a calendar date. Dates are immutable; use `dateWithZone` or
+ * `dateSet` to change the zone.
  *
  * @public
  */
 export interface DateZoneInfo {
-  zoneid: string;
-  stableid: string;
-  abbr: string;
-  dst: number;
-  offset: number;
-  metazoneid: string;
+  readonly zoneid: string;
+  readonly stableid: string;
+  readonly abbr: string;
+  readonly dst: number;
+  readonly offset: number;
+  readonly metazoneid: string;
 }
 
 interface MetazoneRecord {

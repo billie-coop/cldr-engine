@@ -328,6 +328,11 @@ week accessors are ~3× slower (recomputed per call, see open items).
   `decimal(d)` still returns `d`. `numberOperands` (plurals, a hot path) reads the fields directly
   instead of going through `decimalProperties`, so no copy is added there. Values and outputs
   unchanged. Test: `decimal/__tests__/aliasing.test.ts`.
+- **Writable `zoneInfo` on dates (P2, types).** `CalendarDate.zoneInfo` was a readonly property
+  holding an object with writable fields (1.x kept it protected), so `d.zoneInfo.offset = …`
+  compiled and changed the date's instant without recomputing its fields. Every `DateZoneInfo`
+  field is now readonly; `dateWithZone` / `dateSet` are the supported ways to change the zone.
+  Type-only. Test: `cldr-core/__tests__/systems/calendars/readonly.test.ts`.
 
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 

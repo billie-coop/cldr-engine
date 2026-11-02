@@ -623,17 +623,17 @@ export const dateYearOfWeekOfYearISO: (d: CalendarDate) => number;
 // @public
 export interface DateZoneInfo {
     // (undocumented)
-    abbr: string;
+    readonly abbr: string;
     // (undocumented)
-    dst: number;
+    readonly dst: number;
     // (undocumented)
-    metazoneid: string;
+    readonly metazoneid: string;
     // (undocumented)
-    offset: number;
+    readonly offset: number;
     // (undocumented)
-    stableid: string;
+    readonly stableid: string;
     // (undocumented)
-    zoneid: string;
+    readonly zoneid: string;
 }
 
 // @public (undocumented)
