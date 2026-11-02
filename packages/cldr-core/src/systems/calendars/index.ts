@@ -8,7 +8,9 @@ export { dateAdd, dateSubtract } from './add';
 export { dateDifference, dateDifferenceSigned, dateRelativeTime, dateSince, dateUntil } from './difference';
 
 export * from './buddhist';
-export * from './gregorian';
+// Not the helpers the Gregorian-based calendars share (gregorianDaysInYear, gregorianResolveFields).
+export type { GregorianDate } from './gregorian';
+export { gregorianCalendar, gregorianDateFromFields, gregorianDateFromUnixEpoch, isGregorianDate } from './gregorian';
 export * from './iso8601';
 export * from './japanese';
 export * from './persian';

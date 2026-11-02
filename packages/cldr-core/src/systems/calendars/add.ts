@@ -1,5 +1,6 @@
 import { tzFromWall } from '@phensley/timezone';
-import { dateSet, negatePeriod } from './calendar';
+import { dateSet } from './calendar';
+import { negatePeriod } from './math';
 import { CalendarConstants } from './constants';
 import { newDateFromJD } from './core';
 import { DateField } from './fields';

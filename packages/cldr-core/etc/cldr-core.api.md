@@ -1115,21 +1115,11 @@ export const gregorianDateFromFields: (fields: Partial<CalendarDateFields>, firs
 // @public
 export const gregorianDateFromUnixEpoch: (epoch: number, zoneId: string, firstDay?: number, minDays?: number) => GregorianDate;
 
-// Warning: (ae-internal-missing-underscore) The name "gregorianDaysInYear" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const gregorianDaysInYear: (y: number) => number;
-
 // @public (undocumented)
 export const GregorianEraIndex: KeyIndex<string>;
 
 // @public (undocumented)
 export const GregorianMonthsIndex: KeyIndex<string>;
-
-// Warning: (ae-internal-missing-underscore) The name "gregorianResolveFields" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const gregorianResolveFields: (f: Partial<CalendarDateFields>, zoneId: string, _offset: number) => [number, string];
 
 // @public (undocumented)
 export type Instruction = Digits | Field | Origin | Scope | ScopeMap | Vector;
@@ -1547,9 +1537,6 @@ export const minDaysInFirstWeek: (data: LocaleData) => number;
 
 // @public
 export const months: (data: LocaleData, opt?: CalendarFieldsOptions) => any;
-
-// @public
-export const negatePeriod: (fields: Partial<TimePeriod>) => TimePeriod;
 
 // @public
 export const newBuddhistDate: (data: LocaleData, fields: Partial<CalendarDateFields>) => BuddhistDate;

@@ -5,7 +5,7 @@ import { CalendarConstants } from './constants';
 import { newDate } from './core';
 import { DateField } from './fields';
 import { gregorianCalendar } from './gregorian';
-import { TIME_PERIOD_FIELDS, TimePeriod, TimePeriodField } from './interval';
+import { TimePeriodField } from './interval';
 import { CalendarDate, CalendarDateFields, CalendarType } from './types';
 
 const zeropad = (n: number, w: number): string => numberingFormatString(INTERNAL_NUMBERING, n, false, w);
@@ -590,20 +590,6 @@ export const dateEndOf = (d: CalendarDate, field: CalendarDateModFields): Calend
     case 'second':
       return dateSet(d, { millis: 999 });
   }
-};
-
-/**
- * Negate every field of a time period, filling in missing fields with zero.
- *
- * @public
- */
-export const negatePeriod = (fields: Partial<TimePeriod>): TimePeriod => {
-  const r: Partial<TimePeriod> = {};
-  for (const f of TIME_PERIOD_FIELDS) {
-    const v = fields[f];
-    r[f] = v ? -v : 0;
-  }
-  return r as TimePeriod;
 };
 
 const toISOString = (d: CalendarDate, utc: boolean): string => {

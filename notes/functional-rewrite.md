@@ -351,6 +351,20 @@ week accessors are ~3× slower (recomputed per call, see open items).
 - **`packages/decimal/README.md`** still taught `new Decimal(...)` / `.multiply(...)`. Rewritten for
   the function API (usage section + the same example, which prints exactly the output already in
   the README); also fixed its broken `@phensley/clde` link.
+- **API-export pass (API).** Besides the internals barrel above, three 1.x protected helpers had
+  become public functions through `export *` barrels: `gregorianDaysInYear` and
+  `gregorianResolveFields` (1.x `GregorianDate.daysInYear` / `_set` internals; shared by the
+  Gregorian-based calendar records) and `negatePeriod` (1.x `CalendarDate._negatePeriod`).
+  They are no longer exported (`negatePeriod` moved to the internal `systems/calendars/math.ts`;
+  the calendar barrel lists `gregorian.ts`'s public names explicitly). Method: listed every
+  runtime export of each 2.x package that isn't a 1.x export name, and checked it against the
+  1.x declarations; everything else is a 1.x public method/static as a function, a 1.x export,
+  or part of the documented 2.x API (records, `bind*`, `localeData`, …). Names still exported
+  but tagged `@internal` are all 1.x exports the compiler uses (`origin`, `scope`, `vector`,
+  `checksumIndices`, …) or 1.x exported classes' public methods (`decimalNumberingSystem`,
+  `numberingFormatString`, `fastFormatDecimal`). Other packages' 1.x private members became
+  fields of the plain records (by design), not exported functions. Test:
+  `cldr-core/__tests__/exports.test.ts`.
 
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 

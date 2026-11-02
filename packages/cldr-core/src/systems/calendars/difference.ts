@@ -1,6 +1,6 @@
 import { tzFromWall } from '@phensley/timezone';
 import { addYMD } from './add';
-import { dateCompare, DateDiffOptions, dateStartOf, dateUnixEpoch, negatePeriod } from './calendar';
+import { dateCompare, DateDiffOptions, dateStartOf, dateUnixEpoch } from './calendar';
 import { CalendarConstants } from './constants';
 import { DateField } from './fields';
 import { daysInMonth, ymdToJD } from './gregorianmath';
@@ -12,7 +12,7 @@ import {
   TimePeriodFieldFlag,
   timePeriodFieldFlags,
 } from './interval';
-import { adjustYM, clampYMD, toYMD, unixEpochFromJD, YearMonth, YearMonthDay } from './math';
+import { adjustYM, clampYMD, negatePeriod, toYMD, unixEpochFromJD, YearMonth, YearMonthDay } from './math';
 import { CalendarDate } from './types';
 
 /**
