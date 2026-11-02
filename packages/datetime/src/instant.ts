@@ -9,7 +9,7 @@ const MS_PER_DAY = 86400000;
 const INSTANT_RE = new RegExp(
   '^([+-]\\d{6}|\\d{4})-(\\d{2})-(\\d{2})[Tt ]' +
     '(\\d{2}):(\\d{2})(?::(\\d{2})(?:[.,](\\d{1,9}))?)?' +
-    '(?:([Zz])|([+-])(\\d{2})(?::?(\\d{2}))?)?$',
+    '(?:([Zz])|([+-])(\\d{2})(?::?(\\d{2})(?::(\\d{2}))?)?)?$',
 );
 
 /**
@@ -18,9 +18,11 @@ const INSTANT_RE = new RegExp(
  *
  * Text without a UTC offset or `Z` is a wall clock time, so it needs a zone: pass `zone` to read
  * it there (clock changes resolved as {@link dayAtTime} 'compatible'), otherwise it is rejected.
- * A date alone is a {@link Day}, not an instant: use `dayParse`. Returns undefined for anything
- * that isn't valid, unlike `Date.parse`, which accepts many forms and reads a date alone as UTC
- * midnight.
+ * A date alone is a {@link Day}, not an instant: use `dayParse`. Returns undefined for text
+ * that isn't valid (including `24:00` and partial forms such as `2026-01`), unlike `Date.parse`,
+ * which accepts many forms and reads a date alone as UTC midnight. An unknown `zone` throws a
+ * RangeError, like every function that takes a zone. Offsets may include seconds
+ * (`+00:09:21`), as historical ones do.
  *
  * @public
  */
@@ -48,10 +50,11 @@ export const instantParse = (s: string, zone?: string): Instant | undefined => {
   } else if (m[9]) {
     const oh = Number(m[10]);
     const om = m[11] ? Number(m[11]) : 0;
-    if (oh > 23 || om > 59) {
+    const os = m[12] ? Number(m[12]) : 0;
+    if (oh > 23 || om > 59 || os > 59) {
       return undefined;
     }
-    const offset = (oh * 60 + om) * 60000 * (m[9] === '-' ? -1 : 1);
+    const offset = ((oh * 60 + om) * 60 + os) * 1000 * (m[9] === '-' ? -1 : 1);
     r = dayAtTime(d, t, 'Etc/UTC') - offset;
   } else if (zone !== undefined) {
     r = dayAtTime(d, t, zone);
@@ -71,8 +74,10 @@ const pad = (n: number, w: number): string => {
 
 /**
  * Format an instant as ISO 8601 with milliseconds. Without a zone it is in UTC
- * (`2026-01-31T17:00:00.000Z`, the same as `Date.toISOString()`); with a zone it is that zone's
- * wall clock time and offset (`2026-01-31T09:00:00.000-08:00`).
+ * (`2026-01-31T17:00:00.000Z`, the same as `Date.toISOString()` for whole milliseconds); with a
+ * zone it is that zone's wall clock time and offset (`2026-01-31T09:00:00.000-08:00`). An offset
+ * with seconds is written with them (`+00:09:21`), so the text always parses back to the same
+ * instant.
  *
  * @public
  */
@@ -85,8 +90,13 @@ export const instantToString = (instant: Instant, zone?: string): string => {
   const time = `${pad(t.hour, 2)}:${pad(t.minute, 2)}:${pad(t.second, 2)}.${pad(t.millis, 3)}`;
   let suffix = 'Z';
   if (zone !== undefined) {
-    const mins = Math.round(Math.abs(offset) / 60000);
-    suffix = `${offset < 0 ? '-' : '+'}${pad(Math.floor(mins / 60), 2)}:${pad(mins % 60, 2)}`;
+    // Historical offsets can include seconds (Paris was +00:09:21 until 1911); keep them, as
+    // Temporal does, so the text still names the same instant.
+    const secs = Math.round(Math.abs(offset) / 1000);
+    suffix = `${offset < 0 ? '-' : '+'}${pad(Math.floor(secs / 3600), 2)}:${pad(Math.floor(secs / 60) % 60, 2)}`;
+    if (secs % 60) {
+      suffix += `:${pad(secs % 60, 2)}`;
+    }
   }
   return `${dayToString(dayFromEpochDay(n))}T${time}${suffix}`;
 };

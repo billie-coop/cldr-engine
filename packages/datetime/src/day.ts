@@ -72,6 +72,28 @@ const checked = (n: number): Day => {
   return fromEpochDay(n);
 };
 
+const invalid = (d: unknown): RangeError => {
+  let shown: string;
+  try {
+    shown = JSON.stringify(d);
+  } catch {
+    shown = String(d);
+  }
+  return new RangeError(`Invalid day: ${shown}`);
+};
+
+/**
+ * Throws a RangeError unless `d` is a valid day, and returns its day number. Every function
+ * that takes a Day checks it, so a hand-built or deserialized `{ month: 2, day: 30 }` fails
+ * loudly instead of rolling over.
+ */
+const epochOf = (d: Day): number => {
+  if (typeof d !== 'object' || d === null || !valid(d.year, d.month, d.day)) {
+    throw invalid(d);
+  }
+  return toEpochDay(d.year, d.month, d.day);
+};
+
 /**
  * Create a day from its year, month (1-12) and day of month (1-31). Throws a RangeError if the
  * day doesn't exist, such as 2026-02-30. (JavaScript Date silently rolls that over to March.)
@@ -101,7 +123,7 @@ export const isDay = (v: unknown): v is Day => {
  *
  * @public
  */
-export const dayToEpochDay = (d: Day): number => toEpochDay(d.year, d.month, d.day);
+export const dayToEpochDay = (d: Day): number => epochOf(d);
 
 /**
  * The day for a day number (days since 1970-01-01).
@@ -162,20 +184,28 @@ export const dayFromString = (s: string): Day => {
  * @public
  */
 export const dayToString = (d: Day): string => {
+  epochOf(d);
   const y = d.year;
   const year = y >= 0 && y <= 9999 ? pad(y, 4) : (y < 0 ? '-' : '+') + pad(Math.abs(y), 6);
   return `${year}-${pad(d.month, 2)}-${pad(d.day, 2)}`;
 };
 
-const addMonths = (d: Day, months: number): Day => {
-  if (!months) {
-    return d;
+/**
+ * Day number of a valid day plus a number of months (clamping the day of month to the end of a
+ * shorter month) and then days. Not range checked: callers check the result they return, so an
+ * intermediate value outside the supported range never throws by itself.
+ */
+const addEpoch = (d: Day, months: number, days: number): number => {
+  let y = d.year;
+  let m = d.month;
+  let dd = d.day;
+  if (months) {
+    const total = y * 12 + (m - 1) + months;
+    y = floorDiv(total, 12);
+    m = total - y * 12 + 1;
+    dd = Math.min(dd, daysInMonth(y, m));
   }
-  const total = d.year * 12 + (d.month - 1) + months;
-  const year = floorDiv(total, 12);
-  const month = total - year * 12 + 1;
-  const n = toEpochDay(year, month, Math.min(d.day, daysInMonth(year, month)));
-  return checked(n);
+  return toEpochDay(y, m, dd) + days;
 };
 
 const intOf = (n: number | undefined, name: string): number => {
@@ -191,15 +221,15 @@ const intOf = (n: number | undefined, name: string): number => {
 /**
  * Add a calendar duration. Years and months are added first, clamping the day of month to the
  * end of a shorter month (2026-01-31 plus 1 month is 2026-02-28), then weeks and days. This
- * matches date-fns `add` and Temporal `PlainDate.add`.
+ * matches date-fns `add` and Temporal `PlainDate.add`. Durations must be integers.
  *
  * @public
  */
 export const dayAdd = (d: Day, duration: DayDuration): Day => {
+  epochOf(d);
   const months = intOf(duration.years, 'years') * 12 + intOf(duration.months, 'months');
   const days = intOf(duration.weeks, 'weeks') * 7 + intOf(duration.days, 'days');
-  const r = addMonths(d, months);
-  return days ? checked(dayToEpochDay(r) + days) : r;
+  return months || days ? checked(addEpoch(d, months, days)) : d;
 };
 
 /**
@@ -216,12 +246,13 @@ export const daySubtract = (d: Day, duration: DayDuration): Day =>
   });
 
 /**
- * Compare two days: -1 if `a` is before `b`, 0 if they are the same day, 1 if after.
+ * Compare two days: -1 if `a` is before `b`, 0 if they are the same day, 1 if after. Works as a
+ * sort comparator: `days.sort(dayCompare)`.
  *
  * @public
  */
 export const dayCompare = (a: Day, b: Day): number => {
-  const c = a.year - b.year || a.month - b.month || a.day - b.day;
+  const c = epochOf(a) - epochOf(b);
   return c < 0 ? -1 : c > 0 ? 1 : 0;
 };
 
@@ -254,19 +285,23 @@ export const dayIsAfter = (a: Day, b: Day): boolean => dayCompare(a, b) > 0;
  * - `weeks`: whole weeks (days / 7, rounded toward zero).
  * - `months` / `years`: the largest whole number of months (years) that can be added to `from`
  *   with {@link dayAdd} without passing `to`. So 2026-01-31 to 2026-02-28 is 1 month, and
- *   2026-01-15 to 2026-02-14 is 0 months.
+ *   2026-01-15 to 2026-02-14 is 0 months. Because of month-end clamping this can differ from
+ *   date-fns `differenceInMonths` / `differenceInYears` at month ends: 2024-02-29 to 2025-02-28
+ *   is 1 year here (adding a year to Feb 29 gives Feb 28) and 0 in date-fns.
  *
  * @public
  */
 export const dayUntil = (from: Day, to: Day, unit: DayUnit = 'days'): number => {
+  const a = epochOf(from);
+  const b = epochOf(to);
   switch (unit) {
     case 'weeks': {
-      const n = dayToEpochDay(to) - dayToEpochDay(from);
+      const n = b - a;
       return n < 0 ? Math.ceil(n / 7) : Math.floor(n / 7);
     }
     case 'months':
     case 'years': {
-      const sign = dayCompare(to, from);
+      const sign = b > a ? 1 : b < a ? -1 : 0;
       if (sign === 0) {
         return 0;
       }
@@ -277,13 +312,13 @@ export const dayUntil = (from: Day, to: Day, unit: DayUnit = 'days'): number => 
         m -= m % 12;
       }
       const step = unit === 'years' ? 12 : 1;
-      while (m !== 0 && dayCompare(addMonths(from, m), to) === sign) {
+      while (m !== 0 && (addEpoch(from, m, 0) - b) * sign > 0) {
         m -= sign * step;
       }
       return unit === 'years' ? m / 12 : m;
     }
     default:
-      return dayToEpochDay(to) - dayToEpochDay(from);
+      return b - a;
   }
 };
 
@@ -296,7 +331,7 @@ export const dayUntil = (from: Day, to: Day, unit: DayUnit = 'days'): number => 
  */
 export const dayOfWeek = (d: Day): number => {
   // 1970-01-01 was a Thursday (5).
-  const n = (dayToEpochDay(d) + 4) % 7;
+  const n = (epochOf(d) + 4) % 7;
   return (n < 0 ? n + 7 : n) + 1;
 };
 
@@ -305,21 +340,27 @@ export const dayOfWeek = (d: Day): number => {
  *
  * @public
  */
-export const dayOfYear = (d: Day): number => dayToEpochDay(d) - toEpochDay(d.year, 1, 1) + 1;
+export const dayOfYear = (d: Day): number => epochOf(d) - toEpochDay(d.year, 1, 1) + 1;
 
 /**
  * Number of days in the day's month.
  *
  * @public
  */
-export const dayDaysInMonth = (d: Day): number => daysInMonth(d.year, d.month);
+export const dayDaysInMonth = (d: Day): number => {
+  epochOf(d);
+  return daysInMonth(d.year, d.month);
+};
 
 /**
  * True if the day falls in a leap year.
  *
  * @public
  */
-export const dayIsLeapYear = (d: Day): boolean => isLeapYear(d.year);
+export const dayIsLeapYear = (d: Day): boolean => {
+  epochOf(d);
+  return isLeapYear(d.year);
+};
 
 const checkFirstDay = (firstDay: number): void => {
   if (!isInt(firstDay) || firstDay < 1 || firstDay > 7) {
@@ -336,7 +377,7 @@ const checkFirstDay = (firstDay: number): void => {
 export const dayStartOfWeek = (d: Day, firstDay: number): Day => {
   checkFirstDay(firstDay);
   const back = (dayOfWeek(d) - firstDay + 7) % 7;
-  return back ? checked(dayToEpochDay(d) - back) : d;
+  return back ? checked(epochOf(d) - back) : d;
 };
 
 /**
@@ -344,23 +385,27 @@ export const dayStartOfWeek = (d: Day, firstDay: number): Day => {
  *
  * @public
  */
-export const dayEndOfWeek = (d: Day, firstDay: number): Day => checked(dayToEpochDay(dayStartOfWeek(d, firstDay)) + 6);
+export const dayEndOfWeek = (d: Day, firstDay: number): Day => checked(epochOf(dayStartOfWeek(d, firstDay)) + 6);
 
 /**
  * The first day of the day's month or year.
  *
  * @public
  */
-export const dayStartOf = (d: Day, unit: 'month' | 'year'): Day =>
-  unit === 'year' ? day(d.year, 1, 1) : day(d.year, d.month, 1);
+export const dayStartOf = (d: Day, unit: 'month' | 'year'): Day => {
+  epochOf(d);
+  return unit === 'year' ? day(d.year, 1, 1) : day(d.year, d.month, 1);
+};
 
 /**
  * The last day of the day's month or year.
  *
  * @public
  */
-export const dayEndOf = (d: Day, unit: 'month' | 'year'): Day =>
-  unit === 'year' ? day(d.year, 12, 31) : day(d.year, d.month, daysInMonth(d.year, d.month));
+export const dayEndOf = (d: Day, unit: 'month' | 'year'): Day => {
+  epochOf(d);
+  return unit === 'year' ? day(d.year, 12, 31) : day(d.year, d.month, daysInMonth(d.year, d.month));
+};
 
 /**
  * Every day from `start` to `end`, both included, in steps of `step` (default one day). Each
@@ -374,6 +419,8 @@ export const dayEndOf = (d: Day, unit: 'month' | 'year'): Day =>
  * @public
  */
 export const dayRange = (start: Day, end: Day, step: DayDuration = { days: 1 }): Day[] => {
+  epochOf(start);
+  const last = epochOf(end);
   const months = intOf(step.years, 'years') * 12 + intOf(step.months, 'months');
   const days = intOf(step.weeks, 'weeks') * 7 + intOf(step.days, 'days');
   if (months < 0 || days < 0 || (months === 0 && days === 0)) {
@@ -381,10 +428,11 @@ export const dayRange = (start: Day, end: Day, step: DayDuration = { days: 1 }):
   }
   const r: Day[] = [];
   for (let i = 0; ; i++) {
-    const d = dayAdd(start, { months: months * i, days: days * i });
-    if (dayCompare(d, end) > 0) {
+    // Between start and end, so always in range; the first one past the end is never built.
+    const n = addEpoch(start, months * i, days * i);
+    if (n > last) {
       return r;
     }
-    r.push(d);
+    r.push(fromEpochDay(n));
   }
 };

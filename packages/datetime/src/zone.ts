@@ -7,9 +7,13 @@ import { Day, Disambiguation, Instant, TimeOfDay } from './types';
  * The only functions that take a time zone. Everything else in this package is plain integer
  * math on days and times of day; daylight saving time is handled here and nowhere else.
  *
- * Zones are IANA ids such as 'America/Vancouver' (aliases and any letter case are accepted).
- * An unknown zone throws a RangeError: silently falling back to UTC is how off-by-one-day bugs
- * start.
+ * Zones are IANA ids such as 'America/Vancouver'. Aliases ('Asia/Calcutta') and any letter case
+ * are accepted. An unknown zone throws a RangeError: silently falling back to UTC is how
+ * off-by-one-day bugs start.
+ *
+ * Instants are milliseconds; a fractional instant is floored to the millisecond before it
+ * (also before 1970, where Date truncates toward 1970 instead). NaN, Infinity and instants
+ * outside JavaScript Date's range throw.
  */
 
 const MS_PER_DAY = 86400000;
@@ -30,18 +34,28 @@ export const checkInstant = (instant: Instant): void => {
   }
 };
 
-/**
- * The zone's offset from UTC, in milliseconds, at an instant. Throws a RangeError for an
- * unknown zone.
- *
- * @public
- */
-export const timeZoneOffset = (zone: string, instant: Instant): number => {
-  const info = tzFromUTC(zone, instant);
+// Offset lookup without the instant check, for the probes in dayAtTime that may step just
+// outside the supported range. The tz data indexes canonical spellings and lower case.
+const offsetAt = (zone: string, t: number): number => {
+  let info = typeof zone === 'string' ? tzFromUTC(zone, t) : undefined;
+  if (!info && typeof zone === 'string' && zone.toLowerCase() !== zone) {
+    info = tzFromUTC(zone.toLowerCase(), t);
+  }
   if (!info) {
     throw new RangeError(`Unknown time zone: ${JSON.stringify(zone)}`);
   }
   return info.offset;
+};
+
+/**
+ * The zone's offset from UTC, in milliseconds, at an instant. Throws a RangeError for an
+ * unknown zone or an invalid instant.
+ *
+ * @public
+ */
+export const timeZoneOffset = (zone: string, instant: Instant): number => {
+  checkInstant(instant);
+  return offsetAt(zone, instant);
 };
 
 /**
@@ -111,6 +125,33 @@ export interface DayAtTimeOptions {
   disambiguation?: Disambiguation;
 }
 
+// The instants at which the wall clock in `zone` reads `wall` (wall clock milliseconds, as if
+// the zone were UTC), sorted: one normally, two when the clocks went back over it, none when
+// they went forward over it. Offsets are probed a day before and a day after, so one of them
+// applies unless the zone changed its offset more than once within two days (no zone does).
+const resolveWall = (wall: number, zone: string): [number[], number, number] => {
+  const before = offsetAt(zone, wall - MS_PER_DAY);
+  const after = offsetAt(zone, wall + MS_PER_DAY);
+  const candidates: number[] = [];
+  const consider = (offset: number) => {
+    const t = wall - offset;
+    if (offsetAt(zone, t) === offset && candidates.indexOf(t) === -1) {
+      candidates.push(t);
+    }
+  };
+  consider(before);
+  consider(after);
+  candidates.sort((a, b) => a - b);
+  return [candidates, before, after];
+};
+
+const result = (t: number): Instant => {
+  if (Math.abs(t) > MAX_INSTANT) {
+    throw new RangeError(`Instant out of range: ${t}`);
+  }
+  return t;
+};
+
 /**
  * The instant when the wall clock in `zone` shows `time` on day `d`: "9:00 on the due date in
  * Tokyo". When the clocks change that day the time can be skipped (02:30 on a spring-forward
@@ -126,25 +167,10 @@ export interface DayAtTimeOptions {
 export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAtTimeOptions): Instant => {
   const mode = (options && options.disambiguation) || 'compatible';
   const wall = dayToEpochDay(d) * MS_PER_DAY + timeOfDayToMillis(time);
-
-  // Offsets in effect a day before and a day after; one of them applies unless the zone
-  // changed its offset more than once within two days, which no real zone does.
-  const before = timeZoneOffset(zone, wall - MS_PER_DAY);
-  const after = timeZoneOffset(zone, wall + MS_PER_DAY);
-
-  const candidates: number[] = [];
-  const consider = (offset: number) => {
-    const t = wall - offset;
-    if (timeZoneOffset(zone, t) === offset && candidates.indexOf(t) === -1) {
-      candidates.push(t);
-    }
-  };
-  consider(before);
-  consider(after);
-  candidates.sort((a, b) => a - b);
+  const [candidates, before, after] = resolveWall(wall, zone);
 
   if (candidates.length === 1) {
-    return candidates[0];
+    return result(candidates[0]);
   }
   if (candidates.length > 1) {
     // Repeated: the clocks went back, so this wall time happens twice.
@@ -152,9 +178,9 @@ export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAt
       case 'reject':
         throw new RangeError(`Time happens twice in ${zone} that day`);
       case 'later':
-        return candidates[candidates.length - 1];
+        return result(candidates[candidates.length - 1]);
       default:
-        return candidates[0];
+        return result(candidates[0]);
     }
   }
 
@@ -164,17 +190,37 @@ export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAt
     case 'reject':
       throw new RangeError(`Time doesn't exist in ${zone} that day`);
     case 'earlier':
-      return wall - after;
+      return result(wall - after);
     default:
-      return wall - before;
+      return result(wall - before);
   }
 };
 
 /**
- * The instant day `d` starts in `zone`: midnight, or the first moment after midnight when a
- * clock change skips it.
+ * The first instant of day `d` in `zone`: midnight, or when a clock change skips midnight, the
+ * moment the clocks jump to (e.g. 01:00, or 00:30 if they jumped from 23:30 to 00:30).
  *
  * @public
  */
-export const dayStartInstant = (d: Day, zone: string): Instant =>
-  dayAtTime(d, { hour: 0, minute: 0, second: 0, millis: 0 }, zone);
+export const dayStartInstant = (d: Day, zone: string): Instant => {
+  const n = dayToEpochDay(d);
+  const wall = n * MS_PER_DAY;
+  const [candidates, before, after] = resolveWall(wall, zone);
+  if (candidates.length) {
+    return result(candidates[0]);
+  }
+  // Midnight was skipped. Find the first instant whose local day is `d`: at `wall - after` the
+  // clock still reads the previous day, at `wall - before` it already reads `d`.
+  const localDay = (t: number) => Math.floor((t + offsetAt(zone, t)) / MS_PER_DAY);
+  let lo = wall - after;
+  let hi = wall - before;
+  while (hi - lo > 1) {
+    const mid = lo + Math.floor((hi - lo) / 2);
+    if (localDay(mid) >= n) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  return result(hi);
+};

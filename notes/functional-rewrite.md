@@ -613,18 +613,45 @@ Daylight saving is handled in `dayAtTime` only, with Temporal's `disambiguation`
   disambiguation modes: 8,214,528 comparisons. 568 differ, all in America/Bogota (1992) and
   Europe/Chisinau, and in every one the two tz data sets (bundled 2025b vs Node ICU 2026e)
   disagree about the offsets around that time; where the data agree the results are identical.
-- **Unit tests:** `packages/datetime/__tests__` (15) and
-  `cldr-core/__tests__/api/calendars/days.test.ts` (6). Suite now 186 files / 1359 tests.
-- **Benchmarks** (`packages/datetime/__benchmarks__`, Node 24): dayParse 6.7M ops/s, dayAdd
-  9.6M (days) / 8.8M (months), dayUntil 19M, dayFromInstant 4.8M, dayAtTime 1.7M.
+- **Unit tests:** `packages/datetime/__tests__` (22) and
+  `cldr-core/__tests__/api/calendars/days.test.ts` (7). Suite now 187 files / 1367 tests.
+- **Benchmarks** (`packages/datetime/__benchmarks__`, Node 24, after the review's input
+  validation): dayParse 6.8M ops/s, dayToString 15.5M, dayAdd 9.0M (days) / 8.0M (months),
+  dayUntil 14.9M, dayStartOfWeek 8.3M, dayFromInstant 4.9M, dayAtTime 1.7M.
 - **Size** (rollup + terser, min+gzip): day math only 1.3 KB; with zone functions 31.7 KB (tz
   data); `formatDay` + `formatDayRelative` with a locale 89.0 KB.
+
+**Independent review (Codex, 2026-11-02)** found no errors in the calendar math or DST
+resolution (its own checks: 200k epoch days over the full range vs Date, 200k month/year
+differences, 643,692 disambiguation checks at every bundled transition) but 11 issues at the
+edges, all fixed with regression tests (`packages/datetime/__tests__/review.test.ts`, extra
+cases in `days.test.ts`):
+- every function now validates Day / TimeOfDay arguments (hand-built `{ month: 2, day: 30 }`
+  rolled over in `dayAtTime` and was clamped by `formatDay`); `timeZoneOffset` and the instant
+  formatters reject NaN / Infinity / out-of-range instants (`formatInstant(en, NaN)` printed
+  1 Jan 1970);
+- `formatDay*` throws outside 1582-10-15 … 8652-12-31: the shared calendar formatter uses the
+  Julian calendar before the reform and clamps at 8652, so those days came out wrong;
+- `formatDay` / `formatTimeOfDay` / `formatDayInterval` reject skeleton fields that don't
+  belong to the value (`'jmsz'` printed a made-up "GMT");
+- `instantToString` keeps seconds in historical offsets (`+00:09:21`) and `instantParse`
+  accepts them, so zoned text parses back to the same instant (102,300 round trips checked);
+- `dayUntil` / `dayRange` no longer build an out-of-range intermediate at the range limits;
+  `dayAtTime` throws if the result is outside Date's range;
+- `dayStartInstant` finds the first instant of the day when a gap starts before midnight
+  (Toronto 1919-03-31 starts at 00:30, not 01:00);
+- zone ids are accepted in any letter case;
+- date-utils port: falls back to the host clock (not UTC) when the platform's zone is unknown,
+  copies date-fns' fractional-amount rule, and is described as replacing the `DateUtils`
+  object, not the whole module (its date-fns re-exports must move in the same change);
+- docs: `differenceInYears` also differs at Feb 29 anniversaries; parse functions throw for an
+  unknown zone; fractional instants are floored.
 
 **date-fns migration.** `examples/date-fns-migration/` has a function-by-function table and
 `date-utils.ts`, a drop-in replacement for the monorepo's `@billie-coop/date-utils` (same
 `DateUtils` API, no date-fns, only needs `@phensley/datetime`, so it works next to cldr 1.13.1).
-Compared with the original in 9 TZ settings with a mocked clock over 2018-2030: identical for
-every `YYYY-MM-DD` input; differs only for invalid days (`2025-02-30` no longer rolls over),
+Compared with the original in 11 TZ settings (incl. POSIX `UTC+8`, `EST5EDT`) with a mocked
+clock over 2018-2030, plus 99 fractional/NaN amounts: identical for every `YYYY-MM-DD` input; differs only for invalid days (`2025-02-30` no longer rolls over),
 partial ISO forms (`2025-12`), and two old quirks with timestamp inputs (`getDaysUntil` counted
 24-hour periods; `isThisWeek` stopped at Saturday 00:00).
 

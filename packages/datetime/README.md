@@ -27,9 +27,13 @@ dayUntil(dayToday('America/Vancouver'), due); // days left, in Vancouver
 dayAtTime(due, timeOfDay(9), 'Asia/Tokyo');
 ```
 
-Values are immutable plain objects, so they survive `JSON.stringify` and `structuredClone`.
-Invalid input throws a `RangeError` (`day(2026, 2, 30)`, an unknown zone) or, for the parse
-functions, returns `undefined`. Nothing rolls over silently.
+Values are plain objects (readonly in the types, not frozen), so they survive
+`JSON.stringify` and `structuredClone`. Every function checks its inputs: an invalid day or
+time of day (including a hand-built `{ year: 2026, month: 2, day: 30 }`), a non-integer
+duration, an unknown zone, or an instant that is NaN, infinite or outside JavaScript `Date`'s
+range throws a `RangeError`. The parse functions return `undefined` for text that isn't valid
+(an unknown zone passed to `instantParse` still throws). Nothing rolls over silently.
+Instants are milliseconds; a fractional one is floored.
 
 ## Scheduling
 

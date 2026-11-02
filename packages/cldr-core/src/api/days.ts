@@ -1,6 +1,14 @@
 import { ContextType, FormatWidthType } from '@phensley/cldr-types';
 import { Part } from '@phensley/decimal';
-import { Day, dayUntil, Instant, TimeOfDay, timeZoneOffset } from '@phensley/datetime';
+import {
+  Day,
+  dayToEpochDay,
+  dayUntil,
+  Instant,
+  TimeOfDay,
+  timeOfDayToMillis,
+  timeZoneOffset,
+} from '@phensley/datetime';
 
 import { LocaleData } from '../locale-data';
 import {
@@ -42,7 +50,8 @@ export interface DayFormatOptions {
 
   /**
    * Skeleton of date fields, such as 'yMMMd' or 'MMMEd'; the locale's best pattern is used.
-   * Only date fields (era, year, month, week, day, weekday) make sense for a day.
+   * Only date fields (era, year, quarter, month, week, day, weekday) are allowed: a time or
+   * zone field throws a RangeError.
    */
   skeleton?: string;
 
@@ -92,7 +101,8 @@ export interface TimeOfDayFormatOptions {
   /**
    * Skeleton of time fields. Default 'jm': hour and minute in the locale's preferred 12 or 24
    * hour clock ("6:30 AM" in English, "06:30" in German). Use 'jms' to show seconds, 'Hm' to
-   * force a 24 hour clock, 'hm' for 12 hours. Time zone fields don't apply.
+   * force a 24 hour clock, 'hm' for 12 hours. Only time fields are allowed: a date or zone
+   * field throws a RangeError.
    */
   skeleton?: string;
   nu?: NumberSystemType;
@@ -100,10 +110,37 @@ export interface TimeOfDayFormatOptions {
   alt?: DateFormatAltOptions;
 }
 
+// The days the shared calendar formatter shows correctly as proleptic Gregorian days: it uses
+// the Julian calendar before the 1582 Gregorian reform and stops at the end of 8652.
+const FIRST_DAY = dayToEpochDay({ year: 1582, month: 10, day: 15 });
+const LAST_DAY = dayToEpochDay({ year: 8652, month: 12, day: 31 });
+
+// Skeleton fields that belong to each kind of value. A day has no time or zone, a time of day
+// has no date or zone, so e.g. 'z' would print a made-up "GMT".
+const DAY_FIELDS = 'GyYuUrQqMLlwWdDFgEec';
+const TIME_FIELDS = 'abBhHkKjJCmsSA';
+
+const checkSkeleton = (skeleton: string | undefined, allowed: string, what: string): void => {
+  if (skeleton) {
+    for (let i = 0; i < skeleton.length; i++) {
+      if (allowed.indexOf(skeleton[i]) === -1) {
+        throw new RangeError(`Skeleton field '${skeleton[i]}' doesn't apply to a ${what}: ${skeleton}`);
+      }
+    }
+  }
+};
+
 // Days and times of day are formatted as Gregorian dates in UTC, where the wall clock is the
-// value itself; the locale's week settings apply to week fields.
-const fromDay = (data: LocaleData, d: Day, t?: TimeOfDay) =>
-  newGregorianDate(data, {
+// value itself; the locale's week settings apply to week fields. Invalid values throw.
+const fromDay = (data: LocaleData, d: Day, t?: TimeOfDay) => {
+  const n = dayToEpochDay(d);
+  if (n < FIRST_DAY || n > LAST_DAY) {
+    throw new RangeError(`Days before 1582-10-15 or after 8652-12-31 can't be formatted yet: ${d.year}`);
+  }
+  if (t) {
+    timeOfDayToMillis(t);
+  }
+  return newGregorianDate(data, {
     year: d.year,
     month: d.month,
     day: d.day,
@@ -113,9 +150,10 @@ const fromDay = (data: LocaleData, d: Day, t?: TimeOfDay) =>
     millis: t ? t.millis : 0,
     zoneId: 'Etc/UTC',
   });
+};
 
-// `formatDate` reads an unknown zone as UTC; these functions throw instead, like the rest of
-// the day and instant functions.
+// `formatDate` reads an unknown zone as UTC and NaN as 1970; these functions throw instead,
+// like the rest of the day and instant functions.
 const zoned = (instant: Instant, zone: string) => {
   timeZoneOffset(zone, instant);
   return { date: instant, zoneId: zone };
@@ -125,6 +163,7 @@ const EPOCH_DAY: Day = { year: 1970, month: 1, day: 1 };
 
 const dayOptions = (options?: DayFormatOptions): DateFormatOptions => {
   const o = options || {};
+  checkSkeleton(o.skeleton, DAY_FIELDS, 'day');
   return {
     date: o.skeleton ? undefined : o.date || 'medium',
     skeleton: o.skeleton,
@@ -137,16 +176,20 @@ const dayOptions = (options?: DayFormatOptions): DateFormatOptions => {
 
 const timeOptions = (options?: TimeOfDayFormatOptions): DateFormatOptions => {
   const o = options || {};
+  checkSkeleton(o.skeleton, TIME_FIELDS, 'time of day');
   return { skeleton: o.skeleton || 'jm', nu: o.nu, context: o.context, alt: o.alt };
 };
 
 const intervalOptions = (options?: DayIntervalFormatOptions) => {
   const o = options || {};
+  checkSkeleton(o.skeleton, DAY_FIELDS, 'day');
   return { skeleton: o.skeleton || 'yMMMd', ca: o.ca, nu: o.nu, context: o.context, alt: o.alt };
 };
 
 /**
- * Format a day, e.g. "Jan 31, 2026" / "31.01.2026". See {@link DayFormatOptions}.
+ * Format a day, e.g. "Jan 31, 2026" / "31.01.2026". See {@link DayFormatOptions}. Throws a
+ * RangeError for an invalid day, and for days before 1582-10-15 or after 8652-12-31, which the
+ * shared calendar formatter can't yet show as proleptic Gregorian days.
  *
  * @public
  */

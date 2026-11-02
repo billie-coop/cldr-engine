@@ -42,11 +42,29 @@ export const isTimeOfDay = (v: unknown): v is TimeOfDay => {
 };
 
 /**
+ * Throws a RangeError unless `t` is a valid time of day, and returns its milliseconds since
+ * midnight. Every function that takes a TimeOfDay checks it, so `{ hour: 24 }` fails loudly
+ * instead of rolling over to the next day.
+ */
+const millisOf = (t: TimeOfDay): number => {
+  if (!isTimeOfDay(t)) {
+    let shown: string;
+    try {
+      shown = JSON.stringify(t);
+    } catch {
+      shown = String(t);
+    }
+    throw new RangeError(`Invalid time of day: ${shown}`);
+  }
+  return ((t.hour * 60 + t.minute) * 60 + t.second) * 1000 + t.millis;
+};
+
+/**
  * Milliseconds since midnight, 0 to 86,399,999.
  *
  * @public
  */
-export const timeOfDayToMillis = (t: TimeOfDay): number => ((t.hour * 60 + t.minute) * 60 + t.second) * 1000 + t.millis;
+export const timeOfDayToMillis = (t: TimeOfDay): number => millisOf(t);
 
 /**
  * The time of day for a number of milliseconds since midnight (0 to 86,399,999).
@@ -111,6 +129,7 @@ const pad = (n: number, w: number): string => {
  * @public
  */
 export const timeOfDayToString = (t: TimeOfDay): string => {
+  millisOf(t);
   let r = `${pad(t.hour, 2)}:${pad(t.minute, 2)}`;
   if (t.second || t.millis) {
     r += `:${pad(t.second, 2)}`;
@@ -127,6 +146,6 @@ export const timeOfDayToString = (t: TimeOfDay): string => {
  * @public
  */
 export const timeOfDayCompare = (a: TimeOfDay, b: TimeOfDay): number => {
-  const c = timeOfDayToMillis(a) - timeOfDayToMillis(b);
+  const c = millisOf(a) - millisOf(b);
   return c < 0 ? -1 : c > 0 ? 1 : 0;
 };

@@ -34,8 +34,8 @@ Day math (date-fns on `Date` → `@phensley/datetime` on `Day`):
 | `addDays(d, n)`, `subDays` | `dayAdd(d, { days: n })`, `daySubtract` | |
 | `addWeeks`, `addMonths`, `addYears`, `add`, `sub*` | `dayAdd(d, { weeks, months, years })` | same month-end clamping |
 | `differenceInDays(a, b)`, `differenceInCalendarDays(a, b)` | `dayUntil(b, a)` | note the argument order: from, to |
-| `differenceInWeeks(a, b)`, `differenceInYears(a, b)` | `dayUntil(b, a, 'weeks' \| 'years')` | |
-| `differenceInMonths(a, b)` | `dayUntil(b, a, 'months')` | differs from date-fns only at month ends, see below |
+| `differenceInWeeks(a, b)` | `dayUntil(b, a, 'weeks')` | |
+| `differenceInMonths(a, b)`, `differenceInYears(a, b)` | `dayUntil(b, a, 'months' \| 'years')` | can differ at month ends, see below (matters for ages and anniversaries from Feb 29) |
 | `isBefore`, `isAfter`, `isSameDay`, `compareAsc` | `dayIsBefore`, `dayIsAfter`, `dayEquals`, `dayCompare` | `days.sort(dayCompare)` |
 | `isSameMonth(a, b)` | `a.year === b.year && a.month === b.month` | |
 | `startOfMonth`, `endOfMonth`, `startOfYear`, `endOfYear` | `dayStartOf(d, 'month' \| 'year')`, `dayEndOf` | |
@@ -78,19 +78,31 @@ Formatting (in `@phensley/cldr`, locale-aware instead of English-only patterns):
 The day functions were compared with date-fns 4.1.0 on 1.2 million cases (every day 1999-2031
 plus 20,000 random days 1750-2190, random offsets; every `weekStartsOn`): identical except
 `differenceInMonths` in 4 end-of-month cases, where date-fns says 28 Feb → 28 Mar is 0 months.
-`dayUntil(…, 'months')` counts the months you can add without passing the end date, so it agrees
-with `dayAdd`: 28 Mar minus 1 month is 28 Feb, which is 1 month.
+`dayUntil(…, 'months' | 'years')` counts the months (years) you can add without passing the end
+date, so it agrees with `dayAdd`: 28 Mar minus 1 month is 28 Feb, which is 1 month; and
+2024-02-29 to 2025-02-28 is 1 year (date-fns `differenceInYears`: 0). The random sample didn't
+include a Feb 29 anniversary, so `differenceInYears` showed no difference there.
 
-## A drop-in `date-utils`
+## Replacing a `date-utils` module
 
-[`date-utils.ts`](./date-utils.ts) is a replacement for an app's date helper module that kept a
-date-fns based `DateUtils` object (string dates in `YYYY-MM-DD`, "today" in the device's zone).
-It keeps the same functions and results, so its callers don't change, and has no date-fns
-dependency. Compared with the date-fns version in 9 time zones (UTC, Los Angeles, New York,
-St John's, London, Kolkata, Tokyo, Auckland, Kiritimati) with a mocked clock over 2018-2030:
-identical for every `YYYY-MM-DD` input. It differs only where the old one was wrong:
+[`date-utils.ts`](./date-utils.ts) replaces an app's date helper module that kept a date-fns
+based `DateUtils` object (string dates in `YYYY-MM-DD`, "today" in the device's zone). The
+`DateUtils` object keeps the same functions and results, so code that calls `DateUtils.*`
+doesn't change, and there is no date-fns dependency. It is not a whole-module drop-in: if the
+old module also re-exported date-fns functions (`format`, `addDays`, `startOfWeek`, ...), the
+code importing those moves to `@phensley/datetime` (tables above) in the same change.
 
-- invalid days (`2025-02-30`) are invalid instead of rolling over to March;
+When the platform doesn't report a time zone the data knows (Node with a POSIX `TZ=UTC+8`),
+it falls back to the host's local clock as the date-fns version did, not to UTC. Fractional
+amounts (`addDays` by 1.5) behave as in date-fns.
+
+Compared with the date-fns version under 11 `TZ` settings (UTC, Los Angeles, New York,
+St John's, London, Kolkata, Tokyo, Auckland, Kiritimati, POSIX `UTC+8`, `EST5EDT`) with a mocked
+clock over 2018-2030, and 99 fractional / NaN / infinite amounts: identical for every
+`YYYY-MM-DD` input. It differs only where the old one was wrong or lenient:
+
+- invalid days (`2025-02-30`) are invalid instead of rolling over to March; partial ISO forms
+  (`2025-12`, `20251208`) and `T24:00` are not accepted;
 - for a timestamp input (not a date), `getDaysUntil` counts calendar days, where date-fns
   counted whole 24-hour periods (yesterday afternoon was "0 days ago");
 - `isThisWeek` includes all of Saturday, where date-fns stopped at Saturday 00:00.
