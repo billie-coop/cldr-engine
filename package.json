@@ -5,7 +5,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "api": "pnpm --stream -r run api",
-    "bench": "pnpm --stream -r run bench",
+    "bench": "vitest bench --run",
+    "bench:legacy": "pnpm --stream -r run bench",
     "build": "pnpm --stream -r run build",
     "build:watch": "pnpm --parallel --stream -r run build:watch",
     "clean": "pnpm --stream -r run clean && rimraf ./coverage",

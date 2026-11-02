@@ -139,6 +139,33 @@ You can use any of the packages independent of the rest of the library:
 - High performance.
 - Arbitrary precision decimal math, to achieve the same accuracy in the browser as on the server.
 
+## Benchmarks
+
+Benchmark suites use Vitest's bench mode and live in `packages/*/__benchmarks__/*.bench.ts`
+(decimal, plurals, messageformat, cldr-core numbers/units/dates/date formatting, and a CommonJS
+suite in `packages/cldr`). They are not part of the test run. Build first: the suites import
+other packages through their built output.
+
+```sh
+pnpm build
+pnpm bench                                   # all suites
+pnpm bench --project @phensley/cldr-core     # one package
+pnpm bench dates                             # files matching "dates"
+
+# save a baseline, change something, then compare against it
+pnpm bench --outputJson bench-results/before.json
+pnpm bench --compare bench-results/before.json
+```
+
+`bench-results/` is git-ignored. Run a comparison at least twice; differences under ~5% are
+usually noise.
+
+Vitest runs the TypeScript sources through its own module loader, which adds a cost to every
+cross-module call, so absolute numbers are lower than in a Node app and costs specific to the
+published builds don't show. `packages/cldr/__benchmarks__/cjs.bench.ts` loads the built
+CommonJS `lib/` with Node's own `require`, as a server would, to cover that. The older
+`benchmark.js` suites are still available as `pnpm bench:legacy`.
+
 ## License
 
     Copyright 2018-present Patrick Hensley

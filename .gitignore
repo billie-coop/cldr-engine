@@ -27,3 +27,6 @@ phensley-cldr*.tgz
 
 /*/**/.vscode/
 
+
+# vitest bench results (pnpm bench --outputJson bench-results/<name>.json)
+bench-results

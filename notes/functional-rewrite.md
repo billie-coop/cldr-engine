@@ -240,6 +240,25 @@ ES-module bundle (esbuild, as an app would ship it), ops/s, two runs each:
 Date creation is ~60% faster than 1.x (no per-instance class setup); plain accessors are equal;
 week accessors are ~3× slower (recomputed per call, see open items).
 
+### Benchmarks in the repo (Vitest bench)
+
+`pnpm bench` runs Vitest bench suites in `packages/*/__benchmarks__/*.bench.ts`: decimal
+(parse, arithmetic, toString/toParts), plurals (en/fr/ru/ar cardinal, ordinal), messageformat
+(parse, evaluate, formatMessage), cldr-core numbers (formatDecimal styles, formatCurrency incl.
+compact/accounting/name), units (formatQuantity, sequences), dates (creation, accessors incl.
+week fields, dateAdd/dateUntil/dateDifference), date formatting (prebuilt dates and
+`{ date, zoneId }`, widths, skeletons, intervals, relative time), plus `packages/cldr`'s
+`cjs.bench.ts`, which loads the built CommonJS `lib/` with Node's `require`. Save/compare with
+`--outputJson` / `--compare` (README "Benchmarks"). The suites stay out of the test run
+(`benchmark.include` in `vitest.shared.ts`) and are linted. The old benchmark.js suites are
+`pnpm bench:legacy`.
+
+Under Vitest the sources run through Vite's SSR transform, which turns every export into a getter
+and every import into a property read on a module object, and tinybench times each iteration, so
+absolute numbers are well below plain Node (formatDecimal ~1.1M ops/s vs ~2.0M in the CJS
+suite; a week-field read ~6.5M vs ~28M). Use them for before/after comparisons of the same
+suite; use the CJS suite (or the esbuild scripts) for absolute numbers.
+
 ## Deviations from 1.x
 
 - Test ports: `decimal/__tests__/parse.test.ts` compared against literals with the private
