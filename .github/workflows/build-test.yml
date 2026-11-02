@@ -21,26 +21,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Enable Corepack (Yarn from packageManager)
+        run: corepack enable
 
       - name: Build
         run: |
-          pnpm i --dangerously-allow-all-builds
-          pnpm run clean
-          pnpm --sequential --stream -r run build
-          pnpm --sequential --stream -r run build:lint
-          pnpm --sequential --stream -r run lint
-          pnpm run api
-          pnpm run test
-
-      # coverage upload stopped working randomly
-      # - name: Test
-      #   run: pnpm run test:codecov
-
-      # - uses: codecov/codecov-action@v3
-      #   if: matrix.node-version == '16.x'
-      #   with:
-      #     files: ./coverage/lcov.info
-      #     name: codecov-umbrella
-      #     fail_ci_if_error: true
+          yarn install --immutable
+          yarn clean
+          yarn build
+          yarn lint
+          yarn api
+          yarn test

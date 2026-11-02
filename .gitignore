@@ -13,8 +13,6 @@ temp/
 
 .DS_Store
 .scratch
-pnpm-lock.yaml
-yarn.lock
 yarn-error.log
 lerna-debug.log
 package-deps.json
@@ -30,3 +28,11 @@ phensley-cldr*.tgz
 
 # vitest bench results (pnpm bench --outputJson bench-results/<name>.json)
 bench-results
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
