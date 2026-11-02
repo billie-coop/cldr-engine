@@ -7,6 +7,10 @@ Branch: `functional-rewrite`. Started 2026-11-01 from `main` @ `3f51c5a4` (v1.16
 The whole library is ported to plain data + exported functions. No classes remain in runtime code
 (the `cldr-compiler` build tool still uses some; it is not shipped to browsers).
 
+**New since the port:** `@phensley/datetime`, days / times of day / instants as plain data with
+explicit time zones, plus locale-aware formatters, meant to replace date-fns. See "Dates and
+times" below.
+
 - **Tests:** 183 files / **1338 tests, all passing** — the 1.x baseline was 170 / 1309. All 1309
   1.x tests run against the new code with their assertions unchanged (three read 1.x private fields
   and now read the public equivalent, see Deviations); 29 tests are new (23 of them regression tests
@@ -544,6 +548,94 @@ with an error that contains each checkout's own pack path.
 
 Shared oddity seen there (kept from 1.x): `newJapaneseDate` / `newISO8601Date` throw "Cannot read
 properties of undefined" for some field sets (no defaults are applied; listed under 1.x bugs).
+
+## Dates and times: `@phensley/datetime` (added 2026-11-02, branch `datetime`)
+
+New feature, not part of the 1.x port: Stephen asked for date/time primitives that don't have
+JavaScript `Date`'s problems, so his apps can drop date-fns. New package `packages/datetime`
+(depends only on `@phensley/timezone`), re-exported from `@phensley/cldr-core` / `@phensley/cldr`,
+plus locale-aware formatters in `cldr-core/src/api/days.ts`.
+
+**The model.** Four kinds of value, kept apart:
+
+| Value | Type | Means |
+|---|---|---|
+| Day | `Day` `{ year, month, day }` | a calendar day, no time, no zone (due date) |
+| Time of day | `TimeOfDay` `{ hour, minute, second, millis }` | a wall clock time, no zone (alarm at 06:30) |
+| Instant | `number`, epoch ms | one moment, same everywhere (payment received) |
+| Zone | IANA id string | whose clock |
+
+Day and time-of-day math is integer arithmetic (day number = days since 1970-01-01, Howard
+Hinnant's civil-from-days) and never sees a zone. Only these take one: `dayToday`,
+`dayFromInstant`, `timeOfDayFromInstant`, `dayAtTime`, `dayStartInstant`, `timeZoneOffset`,
+`instantParse` / `instantToString` (optional zone), and the `formatInstant*` formatters.
+Daylight saving is handled in `dayAtTime` only, with Temporal's `disambiguation` option
+(`compatible` / `earlier` / `later` / `reject`).
+
+**Choices made:**
+- `Day` stores year/month/day rather than the day number, so it reads well in logs and JSON;
+  the day number is computed when needed (cheap, exact).
+- Invalid input throws `RangeError` (`day(2026, 2, 30)`, unknown zone, fractional durations);
+  `*Parse` functions return `undefined`. Nothing rolls over or falls back to UTC silently (the
+  existing calendar code reads an unknown zone as UTC; the new functions don't).
+- Day of week uses CLDR numbering, 1 = Sunday … 7 = Saturday, to match `firstDayOfWeek(locale)`
+  and `dateDayOfWeek`. `dayStartOfWeek(d, firstDay)` takes the first day explicitly.
+- `dayUntil(from, to, 'months' | 'years')` = largest whole count you can `dayAdd` without
+  passing `to`, so it is consistent with `dayAdd`'s month-end clamping.
+- `formatDay` defaults to `{ date: 'medium' }` (not `formatDate`'s `'full'`); `formatTimeOfDay`
+  defaults to skeleton `'jm'` (locale's 12/24 h clock). Both format in UTC internally so the
+  output never shifts. `formatInstant` requires a zone.
+- Recurrence rules (every Monday, 3 days before due) stay in apps; the package gives the parts.
+
+**API:** `day`, `isDay`, `dayParse`, `dayFromString`, `dayToString`, `dayToEpochDay`,
+`dayFromEpochDay`, `dayAdd`, `daySubtract`, `dayUntil`, `dayCompare`, `dayEquals`,
+`dayIsBefore`, `dayIsAfter`, `dayOfWeek`, `dayOfYear`, `dayDaysInMonth`, `dayIsLeapYear`,
+`dayStartOfWeek`, `dayEndOfWeek`, `dayStartOf`, `dayEndOf`, `dayRange`; `timeOfDay`,
+`isTimeOfDay`, `timeOfDayParse`, `timeOfDayFromString`, `timeOfDayToString`,
+`timeOfDayToMillis`, `timeOfDayFromMillis`, `timeOfDayCompare`; `systemTimeZone`,
+`timeZoneOffset`, `dayFromInstant`, `timeOfDayFromInstant`, `dayToday`, `dayAtTime`,
+`dayStartInstant`, `instantParse`, `instantToString`. In cldr-core: `formatDay(ToParts)`,
+`formatDayInterval(ToParts)`, `formatTimeOfDay(ToParts)`, `formatDayRelative`,
+`formatInstant(ToParts)`, `formatInstantRelative`.
+
+**Checks** (scripts in the session scratchpad, not in the repo):
+- vs **date-fns 4.1.0**: 1,227,014 comparisons (every day 1999-2031 + 20k random days
+  1750-2190, random offsets, all 7 week starts) of add/sub, differences, start/end of
+  week/month/year, getDay/getDayOfYear/getDaysInMonth/isLeapYear, each*OfInterval, parse/format:
+  identical except `differenceInMonths` in 4 month-end cases (date-fns says 28 Feb → 28 Mar is
+  0 months; `dayUntil` says 1, consistent with `dayAdd`).
+- vs **Intl** (Node 24, ICU tz 2026e) for 340 zones × 400 random instants 1990-2035:
+  `dayFromInstant` / `timeOfDayFromInstant` and the `dayAtTime` round trip agree everywhere up
+  to 2026-11. All 167 mismatches are after that, in Morocco and several Canadian zones, from
+  tz rule changes newer than the bundled 2025b data (they go away with the 2026f update).
+- vs **Temporal** (`node --harmony-temporal`): `dayAtTime` at every clock change 1990-2026-06
+  in 340 zones (10,696 transitions), every 15 minutes of the day before and the day of, all four
+  disambiguation modes: 8,214,528 comparisons. 568 differ, all in America/Bogota (1992) and
+  Europe/Chisinau, and in every one the two tz data sets (bundled 2025b vs Node ICU 2026e)
+  disagree about the offsets around that time; where the data agree the results are identical.
+- **Unit tests:** `packages/datetime/__tests__` (15) and
+  `cldr-core/__tests__/api/calendars/days.test.ts` (6). Suite now 186 files / 1359 tests.
+- **Benchmarks** (`packages/datetime/__benchmarks__`, Node 24): dayParse 6.7M ops/s, dayAdd
+  9.6M (days) / 8.8M (months), dayUntil 19M, dayFromInstant 4.8M, dayAtTime 1.7M.
+- **Size** (rollup + terser, min+gzip): day math only 1.3 KB; with zone functions 31.7 KB (tz
+  data); `formatDay` + `formatDayRelative` with a locale 89.0 KB.
+
+**date-fns migration.** `examples/date-fns-migration/` has a function-by-function table and
+`date-utils.ts`, a drop-in replacement for the monorepo's `@billie-coop/date-utils` (same
+`DateUtils` API, no date-fns, only needs `@phensley/datetime`, so it works next to cldr 1.13.1).
+Compared with the original in 9 TZ settings with a mocked clock over 2018-2030: identical for
+every `YYYY-MM-DD` input; differs only for invalid days (`2025-02-30` no longer rolls over),
+partial ISO forms (`2025-12`), and two old quirks with timestamp inputs (`getDaysUntil` counted
+24-hour periods; `isThisWeek` stopped at Saturday 00:00).
+
+Monorepo call sites that import date-fns functions directly (not via `DateUtils`), to move in a
+second step: `format` (6: `yyyy-MM` keys, `d` / `yyyy-MM-dd` in `ui/Calendar.component.tsx`,
+one English-only `MMM d, h:mm a` in oddlog `Tracker.screen.tsx`), `subMonths`/`subDays`/
+`startOfMonth`/`addMonths` (3 each), `startOfWeek` (2, incl. `invoice-utils/invoiceReminderPlan.ts`),
+`parseISO` (2), `differenceInDays` (2, incl. `invoiceStatus.ts`), and singles in the calendar
+component (`eachDayOfInterval`, `eachWeekOfInterval`, `endOfWeek`, `endOfMonth`, `isSameMonth`,
+`isSameDay`) and sketch-mobile (`formatDistanceToNow`). `invoiceReminderPlan.atReminderHour`
+is exactly `dayAtTime(day, timeOfDay(9), zone)`.
 
 ## What's left / rough edges
 
