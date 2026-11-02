@@ -446,6 +446,13 @@ properties of undefined" for some field sets (no defaults are applied; listed un
 - **`examples/tree-shaking/measure.mjs`** needs a built 1.x checkout for the 1.x columns
   (`--v1 <path>`); the 2.x numbers don't.
 
+- **Shared values still returned mutable (same as 1.x).** Found while checking the review's
+  findings: `availableLocales()`, `timeZoneIds()` / `tzZoneIds()`, `tzUtcZone()`,
+  `tzZoneMeta(id).countries` and `getCurrencyFractions(code)` return the same module-level
+  object on every call, typed mutable, as 1.x did. Editing them affects every caller. Fixing
+  means `readonly` return types (a compile break for callers that sort/push the result) or
+  copies; left for the 2.0 API decision.
+
 ## Unsure / worth a second look
 
 - **cldr-ext-rbnf `pubnames`** (above): the helper that ported it removed a 1.x in-place mutation of
