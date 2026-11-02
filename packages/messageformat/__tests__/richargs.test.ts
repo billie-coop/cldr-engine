@@ -10,7 +10,7 @@ const NOT_DECIMALS: any[] = [
   { data: [1.5], sign: 1, exp: 0, flag: 0 },
   { data: ['1'], sign: 1, exp: 0, flag: 0 },
   { data: [1], sign: 2, exp: 0, flag: 0 },
-  { data: [1], sign: 1, exp: 0.5, flag: 0 },
+  { data: [1], sign: 1, exp: '0', flag: 0 },
   { data: [1e7], sign: 1, exp: 0, flag: 0 },
   { data: [-1], sign: 1, exp: 0, flag: 0 },
 ];

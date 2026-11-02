@@ -106,3 +106,41 @@ test('metazone lookups by zone id', async () => {
   expect(c.currentMetazone('Europe/London')).toEqual('GMT');
   expect(c.currentMetazone('America/New_York')).toEqual('America_Eastern');
 });
+
+/**
+ * Copy of the bundled data where an alias becomes the canonical id of its zone, e.g. a tzdb
+ * release that renames a zone back (the zone record is unchanged).
+ */
+const promoted = (canonical: string, alias: string): RawData => {
+  const ids = defaultTimeZoneData.zoneids.split('|');
+  const i = ids.indexOf(canonical);
+  ids[i] = alias;
+  const links = defaultTimeZoneData.links
+    .split('|')
+    .filter((e) => !e.startsWith(`${alias}:`))
+    .concat(`${canonical}:${i}`)
+    .join('|');
+  return { ...defaultTimeZoneData, zoneids: ids.join('|'), links };
+};
+
+test('bundled alias made canonical keeps its metazone', async () => {
+  const c = await load();
+  const tzc = await import('../../../src/systems/calendars/timezone');
+  const show = () => {
+    const d = c.gregorianDateFromUnixEpoch(JAN_2024, 'Asia/Calcutta');
+    return [c.dateTimeZoneId(d), c.dateMetaZoneId(d), c.dateTimeZoneStableId(d), c.dateTimeZoneOffset(d)];
+  };
+  const before = show();
+  expect(before).toEqual(['Asia/Kolkata', 'India', 'Asia/Calcutta', 19800000]);
+
+  setTimeZoneData(promoted('Asia/Kolkata', 'Asia/Calcutta'));
+  expect(show()).toEqual(['Asia/Calcutta', 'India', 'Asia/Calcutta', 19800000]);
+  const d = c.gregorianDateFromUnixEpoch(JAN_2024, 'Asia/Kolkata');
+  expect(c.dateTimeZoneId(d)).toEqual('Asia/Calcutta');
+  expect(c.dateMetaZoneId(d)).toEqual('India');
+  expect(tzc.currentMetazone('Asia/Calcutta')).toEqual('India');
+  expect(tzc.getStableTimeZoneId('Asia/Kolkata')).toEqual('Asia/Calcutta');
+
+  setTimeZoneData(defaultTimeZoneData);
+  expect(show()).toEqual(before);
+});

@@ -39,6 +39,21 @@ export const newDateFromJD = (
   minDays: number,
 ): CalendarDate => newDate(calendar, unixEpochFromJD(jd, msDay), zoneId, firstDay, minDays);
 
+const isCalendarSystem = (c: any): c is CalendarSystem =>
+  c !== null &&
+  typeof c === 'object' &&
+  typeof c.type === 'string' &&
+  typeof c.name === 'string' &&
+  typeof c.monthCount === 'number' &&
+  typeof c.relatedYearOffset === 'number' &&
+  typeof c.defaultFields === 'object' &&
+  c.defaultFields !== null &&
+  typeof c.daysInMonth === 'function' &&
+  typeof c.daysInYear === 'function' &&
+  typeof c.monthStart === 'function' &&
+  typeof c.computeFields === 'function' &&
+  typeof c.resolveFields === 'function';
+
 /**
  * Returns true if the argument is a calendar date.
  *
@@ -48,9 +63,16 @@ export const isCalendarDate = (x: any): x is CalendarDate => {
   if (x === null || typeof x !== 'object') {
     return false;
   }
-  const { calendar: c, zoneInfo: z } = x;
+  const { calendar: c, zoneInfo: z, fields: f } = x;
+  if (!Array.isArray(f)) {
+    return false;
+  }
+  for (let i = 0; i < f.length; i++) {
+    if (typeof f[i] !== 'number') {
+      return false;
+    }
+  }
   return (
-    Array.isArray(x.fields) &&
     typeof x.firstDay === 'number' &&
     typeof x.minDays === 'number' &&
     z !== null &&
@@ -61,10 +83,7 @@ export const isCalendarDate = (x: any): x is CalendarDate => {
     typeof z.metazoneid === 'string' &&
     typeof z.dst === 'number' &&
     typeof z.offset === 'number' &&
-    c !== null &&
-    typeof c === 'object' &&
-    typeof c.type === 'string' &&
-    typeof c.computeFields === 'function'
+    isCalendarSystem(c)
   );
 };
 

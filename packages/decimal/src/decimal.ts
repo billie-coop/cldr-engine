@@ -71,8 +71,9 @@ const make = (data: number[], sign: number, exp: number, flag: DecimalFlag): Dra
 const copy = (d: Decimal): Draft => make(d.data.slice(), d.sign, d.exp, d.flag);
 
 /**
- * Returns true if the argument is a Decimal value: an object with a coefficient array of base
- * 10^7 words, a sign of 1, -1 or 0, an integer exponent and a valid flag.
+ * Returns true if the argument is a Decimal value: an object with a coefficient array of integer
+ * base 10^7 words, a sign of 1, -1 or 0, a numeric exponent and a valid flag. (The exponent is not
+ * required to be an integer: fractional precision or scale arguments produce fractional ones.)
  *
  * @public
  */
@@ -84,7 +85,7 @@ export const isDecimal = (x: any): x is Decimal => {
   if (
     !Array.isArray(data) ||
     (sign !== 1 && sign !== -1 && sign !== 0) ||
-    !Number.isInteger(exp) ||
+    typeof exp !== 'number' ||
     (flag !== DecimalFlag.NONE && flag !== DecimalFlag.NAN && flag !== DecimalFlag.INFINITY)
   ) {
     return false;

@@ -22,6 +22,9 @@ export const fieldArrow = (offset: number): FieldArrow => ({ kind: 'field', offs
 
 const isArrow = (x: any): boolean => x !== null && typeof x === 'object';
 
+const isKeyIndex = (x: any): boolean =>
+  isArrow(x) && isArrow(x.index) && Array.isArray(x.keys) && typeof x.size === 'number' && typeof x.last === 'number';
+
 /**
  * @public
  */
@@ -77,8 +80,7 @@ export const isDigitsArrow = (x: any): x is DigitsArrow<any> =>
   isArrow(x) &&
   x.kind === 'digits' &&
   typeof x.offset === 'number' &&
-  typeof x.index === 'object' &&
-  x.index !== null &&
+  isKeyIndex(x.index) &&
   Array.isArray(x.values) &&
   typeof x.size2 === 'number';
 
@@ -144,7 +146,8 @@ export const isVectorArrow = (x: any): x is VectorArrowBase =>
   typeof x.len === 'number' &&
   typeof x.last === 'number' &&
   Array.isArray(x.factors) &&
-  Array.isArray(x.keysets);
+  Array.isArray(x.keysets) &&
+  x.keysets.every(isKeyIndex);
 
 type Key = string | string[];
 

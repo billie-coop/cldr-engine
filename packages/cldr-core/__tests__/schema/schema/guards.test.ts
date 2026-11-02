@@ -42,4 +42,9 @@ test('arrow guards', () => {
   expect(isDigitsArrow({ ...digits, values: undefined })).toBe(false);
   expect(isVectorArrow({ kind: 'vector', offset: 1 })).toBe(false);
   expect(isVectorArrow({ ...vector, keysets: undefined })).toBe(false);
+
+  // Nested key indices must have their fields.
+  expect(isDigitsArrow({ kind: 'digits', offset: 0, index: {}, values: [1], size2: 2 })).toBe(false);
+  expect(isVectorArrow({ kind: 'vector', offset: 1, len: 1, last: 0, factors: [1], keysets: [{}] })).toBe(false);
+  expect(isVectorArrow({ ...vector, keysets: [index, { ...index, keys: undefined }] })).toBe(false);
 });

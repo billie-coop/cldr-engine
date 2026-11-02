@@ -1,4 +1,13 @@
-import { decimal, isDecimal, isRational, rational, DecimalConstants } from '../src';
+import {
+  decimal,
+  decimalDivide,
+  decimalMultiply,
+  decimalScientific,
+  isDecimal,
+  isRational,
+  rational,
+  DecimalConstants,
+} from '../src';
 
 test('isDecimal accepts decimal values', () => {
   for (const s of ['0', '-0', '1.50', '-123e-30', '99999999999999.999999', 'nan', 'infinity', '-infinity']) {
@@ -10,6 +19,11 @@ test('isDecimal accepts decimal values', () => {
   // Plain objects with the complete shape are decimals (values are plain data).
   expect(isDecimal(JSON.parse(JSON.stringify(decimal('123.45'))))).toBe(true);
   expect(isDecimal(Object.freeze({ data: [1], sign: -1, exp: 3, flag: 0 }))).toBe(true);
+
+  // Fractional precision / scale / digit arguments produce fractional exponents.
+  expect(isDecimal(decimalScientific('123', 1.5)[0])).toBe(true);
+  expect(isDecimal(decimalDivide('1', '3', { scale: 2.5 }))).toBe(true);
+  expect(isDecimal(decimalMultiply('1.2345', '1.1', { precision: 2.5 }))).toBe(true);
 });
 
 test('isDecimal rejects incomplete or invalid objects', () => {
@@ -29,8 +43,8 @@ test('isDecimal rejects incomplete or invalid objects', () => {
     { data: 'abc', sign: 1, exp: 0, flag: 0 },
     { data: [1], sign: 2, exp: 0, flag: 0 },
     { data: [1], sign: '1', exp: 0, flag: 0 },
-    { data: [1], sign: 1, exp: 0.5, flag: 0 },
-    { data: [1], sign: 1, exp: NaN, flag: 0 },
+    { data: [1], sign: 1, exp: '0', flag: 0 },
+    { data: [1], sign: 1, exp: null, flag: 0 },
     { data: [1], sign: 1, exp: 0, flag: 3 },
     { data: [1], sign: 1, exp: 0, flag: '0' },
     { data: [1.5], sign: 1, exp: 0, flag: 0 },

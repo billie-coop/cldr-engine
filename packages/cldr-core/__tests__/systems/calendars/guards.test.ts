@@ -49,6 +49,10 @@ test('isCalendarDate rejects incomplete objects', () => {
     { ...d, calendar: null },
     { ...d, calendar: { ...d.calendar, computeFields: undefined } },
     { ...d, calendar: { ...d.calendar, type: undefined } },
+    { ...d, calendar: { type: 'gregory', computeFields: () => undefined } },
+    { ...d, calendar: { ...d.calendar, resolveFields: undefined } },
+    { ...d, calendar: { ...d.calendar, defaultFields: null } },
+    { ...d, fields: ['1', ...d.fields.slice(1)] },
   ];
   for (const x of bad) {
     expect(isCalendarDate(x)).toBe(false);
