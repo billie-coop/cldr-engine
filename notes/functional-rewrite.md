@@ -7,9 +7,10 @@ Branch: `functional-rewrite`. Started 2026-11-01 from `main` @ `3f51c5a4` (v1.16
 The whole library is ported to plain data + exported functions. No classes remain in runtime code
 (the `cldr-compiler` build tool still uses some; it is not shipped to browsers).
 
-- **Tests:** 172 files / **1315 tests, all passing** — the 1.x baseline was 170 / 1309. All 1309
+- **Tests:** 183 files / **1338 tests, all passing** — the 1.x baseline was 170 / 1309. All 1309
   1.x tests run against the new code with their assertions unchanged (three read 1.x private fields
-  and now read the public equivalent, see Deviations); 6 tests are new.
+  and now read the public equivalent, see Deviations); 29 tests are new (23 of them regression tests
+  for the review fixes, see "Fixed after the independent review").
 - **Lint / types:** `pnpm lint` (tsc for every package incl. tests, benchmarks, stress scripts +
   eslint) is clean. `pnpm build` is clean. API Extractor reports are regenerated.
 - **Resource packs:** unchanged format; the packs the compiler builds are byte-identical to 1.x
