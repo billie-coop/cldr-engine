@@ -333,6 +333,21 @@ week accessors are ~3× slower (recomputed per call, see open items).
   compiled and changed the date's instant without recomputing its fields. Every `DateZoneInfo`
   field is now readonly; `dateWithZone` / `dateSet` are the supported ways to change the zone.
   Type-only. Test: `cldr-core/__tests__/systems/calendars/readonly.test.ts`.
+- **Loose shape guards (P3, behaviour).** `isDecimal` only checked `data` and a numeric `flag`, so
+  incomplete objects like `{ data: [1], flag: 2 }` passed; message formatting dispatches on it,
+  so `formatMessage('<{0}>', [{ data: [1], flag: 2 }])` gave `<-Infinity>` where 1.x gave `<>`.
+  The guards now check every field of the type: `isDecimal` (array of integer base-1e7 words,
+  sign 1/-1/0, integer exponent, flag 0/1/2; `isRational` builds on it), `isCalendarDate`
+  (fields array, numeric firstDay/minDays, a non-null zone info with all its fields typed, a
+  calendar record with `type` and `computeFields`; previously `zoneInfo: null` passed),
+  `isLanguageTag` (optional string subtags, string arrays for extlangs and each extension), and
+  the schema arrow guards (`isFieldArrow`, … checked only `kind`; now also their offset/map/
+  index/keysets fields). Values the library creates all pass; the remaining deviation from 1.x
+  `instanceof` is that a *complete* plain object of the right shape is accepted. Message-format
+  outputs for the review's inputs are back to 1.x's. Tests: `decimal/__tests__/guards.test.ts`,
+  `language-tag/__tests__/guards.test.ts`, `messageformat/__tests__/richargs.test.ts`,
+  `cldr-core/__tests__/systems/calendars/guards.test.ts`,
+  `cldr-core/__tests__/schema/schema/guards.test.ts`.
 
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 
@@ -424,4 +439,5 @@ properties of undefined" for some field sets (no defaults are applied; listed un
   the shared caches; easy to add back as a function if needed.
 - **Convenience object shape:** I dropped `Internals` (undocumented, `@internal`) and added `data`.
 - **`isLanguageTag` / `isCalendarDate` / `isDecimal`** are shape checks, so a hand-made object of the
-  right shape passes where 1.x `instanceof` failed.
+  right shape passes where 1.x `instanceof` failed. Since the review they check every field of
+  the type (see "Fixed after the independent review"), so only complete objects pass.

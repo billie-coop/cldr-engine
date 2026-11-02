@@ -44,14 +44,29 @@ export const newDateFromJD = (
  *
  * @public
  */
-export const isCalendarDate = (x: any): x is CalendarDate =>
-  x !== null &&
-  typeof x === 'object' &&
-  Array.isArray(x.fields) &&
-  typeof x.zoneInfo === 'object' &&
-  typeof x.calendar === 'object' &&
-  x.calendar !== null &&
-  typeof x.calendar.computeFields === 'function';
+export const isCalendarDate = (x: any): x is CalendarDate => {
+  if (x === null || typeof x !== 'object') {
+    return false;
+  }
+  const { calendar: c, zoneInfo: z } = x;
+  return (
+    Array.isArray(x.fields) &&
+    typeof x.firstDay === 'number' &&
+    typeof x.minDays === 'number' &&
+    z !== null &&
+    typeof z === 'object' &&
+    typeof z.zoneid === 'string' &&
+    typeof z.stableid === 'string' &&
+    typeof z.abbr === 'string' &&
+    typeof z.metazoneid === 'string' &&
+    typeof z.dst === 'number' &&
+    typeof z.offset === 'number' &&
+    c !== null &&
+    typeof c === 'object' &&
+    typeof c.type === 'string' &&
+    typeof c.computeFields === 'function'
+  );
+};
 
 /**
  * Construct a date in the given calendar from a UNIX epoch (milliseconds, UTC) and time zone.

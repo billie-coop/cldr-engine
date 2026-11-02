@@ -20,10 +20,13 @@ import { keyIndexGet } from '../instructions';
  */
 export const fieldArrow = (offset: number): FieldArrow => ({ kind: 'field', offset });
 
+const isArrow = (x: any): boolean => x !== null && typeof x === 'object';
+
 /**
  * @public
  */
-export const isFieldArrow = (x: any): x is FieldArrow => !!x && x.kind === 'field';
+export const isFieldArrow = (x: any): x is FieldArrow =>
+  isArrow(x) && x.kind === 'field' && typeof x.offset === 'number';
 
 /**
  * Read a single field.
@@ -40,7 +43,8 @@ export const scopeArrow = <T extends string, R>(map: { [P in T]: R }): ScopeArro
 /**
  * @public
  */
-export const isScopeArrow = (x: any): x is ScopeArrow<any, any> => !!x && x.kind === 'scope';
+export const isScopeArrow = (x: any): x is ScopeArrow<any, any> =>
+  isArrow(x) && x.kind === 'scope' && typeof x.map === 'object' && x.map !== null;
 
 /**
  * Select a child scope by key.
@@ -69,7 +73,14 @@ export const digitsArrow = <T extends string>(
 /**
  * @public
  */
-export const isDigitsArrow = (x: any): x is DigitsArrow<any> => !!x && x.kind === 'digits';
+export const isDigitsArrow = (x: any): x is DigitsArrow<any> =>
+  isArrow(x) &&
+  x.kind === 'digits' &&
+  typeof x.offset === 'number' &&
+  typeof x.index === 'object' &&
+  x.index !== null &&
+  Array.isArray(x.values) &&
+  typeof x.size2 === 'number';
 
 const EMPTY_DIGITS: [string, number] = ['', 0];
 
@@ -126,7 +137,14 @@ export const vectorArrow = (offset: number, keysets: KeyIndex<string>[]): Vector
 /**
  * @public
  */
-export const isVectorArrow = (x: any): x is VectorArrowBase => !!x && x.kind === 'vector';
+export const isVectorArrow = (x: any): x is VectorArrowBase =>
+  isArrow(x) &&
+  x.kind === 'vector' &&
+  typeof x.offset === 'number' &&
+  typeof x.len === 'number' &&
+  typeof x.last === 'number' &&
+  Array.isArray(x.factors) &&
+  Array.isArray(x.keysets);
 
 type Key = string | string[];
 
