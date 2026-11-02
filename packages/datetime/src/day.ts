@@ -423,14 +423,15 @@ export const dayRange = (start: Day, end: Day, step: DayDuration = { days: 1 }):
   const last = epochOf(end);
   const months = intOf(step.years, 'years') * 12 + intOf(step.months, 'months');
   const days = intOf(step.weeks, 'weeks') * 7 + intOf(step.days, 'days');
-  if (months < 0 || days < 0 || (months === 0 && days === 0)) {
+  if (!isFinite(months) || !isFinite(days) || months < 0 || days < 0 || (months === 0 && days === 0)) {
     throw new RangeError('Range step must be positive');
   }
   const r: Day[] = [];
   for (let i = 0; ; i++) {
     // Between start and end, so always in range; the first one past the end is never built.
-    const n = addEpoch(start, months * i, days * i);
-    if (n > last) {
+    // A step too big to represent ends the range like any step past the end.
+    const n = addEpoch(start, months ? months * i : 0, days ? days * i : 0);
+    if (!(n <= last)) {
       return r;
     }
     r.push(fromEpochDay(n));

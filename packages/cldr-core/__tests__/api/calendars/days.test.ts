@@ -142,3 +142,18 @@ test('invalid values, unsupported days and foreign skeleton fields throw', () =>
     expect(() => formatInstantRelative(en, t, 0, 'UTC')).toThrow(RangeError);
   }
 });
+
+test('re-check: zone ids in any case are formatted in that zone; instant range', () => {
+  const en = calendarsApi('en');
+  const t = Date.UTC(2026, 0, 31, 17);
+  const want = formatInstant(en, t, 'America/Vancouver', { datetime: 'medium' });
+  expect(formatInstant(en, t, 'AMERICA/VANCOUVER', { datetime: 'medium' })).toEqual(want);
+  expect(formatInstant(en, t, 'aMeRiCa/VaNcOuVeR', { datetime: 'medium' })).toEqual(want);
+  const a = Date.UTC(2025, 2, 8, 17);
+  const b = Date.UTC(2025, 2, 9, 16);
+  expect(formatInstantRelative(en, b, a, 'AMERICA/VANCOUVER')).toEqual(
+    formatInstantRelative(en, b, a, 'America/Vancouver'),
+  );
+  expect(() => formatInstant(en, Date.UTC(9000, 0, 1), 'UTC')).toThrow(RangeError);
+  expect(() => formatInstant(en, Date.UTC(1500, 0, 1), 'UTC')).toThrow(RangeError);
+});

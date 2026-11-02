@@ -613,8 +613,8 @@ Daylight saving is handled in `dayAtTime` only, with Temporal's `disambiguation`
   disambiguation modes: 8,214,528 comparisons. 568 differ, all in America/Bogota (1992) and
   Europe/Chisinau, and in every one the two tz data sets (bundled 2025b vs Node ICU 2026e)
   disagree about the offsets around that time; where the data agree the results are identical.
-- **Unit tests:** `packages/datetime/__tests__` (22) and
-  `cldr-core/__tests__/api/calendars/days.test.ts` (7). Suite now 187 files / 1367 tests.
+- **Unit tests:** `packages/datetime/__tests__` (23) and
+  `cldr-core/__tests__/api/calendars/days.test.ts` (8). Suite now 187 files / 1369 tests.
 - **Benchmarks** (`packages/datetime/__benchmarks__`, Node 24, after the review's input
   validation): dayParse 6.8M ops/s, dayToString 15.5M, dayAdd 9.0M (days) / 8.0M (months),
   dayUntil 14.9M, dayStartOfWeek 8.3M, dayFromInstant 4.9M, dayAtTime 1.7M.
@@ -647,16 +647,28 @@ cases in `days.test.ts`):
 - docs: `differenceInYears` also differs at Feb 29 anniversaries; parse functions throw for an
   unknown zone; fractional instants are floored.
 
+Codex re-checked the fixes (reran all its probes: 643,692 DST checks, 200k calendar samples,
+200k month/year checks, no mismatches) and found three regressions from them plus one gap, all
+fixed with tests: a zone id in another letter case passed validation but the instant formatters
+forwarded it to the shared formatter, which read it as UTC (now `timeZoneId(zone)` resolves the
+canonical id and that is passed on); `instantParse` threw for out-of-range text and for a valid
+boundary instant written with an offset (now only the final instant is range checked, and
+returns undefined); `dayRange` with an absurd step (`{ years: 1e308 }`) looped forever; and
+`formatInstant*` silently clamped instants after 8652 (now the same 1582-10-15 … 8652-12-31
+range as `formatDay`, throwing outside it).
+
 **date-fns migration.** `examples/date-fns-migration/` has a function-by-function table and
-`date-utils.ts`, a drop-in replacement for the monorepo's `@billie-coop/date-utils` (same
-`DateUtils` API, no date-fns, only needs `@phensley/datetime`, so it works next to cldr 1.13.1).
+`date-utils.ts`, a replacement for the monorepo's `@billie-coop/date-utils` `DateUtils` object
+(same API, no date-fns, only needs `@phensley/datetime`, so it works next to cldr 1.13.1). It is
+not a whole-module drop-in: the module's date-fns re-exports go away, so their callers (below)
+move in the same change.
 Compared with the original in 11 TZ settings (incl. POSIX `UTC+8`, `EST5EDT`) with a mocked
 clock over 2018-2030, plus 99 fractional/NaN amounts: identical for every `YYYY-MM-DD` input; differs only for invalid days (`2025-02-30` no longer rolls over),
 partial ISO forms (`2025-12`), and two old quirks with timestamp inputs (`getDaysUntil` counted
 24-hour periods; `isThisWeek` stopped at Saturday 00:00).
 
-Monorepo call sites that import date-fns functions directly (not via `DateUtils`), to move in a
-second step: `format` (6: `yyyy-MM` keys, `d` / `yyyy-MM-dd` in `ui/Calendar.component.tsx`,
+Monorepo call sites that import date-fns functions through `date-utils` (not via `DateUtils`),
+to move in the same change: `format` (6: `yyyy-MM` keys, `d` / `yyyy-MM-dd` in `ui/Calendar.component.tsx`,
 one English-only `MMM d, h:mm a` in oddlog `Tracker.screen.tsx`), `subMonths`/`subDays`/
 `startOfMonth`/`addMonths` (3 each), `startOfWeek` (2, incl. `invoice-utils/invoiceReminderPlan.ts`),
 `parseISO` (2), `differenceInDays` (2, incl. `invoiceStatus.ts`), and singles in the calendar

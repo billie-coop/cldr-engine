@@ -2574,6 +2574,11 @@ export const timeZoneFromUTC: (utc: number, zoneid: string) => ZoneInfo | undefi
 // @public
 export const timeZoneFromWall: (wall: number, zoneid: string) => [number, ZoneInfo] | undefined;
 
+// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+//
+// @public
+export const timeZoneId: (zone: string) => string;
+
 // @public
 export const timeZoneIds: () => string[];
 

@@ -34,13 +34,25 @@ export const checkInstant = (instant: Instant): void => {
   }
 };
 
-// Offset lookup without the instant check, for the probes in dayAtTime that may step just
-// outside the supported range. The tz data indexes canonical spellings and lower case.
-const offsetAt = (zone: string, t: number): number => {
-  let info = typeof zone === 'string' ? tzFromUTC(zone, t) : undefined;
-  if (!info && typeof zone === 'string' && zone.toLowerCase() !== zone) {
-    info = tzFromUTC(zone.toLowerCase(), t);
+/**
+ * The canonical IANA id for a zone id or alias in any letter case ('asia/calcutta' ->
+ * 'Asia/Kolkata'). Throws a RangeError for an unknown zone.
+ *
+ * @public
+ */
+export const timeZoneId = (zone: string): string => {
+  // The tz data indexes canonical spellings, aliases and their lower case forms.
+  const id = typeof zone === 'string' ? tzResolveId(zone) || tzResolveId(zone.toLowerCase()) : undefined;
+  if (!id) {
+    throw new RangeError(`Unknown time zone: ${JSON.stringify(zone)}`);
   }
+  return id;
+};
+
+// Offset lookup without the instant check, for the probes in dayAtTime that may step just
+// outside the supported range.
+const offsetAt = (zone: string, t: number): number => {
+  const info = tzFromUTC(timeZoneId(zone), t);
   if (!info) {
     throw new RangeError(`Unknown time zone: ${JSON.stringify(zone)}`);
   }
@@ -164,13 +176,26 @@ const result = (t: number): Instant => {
  *
  * @public
  */
-export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAtTimeOptions): Instant => {
-  const mode = (options && options.disambiguation) || 'compatible';
-  const wall = dayToEpochDay(d) * MS_PER_DAY + timeOfDayToMillis(time);
+export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAtTimeOptions): Instant =>
+  result(
+    wallToInstant(
+      dayToEpochDay(d) * MS_PER_DAY + timeOfDayToMillis(time),
+      zone,
+      (options && options.disambiguation) || 'compatible',
+    ),
+  );
+
+/**
+ * The instant for wall clock milliseconds in `zone` (see {@link dayAtTime}), without the final
+ * range check, so callers can decide how to report an out-of-range result.
+ *
+ * @internal
+ */
+export const wallToInstant = (wall: number, zone: string, mode: Disambiguation): number => {
   const [candidates, before, after] = resolveWall(wall, zone);
 
   if (candidates.length === 1) {
-    return result(candidates[0]);
+    return candidates[0];
   }
   if (candidates.length > 1) {
     // Repeated: the clocks went back, so this wall time happens twice.
@@ -178,9 +203,9 @@ export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAt
       case 'reject':
         throw new RangeError(`Time happens twice in ${zone} that day`);
       case 'later':
-        return result(candidates[candidates.length - 1]);
+        return candidates[candidates.length - 1];
       default:
-        return result(candidates[0]);
+        return candidates[0];
     }
   }
 
@@ -190,9 +215,9 @@ export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAt
     case 'reject':
       throw new RangeError(`Time doesn't exist in ${zone} that day`);
     case 'earlier':
-      return result(wall - after);
+      return wall - after;
     default:
-      return result(wall - before);
+      return wall - before;
   }
 };
 

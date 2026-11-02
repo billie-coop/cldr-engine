@@ -16,6 +16,7 @@ import {
   timeOfDay,
   timeOfDayFromInstant,
   timeOfDayToString,
+  timeZoneId,
   timeZoneOffset,
 } from '../src';
 
@@ -93,4 +94,19 @@ test('fractional instants are floored', () => {
   expect(instantToString(-0.5)).toEqual('1969-12-31T23:59:59.999Z');
   expect(instantToString(1.9)).toEqual('1970-01-01T00:00:00.001Z');
   expect(timeOfDayToString(timeOfDayFromInstant(-0.5, 'UTC'))).toEqual('23:59:59.999');
+});
+
+test('re-check: canonical zone ids, parse at the range limits, huge range steps', () => {
+  expect(timeZoneId('AMERICA/VANCOUVER')).toEqual('America/Vancouver');
+  expect(timeZoneId('asia/calcutta')).toEqual('Asia/Kolkata');
+  expect(() => timeZoneId('Mars/Olympus')).toThrow(RangeError);
+
+  // Out-of-range text returns undefined; an offset that brings it back in range parses.
+  expect(instantParse('+275760-09-13T00:01Z')).toBeUndefined();
+  expect(instantParse('+275760-09-13T01:00+01:00')).toEqual(8.64e15);
+  expect(instantParse('+275760-09-13T00:00', 'America/New_York')).toBeUndefined();
+  expect(() => instantParse('2026-01-31T09:00', 'Mars/Olympus')).toThrow(RangeError);
+
+  expect(() => dayRange(day(2026, 1, 1), day(2026, 1, 1), { years: 1e308 })).toThrow(RangeError);
+  expect(dayRange(day(2026, 1, 1), day(2026, 1, 1), { days: 1e300 })).toEqual([day(2026, 1, 1)]);
 });

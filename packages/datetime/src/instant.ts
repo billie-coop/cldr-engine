@@ -1,7 +1,7 @@
-import { dayFromEpochDay, dayToString, isDay } from './day';
-import { isTimeOfDay, timeOfDayFromMillis } from './time-of-day';
+import { dayFromEpochDay, dayToEpochDay, dayToString, isDay } from './day';
+import { isTimeOfDay, timeOfDayFromMillis, timeOfDayToMillis } from './time-of-day';
 import { Instant } from './types';
-import { checkInstant, dayAtTime, MAX_INSTANT, timeZoneOffset } from './zone';
+import { checkInstant, MAX_INSTANT, timeZoneId, timeZoneOffset, wallToInstant } from './zone';
 
 const MS_PER_DAY = 86400000;
 
@@ -44,9 +44,11 @@ export const instantParse = (s: string, zone?: string): Instant | undefined => {
     return undefined;
   }
 
+  // Wall clock milliseconds; only the final instant is range checked.
+  const wall = dayToEpochDay(d) * MS_PER_DAY + timeOfDayToMillis(t);
   let r: number;
   if (m[8]) {
-    r = dayAtTime(d, t, 'Etc/UTC');
+    r = wall;
   } else if (m[9]) {
     const oh = Number(m[10]);
     const om = m[11] ? Number(m[11]) : 0;
@@ -54,10 +56,9 @@ export const instantParse = (s: string, zone?: string): Instant | undefined => {
     if (oh > 23 || om > 59 || os > 59) {
       return undefined;
     }
-    const offset = ((oh * 60 + om) * 60 + os) * 1000 * (m[9] === '-' ? -1 : 1);
-    r = dayAtTime(d, t, 'Etc/UTC') - offset;
+    r = wall - ((oh * 60 + om) * 60 + os) * 1000 * (m[9] === '-' ? -1 : 1);
   } else if (zone !== undefined) {
-    r = dayAtTime(d, t, zone);
+    r = wallToInstant(wall, timeZoneId(zone), 'compatible');
   } else {
     return undefined;
   }

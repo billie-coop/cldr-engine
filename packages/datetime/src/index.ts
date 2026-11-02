@@ -42,6 +42,7 @@ export {
   dayToday,
   systemTimeZone,
   timeOfDayFromInstant,
+  timeZoneId,
   timeZoneOffset,
 } from './zone';
 export { instantParse, instantToString } from './instant';

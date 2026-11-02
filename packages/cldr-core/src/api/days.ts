@@ -2,12 +2,13 @@ import { ContextType, FormatWidthType } from '@phensley/cldr-types';
 import { Part } from '@phensley/decimal';
 import {
   Day,
+  dayFromInstant,
   dayToEpochDay,
   dayUntil,
   Instant,
   TimeOfDay,
   timeOfDayToMillis,
-  timeZoneOffset,
+  timeZoneId,
 } from '@phensley/datetime';
 
 import { LocaleData } from '../locale-data';
@@ -152,11 +153,16 @@ const fromDay = (data: LocaleData, d: Day, t?: TimeOfDay) => {
   });
 };
 
-// `formatDate` reads an unknown zone as UTC and NaN as 1970; these functions throw instead,
-// like the rest of the day and instant functions.
+// `formatDate` reads an unknown zone (or one in another letter case) as UTC and NaN as 1970;
+// these functions throw instead, like the rest of the day and instant functions, and pass the
+// canonical zone id on. Instants whose day the shared formatter can't show throw too.
 const zoned = (instant: Instant, zone: string) => {
-  timeZoneOffset(zone, instant);
-  return { date: instant, zoneId: zone };
+  const zoneId = timeZoneId(zone);
+  const n = dayToEpochDay(dayFromInstant(instant, zoneId));
+  if (n < FIRST_DAY || n > LAST_DAY) {
+    throw new RangeError(`Instants before 1582-10-15 or after 8652-12-31 can't be formatted yet: ${instant}`);
+  }
+  return { date: instant, zoneId };
 };
 
 const EPOCH_DAY: Day = { year: 1970, month: 1, day: 1 };
@@ -257,7 +263,9 @@ export const formatDayRelative = (
 
 /**
  * Format an instant as seen in `zone`. The zone is required: the same instant is a different
- * day and time in different places. Default `{ date: 'full' }` as for `formatDate`.
+ * day and time in different places. Default `{ date: 'full' }` as for `formatDate`. Throws a
+ * RangeError for an unknown zone, an invalid instant, or one whose day in `zone` is before
+ * 1582-10-15 or after 8652-12-31.
  *
  * @public
  */

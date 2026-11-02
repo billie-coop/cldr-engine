@@ -169,6 +169,11 @@ export const timeOfDayToMillis: (t: TimeOfDay) => number;
 // @public
 export const timeOfDayToString: (t: TimeOfDay) => string;
 
+// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+//
+// @public
+export const timeZoneId: (zone: string) => string;
+
 // @public
 export const timeZoneOffset: (zone: string, instant: Instant) => number;
 
