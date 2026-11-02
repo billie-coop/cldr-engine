@@ -184,13 +184,14 @@ export const decimalIsInteger = (n: DecimalArg): boolean => {
 };
 
 /**
- * Return the raw internal properties of the number. Use with caution.
+ * Return the raw internal properties of the number: coefficient words (least-significant first),
+ * sign, exponent and flag. The coefficient is a copy; decimals are immutable and may share it.
  *
  * @public
  */
-export const decimalProperties = (n: DecimalArg): [number[], number, number, number] => {
+export const decimalProperties = (n: DecimalArg): [readonly number[], number, number, number] => {
   const d = decimal(n);
-  return [d.data as number[], d.sign, d.exp, d.flag];
+  return [d.data.slice(), d.sign, d.exp, d.flag];
 };
 
 /**

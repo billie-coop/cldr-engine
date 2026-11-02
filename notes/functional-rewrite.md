@@ -318,6 +318,16 @@ week accessors are ~3× slower (recomputed per call, see open items).
   generated, module-wide rule tables (`rules.cardinals[0][0] = 5` compiled and changed `en`
   everywhere). `Rule`, `Expr`, `Range` and the condition lists are now readonly at every level.
   Type-only; reading rules is unchanged. Test: `plurals/__tests__/readonly.test.ts`.
+- **Decimal aliasing through `decimalProperties` (P2, behaviour + type).** `decimal(d)` returns `d`
+  itself (values are immutable), where 1.x `new Decimal(d)` copied; but `decimalProperties()`
+  returned the live coefficient array (cast to `number[]`), so editing it changed every value
+  sharing it. 1.x `properties()` also returned its live array, but the copy constructor kept
+  original and copy apart. `decimalProperties` now returns a copy of the coefficient, typed
+  `readonly number[]` (**API change**: return type `[readonly number[], number, number, number]`;
+  writing into it no longer changes the decimal, which 1.x allowed for its own instance).
+  `decimal(d)` still returns `d`. `numberOperands` (plurals, a hot path) reads the fields directly
+  instead of going through `decimalProperties`, so no copy is added there. Values and outputs
+  unchanged. Test: `decimal/__tests__/aliasing.test.ts`.
 
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 

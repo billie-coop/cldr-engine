@@ -789,7 +789,7 @@ export const decimalNumberingSystem: (name: string, digits: string[], symbols: N
 export const decimalPrecision: (n: DecimalArg) => number;
 
 // @public
-export const decimalProperties: (n: DecimalArg) => [number[], number, number, number];
+export const decimalProperties: (n: DecimalArg) => [readonly number[], number, number, number];
 
 // @public
 export const decimalScale: (n: DecimalArg) => number;
