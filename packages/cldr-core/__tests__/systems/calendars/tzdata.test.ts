@@ -1,12 +1,20 @@
-import { defaultTimeZoneData, RawData, setTimeZoneData } from '@phensley/timezone';
+import { defaultTimeZoneData, RawData } from '@phensley/timezone';
 
 // The metazone index is built on the first calendar operation and kept for the life of the
 // module, so each test loads a fresh copy of the calendar code to control whether it is built
-// before or after the time zone data is replaced.
+// before or after the time zone data is replaced. The time zone package is taken from the same
+// fresh module graph, so `tz.setTimeZoneData` reaches the copy the calendar code uses (Vitest may
+// re-evaluate the package on reset, e.g. when its CommonJS entry point is a single bundle).
+let tz: typeof import('@phensley/timezone') | undefined;
+
 const load = async () => {
   vi.resetModules();
-  return import('../../../src');
+  const c = await import('../../../src');
+  tz = await import('@phensley/timezone');
+  return c;
 };
+
+const setTimeZoneData = (raw: RawData): void => tz!.setTimeZoneData(raw);
 
 const JAN_2024 = Date.UTC(2024, 0, 15, 12);
 
@@ -41,7 +49,7 @@ const swapped = (a: string, b: string): RawData => {
   return { ...defaultTimeZoneData, zoneids: ids.join('|'), links, zoneinfo };
 };
 
-afterEach(() => setTimeZoneData(defaultTimeZoneData));
+afterEach(() => tz && tz.setTimeZoneData(defaultTimeZoneData));
 
 const check = (c: Awaited<ReturnType<typeof load>>) => {
   let d = c.gregorianDateFromUnixEpoch(JAN_2024, 'America/New_York');
@@ -56,8 +64,8 @@ const check = (c: Awaited<ReturnType<typeof load>>) => {
 };
 
 test('different canonical zone list installed before first use', async () => {
-  setTimeZoneData(CUSTOM);
   const c = await load();
+  setTimeZoneData(CUSTOM);
 
   let d = c.gregorianDateFromUnixEpoch(0, 'Foo/Bar');
   expect(c.dateTimeZoneId(d)).toEqual('Foo/Bar');
@@ -78,8 +86,8 @@ test('different canonical zone list installed before first use', async () => {
 });
 
 test('reordered zone list installed before first use', async () => {
-  setTimeZoneData(swapped('America/New_York', 'Europe/London'));
   const c = await load();
+  setTimeZoneData(swapped('America/New_York', 'Europe/London'));
   check(c);
 
   // Restoring the bundled data gives the same answers.
@@ -97,8 +105,8 @@ test('reordered zone list installed after first use', async () => {
 });
 
 test('metazone lookups by zone id', async () => {
+  await load();
   setTimeZoneData(swapped('America/New_York', 'Europe/London'));
-  vi.resetModules();
   const c = await import('../../../src/systems/calendars/timezone');
   expect(c.getStableTimeZoneId('america/new_york')).toEqual('America/New_York');
   expect(c.getStableTimeZoneId('Asia/Calcutta')).toEqual('Asia/Calcutta');
