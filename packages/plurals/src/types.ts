@@ -1,20 +1,23 @@
-export type RangeList = Array<number | Range>;
+// The rule data is generated, shared by every caller and returned by getPluralRules, so every
+// level of it is readonly.
+
+export type RangeList = ReadonlyArray<number | Range>;
 
 export interface Range {
-  [0]: number;
-  [1]: number;
+  readonly [0]: number;
+  readonly [1]: number;
 }
 
 export interface Expr {
-  [0]: string;
-  [1]: number;
-  [2]: number;
-  [3]: RangeList;
+  readonly [0]: string;
+  readonly [1]: number;
+  readonly [2]: number;
+  readonly [3]: RangeList;
 }
 
-export type AndCond = Array<Expr>;
+export type AndCond = ReadonlyArray<Expr>;
 
-export type OrCond = Array<AndCond>;
+export type OrCond = ReadonlyArray<AndCond>;
 
 /**
  * A plural rule: a category index and the indices of the expressions it ORs/ANDs together.
@@ -23,10 +26,10 @@ export type OrCond = Array<AndCond>;
  */
 export interface Rule {
   // plural category index
-  [0]: number;
+  readonly [0]: number;
 
   // indices of shared OR conditions
-  [1]: number[][];
+  readonly [1]: ReadonlyArray<ReadonlyArray<number>>;
 }
 
-export type RuleMap = { [x: string]: Rule[] };
+export type RuleMap = { readonly [x: string]: readonly Rule[] };

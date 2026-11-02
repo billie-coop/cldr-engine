@@ -73,9 +73,9 @@ export type RangeMap = number | {
 // @public
 export interface Rule {
     // (undocumented)
-    [0]: number;
+    readonly [0]: number;
     // (undocumented)
-    [1]: number[][];
+    readonly [1]: ReadonlyArray<ReadonlyArray<number>>;
 }
 
 // (No @packageDocumentation comment for this package)

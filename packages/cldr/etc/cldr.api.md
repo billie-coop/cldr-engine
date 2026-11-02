@@ -2033,9 +2033,9 @@ export type RoundingModeType = 'up' | 'down' | 'ceiling' | 'floor' | 'half-up' |
 // @public
 export interface Rule {
     // (undocumented)
-    [0]: number;
+    readonly [0]: number;
     // (undocumented)
-    [1]: number[][];
+    readonly [1]: ReadonlyArray<ReadonlyArray<number>>;
 }
 
 // @public (undocumented)

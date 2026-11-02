@@ -313,6 +313,11 @@ week accessors are ~3× slower (recomputed per call, see open items).
   `readonly DateTimeNode[]`, `readonly WrapperNode[]`, all-readonly `NumberPattern`), so internal
   code can't mutate them either; no copying was added. Formatting output unchanged.
   Test: `cldr-core/__tests__/internals/patterncache.test.ts`.
+- **Plural rules shallowly readonly (P2, types).** `PluralRules.cardinals/ordinals` were
+  `readonly Rule[]`, but each `Rule` and its condition arrays were writable and point into the
+  generated, module-wide rule tables (`rules.cardinals[0][0] = 5` compiled and changed `en`
+  everywhere). `Rule`, `Expr`, `Range` and the condition lists are now readonly at every level.
+  Type-only; reading rules is unchanged. Test: `plurals/__tests__/readonly.test.ts`.
 
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 
