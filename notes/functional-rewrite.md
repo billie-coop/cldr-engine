@@ -549,6 +549,35 @@ with an error that contains each checkout's own pack path.
 Shared oddity seen there (kept from 1.x): `newJapaneseDate` / `newISO8601Date` throw "Cannot read
 properties of undefined" for some field sets (no defaults are applied; listed under 1.x bugs).
 
+## Repo layout and tooling (2026-11-02)
+
+Restructured to match Stephen's other repos (seaq, billie-coop monorepo):
+- **Yarn 4.18** workspaces (`packages/*` for the library, `apps/*` for apps), node-modules
+  linker, `.prototools` pinning Node 24.22.1 and Yarn, `yarn.lock` committed. pnpm files removed.
+- **Biome 2.5.9** replaces ESLint + Prettier (100 columns, single quotes), run from the root:
+  `yarn check` / `yarn check:fix`; `yarn ts-check` runs the TypeScript checks (declarations per
+  package, then each package's `build:lint` incl. tests); `yarn lint` runs both. Rules the old
+  ESLint config had off stay off. The reformat + Biome's fixes are one commit (`style: ...`),
+  checked with the full suite, pack identity and the 2.2M-call differential (still zero diffs).
+  Two Biome "safe" fixes were wrong and reverted: an empty interface used for declaration merging
+  became a type alias, and a sticky-flag `new RegExp('.', 'y')` used for feature detection became
+  a literal (an ES5 build error, and a syntax error on engines without the flag).
+- Tools are declared once at the root, as in the other repos, so package scripts work when run
+  through the root scripts (`yarn build`, `yarn api`, ...); Yarn doesn't put root tools on the
+  PATH of a script run directly inside a package. Apps declare their own tools.
+- The library build is unchanged (tsc CJS + ES modules, rollup CommonJS bundles, API Extractor);
+  seaq's tsup would drop the CommonJS bundle work and the API reports.
+
+**`apps/website`**: live examples (Vite 7 + React 19 + Tailwind 4), the successor of the old
+`cldr-engine-react-demo` (CRA + Redux). Sections for numbers, currency, decimal math (with an
+invoice line), days / times / zones (due date, reminder time, `dayAtTime`, next clock change,
+month grid with the locale's week start), units with conversion, lists / plurals / ICU messages,
+and locale matching; every example shows the call next to its live result for any of the 429
+locales and any zone. Locale packs load on demand, one chunk per language (28-74 KB gzipped);
+the app chunk is 188 KB gzipped (React, the formatters used, tz data). Checked headlessly
+(Playwright) in en-US, ar-EG, ja-JP and de-DE: no errors, no failed examples, no horizontal
+scroll at phone width. `yarn website` / `yarn website:build`.
+
 ## Dates and times: `@phensley/datetime` (added 2026-11-02, branch `datetime`)
 
 New feature, not part of the 1.x port: Stephen asked for date/time primitives that don't have

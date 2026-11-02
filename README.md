@@ -139,6 +139,18 @@ You can use any of the packages independent of the rest of the library:
 - High performance.
 - Arbitrary precision decimal math, to achieve the same accuracy in the browser as on the server.
 
+## Development
+
+Yarn 4 workspaces: the library in `packages/*`, apps in `apps/*` (`.prototools` pins Node and Yarn).
+
+```sh
+yarn install
+yarn build      # every package, then the locale packs
+yarn test       # vitest
+yarn lint       # TypeScript checks + Biome
+yarn website    # live examples (apps/website)
+```
+
 ## Benchmarks
 
 Benchmark suites use Vitest's bench mode and live in `packages/*/__benchmarks__/*.bench.ts`
