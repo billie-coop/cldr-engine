@@ -259,13 +259,19 @@ absolute numbers are well below plain Node (formatDecimal ~1.1M ops/s vs ~2.0M i
 suite; a week-field read ~6.5M vs ~28M). Use them for before/after comparisons of the same
 suite; use the CJS suite (or the esbuild scripts) for absolute numbers.
 
-### Week fields computed at date creation
+### Experiment: week fields at creation (reverted)
 
-`newDate` (every date is built there) now computes week of month, day of week in month, week of
+Tried computing the week fields once in `newDate` (commit c1be86a5) and reverted it:
+it sped up only the week accessors, which only week-number patterns use and which already took
+~25–50 ns, while the paths a server formatting invoices runs got slower (date creation −21%,
+`dateAdd` −21%, formatDate `{ date, zoneId }` −5%). The accessors still recompute per call.
+What was measured:
+
+`newDate` (every date is built there) computed week of month, day of week in month, week of
 year + its year for the date's rule and for ISO-8601, into the `fields` slots 1.x used for its
 memo; `dateWeekOfYear`, `dateYearOfWeekOfYear(ISO)`, `dateWeekOfYearISO`, `dateWeekOfMonth`,
-`dateDayOfWeekInMonth` are plain reads. Same arithmetic as 1.x `computeWeekFields`; when the
-rule is ISO's (Monday, 4 days: de, fr, en-GB, …) the ISO pass is skipped and copied.
+`dateDayOfWeekInMonth` were plain reads. Same arithmetic as 1.x `computeWeekFields`; when the
+rule is ISO's (Monday, 4 days: de, fr, en-GB, …) the ISO pass was skipped and copied.
 Checked against 1.x: 4.28M comparisons (5 calendars, firstDay 1–7 × minDays 1/4/7, every day
 ±10 around 1580–2101 new years and Persian new years, 3000 random epochs, 4 zones, NaN and
 extreme epochs): identical, including the NaN epoch error.
@@ -403,8 +409,9 @@ properties of undefined" for some field sets (no defaults are applied; listed un
 - **cldr-compiler** (build-time CLI) still contains classes internally; it only had its imports
   adapted. It isn't bundled into apps, so it was out of scope for tree-shaking.
 - **Week accessors** (`dateWeekOfYear`, `dateWeekOfMonth`, ...) recompute per call (~3× slower than
-  1.x, which memoized them on the mutable date). Only patterns with week fields use them. If it
-  matters, compute them once at date creation (creation is already ~60% faster than 1.x).
+  1.x, which memoized them on the mutable date). Only patterns with week fields use them.
+  Computing them at creation was tried and reverted: it slows creation, `dateAdd` and formatDate
+  of `{ date, zoneId }` (see "Experiment: week fields at creation").
 - **Naming.** The value-type prefix rule produces some long names (`decimalStripTrailingZeros`,
   `dateYearOfWeekOfYearISO`). It keeps the flat export namespace collision-free and makes
   autocomplete work by type; worth a look before the API is frozen.

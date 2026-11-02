@@ -80,6 +80,8 @@ export interface DateDiffOptions {
  * Calendar calculations are compatible with those in the Unicode ICU project.
  */
 
+const { floor } = Math;
+
 /**
  * @internal
  */
@@ -191,28 +193,28 @@ export const dateRelatedYear = (d: CalendarDate): number =>
  *
  * @public
  */
-export const dateYearOfWeekOfYear = (d: CalendarDate): number => d.fields[DateField.YEAR_WOY];
+export const dateYearOfWeekOfYear = (d: CalendarDate): number => weekOfYear(d, d.firstDay, d.minDays)[1];
 
 /**
  * Week of year.
  *
  * @public
  */
-export const dateWeekOfYear = (d: CalendarDate): number => d.fields[DateField.WEEK_OF_YEAR];
+export const dateWeekOfYear = (d: CalendarDate): number => weekOfYear(d, d.firstDay, d.minDays)[0];
 
 /**
  * Year of week of year ISO.
  *
  * @public
  */
-export const dateYearOfWeekOfYearISO = (d: CalendarDate): number => d.fields[DateField.ISO_YEAR_WOY];
+export const dateYearOfWeekOfYearISO = (d: CalendarDate): number => weekOfYear(d, 2, 4)[1];
 
 /**
  * Week of year ISO.
  *
  * @public
  */
-export const dateWeekOfYearISO = (d: CalendarDate): number => d.fields[DateField.ISO_WEEK_OF_YEAR];
+export const dateWeekOfYearISO = (d: CalendarDate): number => weekOfYear(d, 2, 4)[0];
 
 /**
  * Ordinal month, one-based, e.g. Gregorian JANUARY = 1.
@@ -240,7 +242,10 @@ export const dateMonth = (d: CalendarDate): number => d.fields[DateField.MONTH];
  *
  * @public
  */
-export const dateWeekOfMonth = (d: CalendarDate): number => d.fields[DateField.WEEK_OF_MONTH];
+export const dateWeekOfMonth = (d: CalendarDate): number => {
+  const dom = d.fields[DateField.DAY_OF_MONTH];
+  return weekNumber(d.firstDay, d.minDays, dom, dom, d.fields[DateField.DAY_OF_WEEK]);
+};
 
 /**
  * Day of year.
@@ -274,7 +279,7 @@ export const dateOrdinalDayOfWeek = (d: CalendarDate): number => {
  *
  * @public
  */
-export const dateDayOfWeekInMonth = (d: CalendarDate): number => d.fields[DateField.DAY_OF_WEEK_IN_MONTH];
+export const dateDayOfWeekInMonth = (d: CalendarDate): number => (((d.fields[DateField.DAY_OF_MONTH] - 1) / 7) | 0) + 1;
 
 /**
  * Day of month.
@@ -617,6 +622,63 @@ const toISOString = (d: CalendarDate, utc: boolean): string => {
     `T${zeropad(f[DateField.HOUR_OF_DAY], 2)}:${zeropad(f[DateField.MINUTE], 2)}:${zeropad(f[DateField.SECOND], 2)}` +
     `.${zeropad(f[DateField.MILLIS], 3)}${z}`
   );
+};
+
+/**
+ * Compute the week of year and the year of the week of year using the given week rules.
+ * Computed on demand; dates do not cache them.
+ */
+const weekOfYear = (d: CalendarDate, firstDay: number, minDays: number): [number, number] => {
+  const f = d.fields;
+  const dow = f[DateField.DAY_OF_WEEK];
+  const doy = f[DateField.DAY_OF_YEAR];
+  const eyear = f[DateField.EXTENDED_YEAR];
+
+  let ywoy = eyear;
+  const rdow = (dow + 7 - firstDay) % 7;
+  const rdowJan1 = (dow - doy + 7001 - firstDay) % 7;
+  let woy = floor((doy - 1 + rdowJan1) / 7);
+  if (7 - rdowJan1 >= minDays) {
+    woy++;
+  }
+
+  if (woy === 0) {
+    const prevDay = doy + yearLength(d, eyear - 1);
+    woy = weekNumber(firstDay, minDays, prevDay, prevDay, dow);
+    ywoy--;
+  } else {
+    const lastDoy = yearLength(d, eyear);
+    if (doy >= lastDoy - 5) {
+      let lastRdow = (rdow + lastDoy - doy) % 7;
+      if (lastRdow < 0) {
+        lastRdow += 7;
+      }
+      if (6 - lastRdow >= minDays && doy + 7 - rdow > lastDoy) {
+        woy = 1;
+        ywoy++;
+      }
+    }
+  }
+
+  return [woy, ywoy];
+};
+
+const yearLength = (d: CalendarDate, y: number): number =>
+  d.calendar.monthStart(y + 1, 0, false) - d.calendar.monthStart(y, 0, false);
+
+const weekNumber = (
+  firstDay: number,
+  minDays: number,
+  desiredDay: number,
+  dayOfPeriod: number,
+  dayOfWeek: number,
+): number => {
+  let psow = (dayOfWeek - firstDay - dayOfPeriod + 1) % 7;
+  if (psow < 0) {
+    psow += 7;
+  }
+  const weekNo = floor((desiredDay + psow - 1) / 7);
+  return 7 - psow >= minDays ? weekNo + 1 : weekNo;
 };
 
 const formatZoneOffset = (d: CalendarDate): string => {
