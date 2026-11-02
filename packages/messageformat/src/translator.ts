@@ -209,6 +209,15 @@ export type TranslateArgs<P extends string> = [MessageArgNames<P>] extends [neve
   ? [args?: MessageNamedArgs]
   : [args: { [N in MessageArgNames<P>]: MessageArg } & MessageNamedArgs];
 
+/**
+ * Arguments for `translate`. When the key isn't one of the source keys, TypeScript falls back to
+ * the union of all keys; arguments are then optional, so the error names the unknown key rather
+ * than missing arguments.
+ */
+type KeyArgs<S, K extends keyof S> = keyof S extends K
+  ? [args?: MessageNamedArgs]
+  : TranslateArgs<PatternFor<S, K>>;
+
 // ---------------------------------------------------------------------------------------------
 
 /** Catalog ids to try for a locale, most specific first: 'pt-PT' -> 'pt-PT', 'pt'. */
@@ -281,7 +290,7 @@ export const translate = <S extends Record<string, string>, K extends keyof S & 
   translator: Translator<S>,
   locale: string,
   key: K,
-  ...args: TranslateArgs<PatternFor<S, K>>
+  ...args: KeyArgs<S, K>
 ): string => {
   const [message, language] = resolveMessage(translator, locale, key);
   // Text with no braces or apostrophes formats to itself.

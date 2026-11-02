@@ -18,6 +18,101 @@ Yarn:
 yarn add @phensley/messageformat
 ```
 
+## Translating an app
+
+The translator is the recommended way to put an app's own text into several languages. It
+covers the whole workflow: catalogs, fallback, plurals, type-checked keys and arguments, and a
+test that keeps every catalog in step. The example site in `apps/website` is translated this
+way (`apps/website/src/i18n`).
+
+### 1. A source catalog
+
+One object with every message in your source language, keyed by the message itself. Using the
+text as the key keeps code readable (`t('Save changes?')`) and means a missing translation still
+shows sensible text.
+
+```ts
+// i18n/en.ts
+export const en = {
+  'Save changes?': 'Save changes?',
+  'due {date}': 'due {date}',
+  '{count} invoices': '{count, plural, one {# invoice} other {# invoices}}',
+};
+export type MessageKey = keyof typeof en;
+```
+
+Messages are ICU message format: `{name}` placeholders, `{n, plural, ...}`, `{x, select, ...}`.
+Apostrophes need no escaping (`Here's {name}`), except right before a brace: write `l''{name}`
+for a French elision, or use a typographic `’` (`checkCatalogs` reports the mistake as a lost
+placeholder).
+
+If your keys are ids instead of text, declare the catalog `as const` so its messages keep their
+literal types; placeholders are then read from the messages.
+
+### 2. One catalog per language
+
+```ts
+// i18n/de.ts
+import type { MessageCatalog } from '@phensley/messageformat';
+import type { MessageKey } from './en';
+
+export const de: MessageCatalog<MessageKey> = {
+  'Save changes?': 'Änderungen speichern?',
+  'due {date}': 'fällig am {date}',
+  '{count} invoices': '{count, plural, one {# Rechnung} other {# Rechnungen}}',
+};
+```
+
+`MessageCatalog<MessageKey>` only accepts keys that exist in the source catalog. Catalog ids are
+languages or locales: `'de'`, `'pt'`, `'pt-PT'`, `'zh-Hant'`.
+
+### 3. One translator
+
+```ts
+// i18n/index.ts
+import { createTranslator, translate } from '@phensley/messageformat';
+
+export const translator = createTranslator({ source: en, catalogs: { de, fr, ja, 'pt-PT': ptPT } });
+
+translate(translator, 'de-AT', '{count} invoices', { count: 3 }); // "3 Rechnungen"
+translate(translator, 'ko', 'Save changes?');                      // "Save changes?" (no catalog)
+translate(translator, 'de', 'Save chnages?');     // compile error: not a key of the source catalog
+translate(translator, 'de', '{count} invoices');  // compile error: count is missing
+```
+
+- **Fallback:** a locale uses its most specific catalog that has the message (`pt-PT`, then
+  `pt`), then the source.
+- **Plurals follow the text:** an English fallback on a Japanese device uses English plural
+  rules; a `pt-PT` catalog uses Portugal's rules, a `pt` catalog Brazil's.
+- **Cached:** create the translator once. Messages are parsed once and plural rules built once
+  per language; a message without braces or apostrophes isn't parsed at all.
+- **Locale ids** can be device-style (`en_CA`) or BCP 47 (`en-CA`).
+
+In a UI framework, wrap `translate` with the current locale, e.g. a React hook returning
+`(key, ...args) => translate(translator, locale, key, ...args)`; format numbers, dates and
+currencies with `@phensley/cldr` and pass the formatted strings as arguments.
+
+### 4. A test
+
+```ts
+// i18n.test.ts
+import { checkCatalogs } from '@phensley/messageformat';
+import { translator } from '.';
+
+test('catalogs match the source', () => {
+  expect(checkCatalogs(translator)).toEqual([]);
+});
+```
+
+`checkCatalogs` reports, per catalog and key: `missing` and `extra` keys, `placeholders` that
+differ from the source message, `unbalanced` braces, and plurals or selects with `no-other`
+case. Pass `{ complete: false }` while translations are still in progress to skip missing keys.
+
+Related helpers: `messageArgNames(pattern)` lists a message's placeholders, `isMessageKey(translator, s)`
+tells whether a runtime string is a key (for messages that arrive as data, such as validation
+errors), and `resolveMessage(translator, locale, key)` returns the message and the catalog it
+came from.
+
 ## Examples
 
 #### Setup

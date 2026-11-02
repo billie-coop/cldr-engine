@@ -26,6 +26,7 @@ import {
   timeZoneOffset,
 } from '@phensley/cldr';
 import { useState } from 'react';
+import { rich, type T } from '../i18n';
 import { attempt, Example, Field, q, Section } from '../ui';
 
 const DAY = 86400000;
@@ -88,7 +89,7 @@ const MonthView = ({ cldr, month, today }: { cldr: LocaleData; month: Day; today
   );
 };
 
-export const Dates = ({ cldr, zone }: { cldr: LocaleData; zone: string }) => {
+export const Dates = ({ cldr, zone, t }: { cldr: LocaleData; zone: string; t: T }) => {
   const today = dayToday(zone);
   const [dueText, setDueText] = useState(dayToString(dayAdd(today, { days: 2 })));
   const [timeText, setTimeText] = useState('09:00');
@@ -150,31 +151,34 @@ export const Dates = ({ cldr, zone }: { cldr: LocaleData; zone: string }) => {
   const change = attempt(() => {
     const d = nextClockChange(zone, today);
     if (!d || !time) {
-      return `${zone} has no clock change in the next year, so ${timeText} every day is exactly 24 hours apart.`;
+      return t(
+        '{zone} has no clock change in the next year, so {time} every day is exactly 24 hours apart.',
+        { zone, time: time ? formatTimeOfDay(cldr, time) : timeText },
+      );
     }
     const before = dayAtTime(dayAdd(d, { days: -1 }), time, zone);
     const after = dayAtTime(d, time, zone);
     const hours = (after - before) / 3600000;
-    return `The clocks change in ${zone} on ${formatDay(cldr, d)}: ${formatTimeOfDay(cldr, time)} that day comes ${hours} hours after ${formatTimeOfDay(cldr, time)} the day before.`;
+    return t(
+      'The clocks change in {zone} on {date}: {time} that day comes {hours, plural, one {# hour} other {# hours}} after {time} the day before.',
+      { zone, date: formatDay(cldr, d), time: formatTimeOfDay(cldr, time), hours },
+    );
   });
 
   return (
     <Section
       id="dates"
-      title="Days, times and zones"
-      intro={
-        <>
-          A <code>Day</code> is a calendar date with no time or zone, so it can't shift by a day; a{' '}
-          <code>TimeOfDay</code> is a wall clock time; instants are epoch milliseconds. Only a few
-          functions take a zone: what day it is there (<code>dayToday</code>), and when a wall clock
-          time happens there (<code>dayAtTime</code>).
-        </>
-      }
+      title={t('Days, times and zones')}
+      intro={rich(
+        t(
+          'A `Day` is a calendar date with no time or zone, so it can’t shift by a day; a `TimeOfDay` is a wall clock time; instants are epoch milliseconds. Only a few functions take a zone: what day it is there (`dayToday`), and when a wall clock time happens there (`dayAtTime`).',
+        ),
+      )}
       controls={
         <>
-          <Field label="Due date" type="date" value={dueText} onChange={setDueText} />
+          <Field label={t('Due date')} type="date" value={dueText} onChange={setDueText} />
           <Field
-            label="Reminder time"
+            label={t('Reminder time')}
             type="time"
             value={timeText}
             onChange={setTimeText}
@@ -196,10 +200,16 @@ export const Dates = ({ cldr, zone }: { cldr: LocaleData; zone: string }) => {
           <MonthView cldr={cldr} month={due} today={today} />
         )}
         <p className="max-w-xs self-center text-sm text-zinc-600 dark:text-zinc-400">
-          The week starts on the locale's first day (<code>firstDayOfWeek(locale)</code> is{' '}
-          {firstDayOfWeek(cldr)}, 1 = Sunday). The grid is <code>dayRange</code> over{' '}
-          <code>dayStartOfWeek</code> in steps of a week. Today in {zone}:{' '}
-          {dayToString(dayFromInstant(Date.now(), zone))}.
+          {rich(
+            t(
+              "The week starts on the locale's first day (`firstDayOfWeek(locale)` is {first}, 1 = Sunday). The grid is `dayRange` over `dayStartOfWeek` in steps of a week. Today in {zone}: {today}.",
+              {
+                first: firstDayOfWeek(cldr),
+                zone,
+                today: dayToString(dayFromInstant(Date.now(), zone)),
+              },
+            ),
+          )}
         </p>
       </div>
     </Section>

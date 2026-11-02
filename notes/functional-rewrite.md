@@ -549,6 +549,36 @@ with an error that contains each checkout's own pack path.
 Shared oddity seen there (kept from 1.x): `newJapaneseDate` / `newISO8601Date` throw "Cannot read
 properties of undefined" for some field sets (no defaults are applied; listed under 1.x bugs).
 
+## App translations: `createTranslator` (added 2026-11-02)
+
+Stephen's apps had built their own translation layer on 1.x (`@billie-coop/intl`: English text
+as keys, catalogs per language, English fallback with English plural rules, a catalog test that
+walked the parser's internal opcodes, and a yarn patch for ICU apostrophes). That pattern is now
+part of `@phensley/messageformat`, with the fixes:
+- `createTranslator({ source, catalogs })` + `translate(translator, locale, key, args)`: fallback
+  `pt-PT` -> `pt` -> source; plural rules from the language of the catalog the text came from (the
+  app applied the device's regional rules to the language catalog); parsed messages and plural
+  rules cached in the translator (the app re-parsed every message on every call).
+- Type checking: keys must be source keys, and `MessageArgNames` reads the placeholders out of the
+  pattern type, so a missing or misspelled argument is a compile error. An unknown key's error
+  names the key.
+- `checkCatalogs` (missing / extra keys, placeholder mismatches, unbalanced braces, plural or
+  select without `other`), `messageArgNames`, `isMessageKey`, `resolveMessage`.
+- `ApostropheMode` `'double-optional'` (ICU's default), used by the translator; identical to the
+  app's yarn patch on all 15,525 catalog messages + edge cases. `createMessageFormatter` still
+  defaults to the 1.x mode; worth flipping for 2.0. The brace matcher now honours
+  `disableEscapes` (1.x ignored it there).
+- Caching on the locale side: `loadLocale`/`loadLocaleAsync` return cached locale data per locale
+  (`localeCacheSize`, default 64), `cldrFramework.get` returns the same bound object, and
+  `messageFormatter(locale)` without options is one shared formatter per locale. 1.x rebuilt all
+  of these per call, so code like `framework.get(tag).Numbers.formatCurrency(...)` in a render
+  path started its caches cold every time.
+
+The README of `@phensley/messageformat` has a "Translating an app" guide. The example site is
+translated this way into de, fr, es, pt, ja, zh, zh-Hant and ar (49 messages each, written by an
+AI, flagged as unreviewed on the page), with `i18n.test.ts` running `checkCatalogs`; the page
+switches to right-to-left for Arabic. Root vitest now includes `apps/*`.
+
 ## Repo layout and tooling (2026-11-02)
 
 Restructured to match Stephen's other repos (seaq, billie-coop monorepo):

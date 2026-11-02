@@ -10,9 +10,10 @@ import {
   type LocaleData,
 } from '@phensley/cldr';
 import { useState } from 'react';
+import { rich, type T } from '../i18n';
 import { attempt, Example, Field, q, Section, Select } from '../ui';
 
-export const Numbers = ({ cldr }: { cldr: LocaleData }) => {
+export const Numbers = ({ cldr, t }: { cldr: LocaleData; t: T }) => {
   const [n, setN] = useState('1234567.891');
   const rows: [string, () => string][] = [
     [`formatDecimal(locale, ${q(n)})`, () => formatDecimal(cldr, n)],
@@ -46,9 +47,11 @@ export const Numbers = ({ cldr }: { cldr: LocaleData }) => {
   return (
     <Section
       id="numbers"
-      title="Numbers"
-      intro="Numbers are formatted from strings or numbers with exact decimal digits, so nothing is lost to floating point."
-      controls={<Field label="Number" value={n} onChange={setN} />}
+      title={t('Numbers')}
+      intro={t(
+        'Numbers are formatted from strings or numbers with exact decimal digits, so nothing is lost to floating point.',
+      )}
+      controls={<Field label={t('Number')} value={n} onChange={setN} />}
     >
       {rows.map(([code, f]) => (
         <Example key={code} code={code} result={attempt(f)} />
@@ -72,7 +75,7 @@ const CURRENCIES = [
   'SEK',
 ];
 
-export const Currency = ({ cldr }: { cldr: LocaleData }) => {
+export const Currency = ({ cldr, t }: { cldr: LocaleData; t: T }) => {
   const home = getCurrencyForRegion(cldr.region);
   const [amount, setAmount] = useState('-1234.565');
   const [code, setCode] = useState<string>('');
@@ -106,19 +109,18 @@ export const Currency = ({ cldr }: { cldr: LocaleData }) => {
   return (
     <Section
       id="currency"
-      title="Currency"
-      intro={
-        <>
-          Each currency rounds to its own digits (JPY has none, BHD has three) and{' '}
-          <code>cash: true</code> applies cash rounding (CHF to 0.05). The default currency comes
-          from the locale's region: <code>getCurrencyForRegion('{cldr.region}')</code> is {home}.
-        </>
-      }
+      title={t('Currency')}
+      intro={rich(
+        t(
+          "Each currency rounds to its own digits (JPY has none, BHD has three) and `cash: true` applies cash rounding (CHF to 0.05). The default currency comes from the locale's region: `getCurrencyForRegion({region})` is {currency}.",
+          { region: q(cldr.region), currency: home },
+        ),
+      )}
       controls={
         <>
-          <Field label="Amount" value={amount} onChange={setAmount} className="w-36" />
+          <Field label={t('Amount')} value={amount} onChange={setAmount} className="w-36" />
           <Select
-            label="Currency"
+            label={t('Currency')}
             value={c}
             onChange={setCode}
             options={codes.map((v) => ({ value: v, label: v }))}

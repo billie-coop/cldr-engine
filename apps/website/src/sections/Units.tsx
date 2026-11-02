@@ -14,6 +14,7 @@ import {
   unitFactors,
 } from '@phensley/unit-converter';
 import { useState } from 'react';
+import { rich, type T } from '../i18n';
 import { attempt, Example, Field, q, Section, Select } from '../ui';
 
 const converter = createUnitConverter({ length: unitFactors(LENGTH), mass: unitFactors(MASS) });
@@ -27,7 +28,7 @@ const UNITS: [UnitType, string, UnitType][] = [
   ['pound', 'mass', 'kilogram'],
 ];
 
-export const Units = ({ cldr }: { cldr: LocaleData }) => {
+export const Units = ({ cldr, t }: { cldr: LocaleData; t: T }) => {
   const [value, setValue] = useState('42.195');
   const [unit, setUnit] = useState<string>('kilometer');
   const [u, category, other] = UNITS.find((x) => x[0] === unit) ?? (UNITS[0] as (typeof UNITS)[0]);
@@ -50,7 +51,7 @@ export const Units = ({ cldr }: { cldr: LocaleData }) => {
       `convertUnits(converter, ${q(category)}, decimal(${q(value)}), ${q(u)}, ${q(other)}, { precision: 6 })`,
       () => {
         const r = converted();
-        return r ? decimalToString(r) : 'no conversion';
+        return r ? decimalToString(r) : t('no conversion');
       },
     ],
     [
@@ -70,19 +71,18 @@ export const Units = ({ cldr }: { cldr: LocaleData }) => {
   return (
     <Section
       id="units"
-      title="Units"
-      intro={
-        <>
-          Quantities in three lengths, and exact conversion with{' '}
-          <code>@phensley/unit-converter</code>. This locale measures in the{' '}
-          <b>{measurementSystem(cldr)}</b> system (<code>measurementSystem(locale)</code>).
-        </>
-      }
+      title={t('Units')}
+      intro={rich(
+        t(
+          'Quantities in three lengths, and exact conversion with `@phensley/unit-converter`. This locale measures in the {system} system (`measurementSystem(locale)`).',
+          { system: measurementSystem(cldr) },
+        ),
+      )}
       controls={
         <>
-          <Field label="Value" value={value} onChange={setValue} className="w-28" />
+          <Field label={t('Value')} value={value} onChange={setValue} className="w-28" />
           <Select
-            label="Unit"
+            label={t('Unit')}
             value={unit}
             onChange={setUnit}
             options={UNITS.map(([v]) => ({ value: v, label: v }))}

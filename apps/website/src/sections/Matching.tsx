@@ -5,9 +5,10 @@ import {
   matchLocale,
 } from '@phensley/cldr';
 import { useState } from 'react';
+import type { T } from '../i18n';
 import { attempt, Example, Field, q, Section } from '../ui';
 
-export const Matching = ({ cldr }: { cldr: LocaleData }) => {
+export const Matching = ({ cldr, t }: { cldr: LocaleData; t: T }) => {
   const [supported, setSupported] = useState('en, en-GB, es, es-419, fr, de, ja, pt-BR, zh-Hant');
   const [desired, setDesired] = useState(
     typeof navigator !== 'undefined' ? navigator.languages.join(', ') : 'en-US',
@@ -23,12 +24,24 @@ export const Matching = ({ cldr }: { cldr: LocaleData }) => {
   return (
     <Section
       id="matching"
-      title="Locale matching"
-      intro="Pick the best of your app's supported locales for what a user asks for, using CLDR's language distances (es-MX matches es-419, zh-TW matches zh-Hant)."
+      title={t('Locale matching')}
+      intro={t(
+        "Pick the best of your app's supported locales for what a user asks for, using CLDR's language distances (es-MX matches es-419, zh-TW matches zh-Hant).",
+      )}
       controls={
         <>
-          <Field label="Supported" value={supported} onChange={setSupported} className="w-80" />
-          <Field label="Your languages" value={desired} onChange={setDesired} className="w-56" />
+          <Field
+            label={t('Supported')}
+            value={supported}
+            onChange={setSupported}
+            className="w-80"
+          />
+          <Field
+            label={t('Your languages')}
+            value={desired}
+            onChange={setDesired}
+            className="w-56"
+          />
         </>
       }
     >

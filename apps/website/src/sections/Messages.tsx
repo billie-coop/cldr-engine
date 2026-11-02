@@ -7,12 +7,13 @@ import {
   messageFormatter,
 } from '@phensley/cldr';
 import { useMemo, useState } from 'react';
+import type { T } from '../i18n';
 import { attempt, Example, Field, q, Section } from '../ui';
 
 const DEFAULT_MESSAGE =
   '{count, plural, =0 {No invoices are} one {# invoice is} other {# invoices are}} overdue for {customer}.';
 
-export const Messages = ({ cldr }: { cldr: LocaleData }) => {
+export const Messages = ({ cldr, t }: { cldr: LocaleData; t: T }) => {
   const [items, setItems] = useState('Ada, Grace, Katherine');
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [args, setArgs] = useState('{ "count": 3, "customer": "Billie Co-op" }');
@@ -31,9 +32,13 @@ export const Messages = ({ cldr }: { cldr: LocaleData }) => {
   return (
     <Section
       id="messages"
-      title="Lists, plurals and messages"
-      intro="ICU message format with the locale's plural rules, list formatting, and the plural category of any number."
-      controls={<Field label="List items" value={items} onChange={setItems} className="w-72" />}
+      title={t('Lists, plurals and messages')}
+      intro={t(
+        "ICU message format with the locale's plural rules, list formatting, and the plural category of any number.",
+      )}
+      controls={
+        <Field label={t('List items')} value={items} onChange={setItems} className="w-72" />
+      }
     >
       {rows.map(([code, f]) => (
         <Example key={code} code={code} result={attempt(f)} />
@@ -46,7 +51,7 @@ export const Messages = ({ cldr }: { cldr: LocaleData }) => {
       />
       <div className="grid gap-3 pt-4 pb-2 sm:grid-cols-[2fr_1fr]">
         <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-          Message (ICU)
+          {t('Message (ICU)')}
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -55,7 +60,7 @@ export const Messages = ({ cldr }: { cldr: LocaleData }) => {
           />
         </label>
         <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-          Arguments (JSON)
+          {t('Arguments (JSON)')}
           <textarea
             value={args}
             onChange={(e) => setArgs(e.target.value)}

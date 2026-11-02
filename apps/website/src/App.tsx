@@ -6,12 +6,14 @@ import {
   timeZoneIds,
 } from '@phensley/cldr';
 import { useEffect, useMemo, useState } from 'react';
+import { pageLanguage, rich, translatorFor } from './i18n';
 import { cldrDataVersion, initialLocale, LOCALES, loadLocale } from './locale';
 import { Dates } from './sections/Dates';
 import { DecimalMath } from './sections/DecimalMath';
 import { Matching } from './sections/Matching';
 import { Messages } from './sections/Messages';
 import { Currency, Numbers } from './sections/Numbers';
+import { Translations } from './sections/Translations';
 import { Units } from './sections/Units';
 import { Select } from './ui';
 
@@ -37,13 +39,20 @@ const NAV = [
   ['units', 'Units'],
   ['messages', 'Messages'],
   ['matching', 'Matching'],
-];
+  ['translations', 'Translations'],
+] as const;
+
+// Languages written right to left that have a catalog.
+const RTL = new Set(['ar']);
 
 export const App = () => {
   const [localeId, setLocaleId] = useState(initialLocale);
   const [zone, setZone] = useState(() => systemTimeZone() ?? 'Etc/UTC');
   const [cldr, setCldr] = useState<LocaleData>();
   const [error, setError] = useState<string>();
+  // The page's own text, in the chosen locale's language when there is a catalog for it.
+  const t = useMemo(() => translatorFor(localeId), [localeId]);
+  const dir = RTL.has(pageLanguage(localeId)) ? 'rtl' : 'ltr';
 
   useEffect(() => {
     let live = true;
@@ -66,32 +75,38 @@ export const App = () => {
   }, [cldr, localeId]);
 
   if (error) {
-    return <p className="p-8 text-red-600">Couldn't load locale data: {error}</p>;
+    return <p className="p-8 text-red-600">{t("Couldn't load locale data: {error}", { error })}</p>;
   }
   if (!cldr) {
-    return <p className="p-8 text-zinc-500">Loading locale data…</p>;
+    return <p className="p-8 text-zinc-500">{t('Loading locale data…')}</p>;
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div
+      dir={dir}
+      lang={pageLanguage(localeId)}
+      className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100"
+    >
       <header className="top-0 z-10 sm:sticky border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
         <div className="mx-auto flex max-w-5xl flex-wrap items-end gap-x-6 gap-y-3 px-4 py-3">
           <div className="mr-auto">
             <h1 className="text-xl font-semibold tracking-tight">cldr-engine 2</h1>
             <p className="text-xs text-zinc-500">
-              v{cldrVersion()} · CLDR {cldrDataVersion} · plain functions over plain data · every
-              example runs live
+              {t(
+                'v{version} · CLDR {cldr} · plain functions over plain data · every example runs live',
+                { version: cldrVersion(), cldr: cldrDataVersion },
+              )}
             </p>
           </div>
           <Select
-            label="Locale"
+            label={t('Locale')}
             value={localeId}
             onChange={setLocaleId}
             options={localeOptions}
             className="w-64"
           />
           <Select
-            label="Time zone"
+            label={t('Time zone')}
             value={zone}
             onChange={setZone}
             options={ZONES.map((z) => ({ value: z, label: z }))}
@@ -105,10 +120,10 @@ export const App = () => {
               href={`#${id}`}
               className="text-indigo-600 hover:underline dark:text-indigo-400"
             >
-              {label}
+              {t(label)}
             </a>
           ))}
-          <span className="ml-auto flex flex-wrap gap-1.5">
+          <span dir="ltr" className="ms-auto flex flex-wrap gap-1.5">
             {QUICK.map((id) => (
               <button
                 key={id}
@@ -129,27 +144,28 @@ export const App = () => {
 
       <main className="mx-auto grid max-w-5xl gap-6 px-4 py-6">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Locale data is a plain object (
-          <code>const locale = await loadLocaleAsync(framework, '{localeId}')</code>) passed to
-          plain functions. Bundlers keep only the functions you import: number formatting alone is
-          about 42 KB gzipped, day math alone about 1.3 KB.
+          {rich(
+            t(
+              'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.',
+            ),
+          )}
         </p>
-        <Numbers cldr={cldr} />
-        <Currency cldr={cldr} />
-        <DecimalMath cldr={cldr} />
-        <Dates cldr={cldr} zone={zone} />
-        <Units cldr={cldr} />
-        <Messages cldr={cldr} />
-        <Matching cldr={cldr} />
+        <Numbers cldr={cldr} t={t} />
+        <Currency cldr={cldr} t={t} />
+        <DecimalMath cldr={cldr} t={t} />
+        <Dates cldr={cldr} zone={zone} t={t} />
+        <Units cldr={cldr} t={t} />
+        <Messages cldr={cldr} t={t} />
+        <Matching cldr={cldr} t={t} />
+        <Translations cldr={cldr} localeId={localeId} t={t} />
       </main>
 
       <footer className="mx-auto max-w-5xl px-4 pb-10 text-xs text-zinc-500">
-        Built on{' '}
-        <a className="underline" href="https://github.com/phensley/cldr-engine">
-          cldr-engine
-        </a>{' '}
-        by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA
-        tz database.
+        <a className="hover:underline" href="https://github.com/phensley/cldr-engine">
+          {t(
+            'Built on cldr-engine by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA tz database.',
+          )}
+        </a>
       </footer>
     </div>
   );

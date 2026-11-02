@@ -10,9 +10,10 @@ import {
   type LocaleData,
 } from '@phensley/cldr';
 import { useState } from 'react';
+import { rich, type T } from '../i18n';
 import { attempt, Example, Field, q, Section } from '../ui';
 
-export const DecimalMath = ({ cldr }: { cldr: LocaleData }) => {
+export const DecimalMath = ({ cldr, t }: { cldr: LocaleData; t: T }) => {
   const [a, setA] = useState('0.1');
   const [b, setB] = useState('0.2');
   const [qty, setQty] = useState('3');
@@ -45,15 +46,13 @@ export const DecimalMath = ({ cldr }: { cldr: LocaleData }) => {
   return (
     <Section
       id="math"
-      title="Decimal math"
-      intro={
-        <>
-          Arbitrary precision decimals as plain data (
-          <code>{JSON.stringify(decimal('19.99'))}</code>), so amounts survive JSON and{' '}
-          <code>structuredClone</code>. Add, subtract and multiply are exact; divide takes a
-          precision or scale.
-        </>
-      }
+      title={t('Decimal math')}
+      intro={rich(
+        t(
+          'Arbitrary precision decimals as plain data (`{json}`), so amounts survive JSON and `structuredClone`. Add, subtract and multiply are exact; divide takes a precision or scale.',
+          { json: JSON.stringify(decimal('19.99')) },
+        ),
+      )}
       controls={
         <>
           <Field label="a" value={a} onChange={setA} className="w-36" />
@@ -65,10 +64,10 @@ export const DecimalMath = ({ cldr }: { cldr: LocaleData }) => {
         <Example key={code} code={code} result={attempt(f)} />
       ))}
       <div className="flex flex-wrap items-end gap-3 pt-4 pb-1">
-        <span className="w-full text-sm font-medium">An invoice line</span>
-        <Field label="Quantity" value={qty} onChange={setQty} className="w-20" />
-        <Field label="Unit price" value={price} onChange={setPrice} className="w-28" />
-        <Field label="Tax rate" value={rate} onChange={setRate} className="w-28" />
+        <span className="w-full text-sm font-medium">{t('An invoice line')}</span>
+        <Field label={t('Quantity')} value={qty} onChange={setQty} className="w-20" />
+        <Field label={t('Unit price')} value={price} onChange={setPrice} className="w-28" />
+        <Field label={t('Tax rate')} value={rate} onChange={setRate} className="w-28" />
       </div>
       {invoice.map(([code, f]) => (
         <Example key={code} code={code} result={attempt(f)} />

@@ -56,7 +56,8 @@
         "useIterableCallbackReturn": "off",
         "noGlobalIsFinite": "off",
         "noGlobalIsNan": "off",
-        "noDuplicateEnumValues": "off"
+        "noDuplicateEnumValues": "off",
+        "noPrototypeBuiltins": "off"
       },
       "complexity": {
         "noForEach": "off",
