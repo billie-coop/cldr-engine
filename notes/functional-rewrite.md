@@ -33,8 +33,9 @@ The whole library is ported to plain data + exported functions. No classes remai
   extra ids), zero differences** — see "Differential check (locale API)".
 - **Performance** (en, node 24, ops/s; see "Performance" below): in an app-style ES-module
   bundle 2.x is at parity or faster — formatDecimal / formatCurrency equal, formatDate from
-  `{ date, zoneId }` ~10% faster, formatDate of a prebuilt date within noise. In the CommonJS
-  build, formatting a prebuilt date is ~10% slower (re-export getters on cross-package calls).
+  `{ date, zoneId }` ~10% faster, formatDate of a prebuilt date within noise. The CommonJS
+  entry points are rollup bundles (no re-export getters), which puts the CommonJS build at or
+  above the ES-module bundle (see "CommonJS entry points bundled with rollup").
 
 What's left / rough edges are listed at the end, with the things I wasn't sure about.
 
@@ -297,6 +298,55 @@ after, 2 runs each): week accessors +115–135%, `YwE` skeleton +22%, creation �
 dateAdd −23%, dateUntil/dateDifference/number/unit formatting unchanged. Vitest overstates the
 creation cost: it compiles files in isolation, so the `DateField` const enum isn't inlined and
 each field index is an import read. Bundle sizes unchanged (dates 86.6 KB gzip, was 86.4).
+
+### CommonJS entry points bundled with rollup
+
+tsc's CommonJS output reads every name re-exported through an `export *` barrel via a getter
+(tslib `__createBinding`), so every call into another package (cldr-core → decimal, a user's
+`require('@phensley/cldr').formatDate` → cldr → cldr-core) paid one or more extra calls; ES-module
+bundles don't. Each runtime package's build now ends with `build:cjs-bundle`: rollup bundles
+`lib-es/` into `lib/index.js` (+ source map), with plain `exports.x = x` assignments and
+`externalLiveBindings: false`, so `export * from '@phensley/...'` copies values instead of
+defining getters (no export is ever reassigned). Shared config: `rollup.cjs.config.mjs`.
+
+- **What stays the same:** `main`/`module`/`types` entry points, `lib-es/`, the `.d.ts` files
+  and per-module files in `lib/` (tsc still emits them), the UMD bundle and the packs
+  (both byte-identical), tree-shaking sizes. The bundle's source map chains through the tsc maps
+  to the TypeScript sources (`node --enable-source-maps` stack traces show `src/*.ts` lines).
+- **Checks:** exports of all 13 bundled entry points vs the tsc ones: same names, types, values
+  (functions by name/arity), the `__esModule` marker, and all 1132 cross-package identities
+  (`cldr.decimalAdd === decimal.decimalAdd`). The locale-API differential harness against 1.x
+  through `packages/cldr/lib`: 2,197,323 calls each for direct functions and the convenience
+  layer, only the expected `xx` load-path line differs.
+- **Cost in build complexity:** one config file (~60 lines, mostly comments), one script per
+  package, no new dependencies (rollup and its json/node-resolve plugins were already used for the
+  UMD build). Build time unchanged (~22 s; each bundle takes 30–300 ms).
+- **Caveats:** a deep import (`@phensley/cldr-core/lib/internals/schema`, used by cldr-compiler
+  and the stress scripts) loads tsc's per-module files, a second copy of that package's modules
+  next to the bundle, so module-level state (caches, `setTimeZoneData`) isn't shared between the
+  two. Deep imports aren't public API and the ones in the repo use pure functions.
+  `build:watch` (tsc -w) rewrites `lib/index.js` as plain tsc output (works, just unbundled)
+  until the next `pnpm build`. Rollup's AMBIGUOUS_EXTERNAL_NAMESPACES / CIRCULAR_DEPENDENCY
+  warnings are silenced in the config with the reason.
+
+Node 24, CommonJS `lib/`, ops/s, two interleaved runs (scratch scripts; load average 6–8 from
+other agents, so ±5%):
+
+| | tsc `lib/` | rollup bundle |
+|---|---|---|
+| 7 date accessors from user code (`c.dateYear(d)` …) | 6.4–6.6M | 18.1–18.4M (×2.8) |
+| date from epoch | 3.30–3.48M | 3.71–3.81M (+11%) |
+| formatDate prebuilt long / short | 1.33M / 3.25–3.31M | 1.40M / 3.69–3.70M (+5% / +13%) |
+| formatDate `{date,zoneId}` long | 0.89–0.92M | 0.96–0.98M (+7%) |
+| formatDate datetime / skeleton (`bench.js`) | 0.81–0.83M / 0.77–0.78M | 0.89–0.90M / 0.85–0.88M (+9% / +12%) |
+| formatDecimal / short | 1.58–1.68M / 1.33–1.42M | 1.86–1.87M / 1.52–1.58M (+15% / +12%) |
+| dateAdd / dateUntil | 0.92–0.94M / 2.62M | 0.96–0.98M / 2.79–2.80M (+5% / +7%) |
+| formatCurrency | 0.99–1.01M | 0.97–0.98M (−2%, noise level) |
+
+For comparison the esbuild ES-module bundle on the same machine: formatDecimal 1.68–1.71M,
+formatCurrency 0.99–1.04M, formatDate prebuilt long 1.26–1.28M, `{date,zoneId}` 0.87–0.94M. The
+in-repo `cjs.bench.ts` (`--compare` against the pre-change baseline) agrees: date from epoch +39%,
+`{date,zoneId}` long +15%, dateAdd +19%, formatDecimal +8%, formatCurrency −4%..0%.
 
 ## Deviations from 1.x
 

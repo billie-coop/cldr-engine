@@ -32,9 +32,10 @@
   "scripts": {
     "api": "api-extractor run -c ./etc/api-extractor.json --local --verbose",
     "api:local": "pnpm run api -l",
-    "build": "pnpm run build:cj && pnpm run build:es && pnpm run build:packs && pnpm run build:rollup",
+    "build": "pnpm run build:cj && pnpm run build:es && pnpm run build:cjs-bundle && pnpm run build:packs && pnpm run build:rollup",
     "build:cj": "tsc -p ./tsconfig.json",
     "build:es": "tsc -p ./tsconfig.json --module esnext --outDir lib-es",
+    "build:cjs-bundle": "rollup -c ../../rollup.cjs.config.mjs",
     "build:lint": "tsc -p ./tsconfig.lint.json",
     "build:packs": "cldr-compiler pack -o ./packs",
     "build:watch": "tsc -p ./tsconfig.json -w --preserveWatchOutput",
