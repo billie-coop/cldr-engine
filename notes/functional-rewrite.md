@@ -283,6 +283,18 @@ week accessors are ~3× slower (recomputed per call, see open items).
   initialised it).
 - plurals: `getPluralRules` returns a plain record; `numberOperands` is a plain record.
 
+### Fixed after the independent review
+
+- **calendars + `setTimeZoneData` (P1, bug in the port).** The generated metazone index and
+  stable-id map are positional, generated against the bundled tz zone list, but were resolved
+  against the *active* `tzZoneIds()` once, on first calendar use. Replacing the tz data with a
+  different canonical list crashed date creation (`2 != 341`, then `toLowerCase` of undefined) or,
+  with a reordered list, gave zones the wrong metazone — and the cached result depended on whether
+  a calendar operation ran before the replacement. They are now resolved against the list they
+  were generated from (`defaultTimeZoneData`) and joined to the active data by zone id. Zones the
+  active data adds have no metazone (as `Etc/GMT+1` has none). No change with the bundled data
+  (1.x had no way to replace it). Tests: `cldr-core/__tests__/systems/calendars/tzdata.test.ts`.
+
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 
 - timezone 1.x `TzImpl` constructor mutated the `RawData` passed to it (blanked strings after

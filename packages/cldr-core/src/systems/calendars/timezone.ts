@@ -1,7 +1,7 @@
 import { MetaZoneType } from '@phensley/cldr-types';
 import { keyIndexGet } from '../../schema/instructions';
 import { TimeZoneStableIdIndex } from '../../schema/schema/timezones';
-import { tzFromUTC, tzResolveId, tzUtcZone, tzZoneIds } from '@phensley/timezone';
+import { defaultTimeZoneData, tzFromUTC, tzResolveId, tzUtcZone } from '@phensley/timezone';
 
 import { zoneAliasRaw } from './autogen.aliases';
 import { metazoneData } from './autogen.zonedata';
@@ -110,8 +110,11 @@ const buildMetazones = (raw: any): Metazones => {
     metazones.push(rec);
   }
 
-  // mapping of zoneid to metazone records
-  const zoneids = tzZoneIds();
+  // The zone index and stable ids are positional, generated against the canonical zone
+  // list of the bundled tz data. Resolve them against that list, not the active data
+  // (which `setTimeZoneData` can replace with a different list), so lookups are by zone id
+  // and don't depend on which data is active.
+  const zoneids = defaultTimeZoneData.zoneids.split('|');
   const zoneindex = numarray(raw.zoneindex, 36);
 
   // Mapping of tzdb id back to cldr stable id used for schema lookups
@@ -121,7 +124,7 @@ const buildMetazones = (raw: any): Metazones => {
     stableids.set(zoneids[i], p[1]);
   });
 
-  // Sanity-check, since the zoneindex is based off the canonical
+  // Sanity-check, since the zoneindex is based off the bundled canonical
   // zoneids array, but could be generated at different times. our test
   // cases should ensure they're in sync, but warn of a discrepancy
   /* istanbul ignore if -- @preserve */
