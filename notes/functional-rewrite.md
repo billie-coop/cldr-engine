@@ -259,6 +259,39 @@ absolute numbers are well below plain Node (formatDecimal ~1.1M ops/s vs ~2.0M i
 suite; a week-field read ~6.5M vs ~28M). Use them for before/after comparisons of the same
 suite; use the CJS suite (or the esbuild scripts) for absolute numbers.
 
+### Week fields computed at date creation
+
+`newDate` (every date is built there) now computes week of month, day of week in month, week of
+year + its year for the date's rule and for ISO-8601, into the `fields` slots 1.x used for its
+memo; `dateWeekOfYear`, `dateYearOfWeekOfYear(ISO)`, `dateWeekOfYearISO`, `dateWeekOfMonth`,
+`dateDayOfWeekInMonth` are plain reads. Same arithmetic as 1.x `computeWeekFields`; when the
+rule is ISO's (Monday, 4 days: de, fr, en-GB, …) the ISO pass is skipped and copied.
+Checked against 1.x: 4.28M comparisons (5 calendars, firstDay 1–7 × minDays 1/4/7, every day
+±10 around 1580–2101 new years and Persian new years, 3000 random epochs, 4 zones, NaN and
+extreme epochs): identical, including the NaN epoch error.
+
+CommonJS `lib/`, node 24, ops/s, two runs (`week.js` / `parts.js` scratch scripts):
+
+| | 1.x | 2.x before | 2.x after |
+|---|---|---|---|
+| week accessors (5 kinds) | 65–146M | 19–43M | 73–158M |
+| create gregorian date | 2.32–2.34M | 3.36–3.44M | 2.69–2.72M (−21%) |
+| create persian date | 2.24–2.33M | 3.29–3.38M | 2.54–2.56M (−23%) |
+| create + weekOfYear | 1.96–1.99M | 3.12–3.17M | 2.54M |
+| dateAdd {day,hour} / {month} | 0.71–0.73M | 0.89–0.92M | 0.71–0.74M (−21%) |
+| dateUntil / dateDifference | 2.6M / 2.1M | 2.5–2.6M / 2.1–2.2M | 2.5M / 2.0–2.1M (noise) |
+| formatDate `{date,zoneId}` long | | 0.86–0.89M | 0.84M (−5%) |
+| formatDate prebuilt long/short | | 1.26–1.32M / 3.08–3.31M | 1.29–1.30M / 3.21–3.27M |
+
+Creation is ~75 ns slower (two `weekOfYear` passes), still ~15% faster than 1.x; `dateAdd`
+creates two dates (an intermediate UTC date via `dateSet`, then the result), so it pays twice
+and is back at 1.x speed. Avoiding that would need a second, week-less construction path for
+the intermediate date (~5–7% of `dateAdd`); not done. Vitest bench (`pnpm bench`, before →
+after, 2 runs each): week accessors +115–135%, `YwE` skeleton +22%, creation −20 to −32%,
+dateAdd −23%, dateUntil/dateDifference/number/unit formatting unchanged. Vitest overstates the
+creation cost: it compiles files in isolation, so the `DateField` const enum isn't inlined and
+each field index is an import read. Bundle sizes unchanged (dates 86.6 KB gzip, was 86.4).
+
 ## Deviations from 1.x
 
 - Test ports: `decimal/__tests__/parse.test.ts` compared against literals with the private
