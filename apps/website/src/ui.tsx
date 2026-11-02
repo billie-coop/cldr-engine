@@ -73,17 +73,32 @@ export const Select = (props: {
 }) => (
   <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
     {props.label}
-    <select
-      value={props.value}
-      onChange={(e) => props.onChange(e.target.value)}
-      className={`${fieldClass} ${props.className ?? ''}`}
-    >
-      {props.options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    {/* The browser's own arrow sits against the edge; hide it and draw one with room around it. */}
+    <span className="relative">
+      <select
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value)}
+        className={`${fieldClass} w-full appearance-none pr-9 ${props.className ?? ''}`}
+      >
+        {props.options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-zinc-500"
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </span>
   </label>
 );
 
