@@ -11,8 +11,7 @@ import {
   tagRegion,
   tagScript,
 } from '@phensley/language-tag';
-
-import { DisplayNameOptions, ListPatternType, MeasurementCategory, MeasurementSystem } from '../common';
+import { DisplayNameOptions, ListPatternType, MeasurementCategory, MeasurementSystem } from '../common/general';
 import { LocaleData } from '../locale-data';
 import { resolveLocale } from '../framework';
 import { contextTransform, formatListValue } from '../internals/general/internal';

@@ -1,6 +1,5 @@
 import { NumberSystemInfo, NumberSystemName } from '@phensley/cldr-types';
-
-import { NumberSystemType } from '../../common';
+import { NumberSystemType } from '../../common/numbers';
 import { NumberingSystem, NumberParams } from '../../common/private';
 import { decimalNumberingDigits } from '../../systems/numbering/autogen.names';
 import { decimalNumberingSystem } from '../../systems/numbering/decimal';

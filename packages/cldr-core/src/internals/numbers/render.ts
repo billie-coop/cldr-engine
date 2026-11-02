@@ -10,7 +10,7 @@ import {
 import { CurrencySpacingPatterns, NumberParams } from '../../common/private';
 import { NumberField, NumberPattern } from '../../parsing/number';
 import { NumberRenderer } from '../internals';
-import { fastFormatDecimal } from '../../systems/numbering';
+import { fastFormatDecimal } from '../../systems/numbering/decimal';
 import { AbstractValue, partsValue, stringValue } from '../../utils/render';
 import { parseWrapper } from '../general/internal';
 

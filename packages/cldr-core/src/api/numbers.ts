@@ -1,15 +1,13 @@
 import { ContextType, CurrencyType, PluralType } from '@phensley/cldr-types';
 import { decimal, decimalIsInfinity, decimalIsNaN, Decimal, DecimalArg, Part } from '@phensley/decimal';
 import { pluralCardinal, pluralOrdinal } from '@phensley/plurals';
-
+import { CurrencyDisplayNameOptions } from '../common/general';
 import {
-  CurrencyDisplayNameOptions,
   CurrencyFormatOptions,
   CurrencySymbolWidthType,
   DecimalAdjustOptions,
   DecimalFormatOptions,
-} from '../common';
-
+} from '../common/numbers';
 import { NumberParams } from '../common/private';
 import { LocaleData } from '../locale-data';
 import { NumberRenderer } from '../internals/internals';

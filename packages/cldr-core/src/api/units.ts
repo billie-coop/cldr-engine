@@ -1,7 +1,7 @@
 import { UnitType } from '@phensley/cldr-types';
 import { Part } from '@phensley/decimal';
-
-import { ListPatternType, Quantity, UnitFormatOptions, UnitLength } from '../common';
+import { ListPatternType } from '../common/general';
+import { Quantity, UnitFormatOptions, UnitLength } from '../common/units';
 import { LocaleData } from '../locale-data';
 import { formatListValue } from '../internals/general/internal';
 import { partsRenderer, stringRenderer } from '../internals/numbers/render';

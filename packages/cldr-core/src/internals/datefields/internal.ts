@@ -8,8 +8,7 @@ import {
   decimalIsNegative,
   decimalNegate,
 } from '@phensley/decimal';
-
-import { RelativeTimeFieldFormatOptions } from '../../common';
+import { RelativeTimeFieldFormatOptions } from '../../common/calendars';
 import { LocaleData } from '../../locale-data';
 import { ContextTransformInfo, NumberParams } from '../../common/private';
 import { vectorGet } from '../../schema/schema/arrows';

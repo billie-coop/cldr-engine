@@ -3,7 +3,7 @@ import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
 import { DateTimeNode, intervalPatternBoundary, parseDatePattern as parseDatePatternRaw } from '../../parsing/date';
 import { LocaleData } from '../../locale-data';
-import { CalendarDate, CalendarType } from '../../systems/calendars';
+import { CalendarDate, CalendarType } from '../../systems/calendars/types';
 import { AbstractValue } from '../../utils/render';
 import { calendarIds, calendarPrefData } from './autogen.calprefs';
 import { weekFirstDay as weekFirstDayData, weekMinDays as weekMinDaysData } from './autogen.weekdata';

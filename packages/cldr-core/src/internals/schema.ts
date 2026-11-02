@@ -1,12 +1,9 @@
 import { Schema } from '@phensley/cldr-types';
 import { Decimal, decimal, decimalAdd, decimalMovePoint, decimalSubtract, decimalToString } from '@phensley/decimal';
+import { digitsArrow, fieldArrow, scopeArrow, vectorArrow } from '../schema/schema/arrows';
 import {
-  digitsArrow,
-  fieldArrow,
   originGetIndex,
   originGetValues,
-  scopeArrow,
-  vectorArrow,
   Digits,
   Field,
   Instruction,
@@ -14,7 +11,7 @@ import {
   Scope,
   ScopeMap,
   Vector,
-} from '../schema';
+} from '../schema/instructions';
 import { leftPad } from '../utils/string';
 
 const time = (n: [number, number]): Decimal => decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));

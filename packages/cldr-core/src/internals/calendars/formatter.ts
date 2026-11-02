@@ -1,6 +1,6 @@
 import { CalendarSchema, ContextType, TimeZoneSchema } from '@phensley/cldr-types';
 import { LocaleData } from '../../locale-data';
-import { CalendarDate } from '../../systems/calendars';
+import { CalendarDate } from '../../systems/calendars/types';
 import { ContextTransformInfo, NumberingSystem } from '../../common/private';
 import { DateFormatAltOptions } from '../../common/calendars';
 

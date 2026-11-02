@@ -23,7 +23,7 @@ import {
 } from './framework';
 import { getCurrencyForRegion, getCurrencyFractions } from './internals/numbers/util';
 import { LocaleData } from './locale-data';
-import { SchemaConfig } from './schema';
+import { SchemaConfig } from './schema/code/index';
 
 /**
  * Interface exporting all functionality for a given locale.

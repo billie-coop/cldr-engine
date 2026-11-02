@@ -1,6 +1,6 @@
 import { KeyIndex } from '@phensley/cldr-types';
 import { scope, vector, Instruction, Scope } from '../instructions';
-import { DateFieldIndex, DateFieldWidthIndex, RelativeTimeFieldIndex } from '../schema';
+import { DateFieldIndex, DateFieldWidthIndex, RelativeTimeFieldIndex } from '../schema/datefields';
 
 const prevNext: Instruction[] = ['previous2', 'previous', 'current', 'next', 'next2'].map((k) =>
   vector(k, ['relative-time-field']),

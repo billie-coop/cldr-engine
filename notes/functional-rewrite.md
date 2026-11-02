@@ -31,9 +31,10 @@ The whole library is ported to plain data + exported functions. No classes remai
   plurals/messageformat ~507k cases, unit-converter + rbnf ~830k output lines, calendar dates 620k
   output lines — all identical. Whole locale API: **2.2 million calls across all 429 locales (+40
   extra ids), zero differences** — see "Differential check (locale API)".
-- **Performance:** micro-benchmark (en, node 24): formatDecimal / formatCurrency at parity with
-  1.x, compact numbers −7%, formatDate −5…10% (likely the date week fields, now computed per call
-  instead of memoized on a mutable object). Not tuned further.
+- **Performance** (en, node 24, ops/s; see "Performance" below): in an app-style ES-module
+  bundle 2.x is at parity or faster — formatDecimal / formatCurrency equal, formatDate from
+  `{ date, zoneId }` ~10% faster, formatDate of a prebuilt date within noise. In the CommonJS
+  build, formatting a prebuilt date is ~10% slower (re-export getters on cross-package calls).
 
 What's left / rough edges are listed at the end, with the things I wasn't sure about.
 
@@ -219,6 +220,26 @@ were then applied to the rest of the repo in this branch.
 | cldr (aggregate + convenience) | done | 3/11 → 3/11 |
 | cldr-compiler | adapted to the new core API (still class-based internally) | 7/21 → 7/21 |
 
+## Performance
+
+Measured after a follow-up fix: the calendar internals imported the `date*` accessors through the
+`systems/calendars` index barrel, and in the CommonJS build every re-exported name is read through
+a getter, so every field read while formatting paid an extra call (1.x called methods on the date
+directly). Internal imports now point at the defining modules (`ts-morph` script; 37 imports).
+
+ES-module bundle (esbuild, as an app would ship it), ops/s, two runs each:
+
+| call | 1.x | 2.x |
+|---|---|---|
+| formatDecimal | 1.77–1.82M | 1.79–1.83M |
+| formatCurrency | 1.03–1.06M | 1.06–1.07M |
+| formatDate prebuilt date, datetime long | 1.36–1.37M | 1.29–1.32M |
+| formatDate prebuilt date, date short | 3.71–3.89M | 3.80–3.87M |
+| formatDate `{ date, zoneId }`, datetime long | 0.85M | 0.92–0.96M |
+
+Date creation is ~60% faster than 1.x (no per-instance class setup); plain accessors are equal;
+week accessors are ~3× slower (recomputed per call, see open items).
+
 ## Deviations from 1.x
 
 - Test ports: `decimal/__tests__/parse.test.ts` compared against literals with the private
@@ -329,8 +350,9 @@ properties of undefined" for some field sets (no defaults are applied; listed un
   ports were updated, but the documentation site / `docs` content still describes the 1.x API.
 - **cldr-compiler** (build-time CLI) still contains classes internally; it only had its imports
   adapted. It isn't bundled into apps, so it was out of scope for tree-shaking.
-- **Date performance** is 5–10% below 1.x in a micro-benchmark (see Summary). An easy follow-up is
-  computing the week fields once per date instead of per accessor call.
+- **Week accessors** (`dateWeekOfYear`, `dateWeekOfMonth`, ...) recompute per call (~3× slower than
+  1.x, which memoized them on the mutable date). Only patterns with week fields use them. If it
+  matters, compute them once at date creation (creation is already ~60% faster than 1.x).
 - **Naming.** The value-type prefix rule produces some long names (`decimalStripTrailingZeros`,
   `dateYearOfWeekOfYearISO`). It keeps the flat export namespace collision-free and makes
   autocomplete work by type; worth a look before the API is frozen.

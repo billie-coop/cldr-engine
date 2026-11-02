@@ -7,7 +7,7 @@ import {
   decimalSetScale,
   decimalStripTrailingZeros,
 } from '@phensley/decimal';
-import { NumberFormatOptions } from '../../common';
+import { NumberFormatOptions } from '../../common/numbers';
 import { NumberPattern } from '../../parsing/number';
 
 /**

@@ -3,7 +3,7 @@ import { DecimalConstants, decimal } from '@phensley/decimal';
 import { pluralCardinal } from '@phensley/plurals';
 
 import { NumberRenderer } from '../internals';
-import { Quantity, UnitFormatOptions } from '../../common';
+import { Quantity, UnitFormatOptions } from '../../common/units';
 import { NumberParams } from '../../common/private';
 import { LocaleData } from '../../locale-data';
 import { vectorGet, fieldGet } from '../../schema/schema/arrows';

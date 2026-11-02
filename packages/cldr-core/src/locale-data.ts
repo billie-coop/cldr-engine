@@ -1,7 +1,7 @@
 import { KeyIndexMap, Schema } from '@phensley/cldr-types';
 import { Locale } from '@phensley/locale';
 import { Bundle } from './resource/bundle';
-import { SchemaConfig } from './schema';
+import { SchemaConfig } from './schema/code/index';
 
 /**
  * Everything the locale functions need for one locale, as one plain object: the strings of the

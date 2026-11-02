@@ -1,5 +1,5 @@
 import { CurrencyType } from '@phensley/cldr-types';
-import { CurrencyFractions } from '../../common';
+import { CurrencyFractions } from '../../common/numbers';
 import { numarray, stringToObject } from '../../utils/string';
 import { currencyFractionsRaw, currencyRegionsRaw } from './autogen.currencies';
 

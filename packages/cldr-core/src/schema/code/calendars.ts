@@ -1,6 +1,5 @@
 import { KeyIndexMap } from '@phensley/cldr-types';
 import { field, scope, vector, keyIndex } from '../instructions';
-
 import {
   BuddhistEraIndex,
   DateTimePatternFieldValues,
@@ -14,7 +13,7 @@ import {
   PersianEraIndex,
   QuarterValues,
   WeekdayValues,
-} from '../schema';
+} from '../schema/calendar';
 
 const formats = (name: string, rename: string, month: string) =>
   scope(name, rename, [

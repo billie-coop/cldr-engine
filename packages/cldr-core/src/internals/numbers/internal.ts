@@ -15,9 +15,7 @@ import {
 } from '@phensley/decimal';
 
 import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
-
-import { CurrencyFormatOptions, DecimalAdjustOptions, DecimalFormatOptions } from '../../common';
-
+import { CurrencyFormatOptions, DecimalAdjustOptions, DecimalFormatOptions } from '../../common/numbers';
 import {
   numberContext,
   NumberContext,

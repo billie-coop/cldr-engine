@@ -1,6 +1,6 @@
 import { DateTimePatternField, DateTimePatternFieldType, MetaZoneType } from '@phensley/cldr-types';
 import { getTZC } from '../../internals/calendars/zoneutil';
-import { INTERNAL_NUMBERING, numberingFormatString } from '../numbering';
+import { INTERNAL_NUMBERING, numberingFormatString } from '../numbering/decimal';
 import { CalendarConstants } from './constants';
 import { newDate } from './core';
 import { DateField } from './fields';

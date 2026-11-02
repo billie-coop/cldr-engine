@@ -1,7 +1,6 @@
 import { ContextTransformFieldType, ContextType, ListPatternPositionType, Vector1Arrow } from '@phensley/cldr-types';
 import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
-
-import { ListPatternType } from '../../common';
+import { ListPatternType } from '../../common/general';
 import { ContextTransformInfo } from '../../common/private';
 import { LocaleData } from '../../locale-data';
 import { AbstractValue } from '../../utils/render';

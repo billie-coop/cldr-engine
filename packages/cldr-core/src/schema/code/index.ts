@@ -18,8 +18,7 @@ import { NAMES } from './names';
 import { NUMBERS, NUMBERS_INDICES } from './numbers';
 import { TIMEZONE, TIMEZONE_INDICES } from './timezones';
 import { UNITS } from './units';
-
-import { AltIndex, DayPeriodAltIndex, EraAltIndex, PluralIndex } from '../schema';
+import { AltIndex, DayPeriodAltIndex, EraAltIndex, PluralIndex } from '../schema/enums';
 
 const EMPTY_INDEX = /*#__PURE__*/ keyIndex([]);
 

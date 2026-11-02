@@ -7,7 +7,7 @@ import { buildSchema } from './internals/schema';
 import { localeData, LocaleData } from './locale-data';
 import { loadPack, packGet, Pack } from './resource/pack';
 import { checksumIndices } from './resource/checksum';
-import { buildOrigin, SchemaConfig } from './schema';
+import { buildOrigin, SchemaConfig } from './schema/code/index';
 import { VERSION } from './utils/version';
 
 const enum Messages {
