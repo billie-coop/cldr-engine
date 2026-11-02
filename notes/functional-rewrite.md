@@ -348,6 +348,9 @@ week accessors are ~3× slower (recomputed per call, see open items).
   `language-tag/__tests__/guards.test.ts`, `messageformat/__tests__/richargs.test.ts`,
   `cldr-core/__tests__/systems/calendars/guards.test.ts`,
   `cldr-core/__tests__/schema/schema/guards.test.ts`.
+- **`packages/decimal/README.md`** still taught `new Decimal(...)` / `.multiply(...)`. Rewritten for
+  the function API (usage section + the same example, which prints exactly the output already in
+  the README); also fixed its broken `@phensley/clde` link.
 
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 

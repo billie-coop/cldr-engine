@@ -2,7 +2,7 @@
 
 [![@phensley/decimal](https://badge.fury.io/js/%40phensley%2Fdecimal.svg)](https://www.npmjs.com/package/@phensley/decimal) [![min+gzip](https://badgen.net/bundlephobia/minzip/@phensley/decimal)](https://bundlephobia.com/result?p=@phensley/decimal)
 
-Arbitrary precision decimal math, used to support [@phensley/cldr](https://www.npmjs.com/package/@phensley/clde), but can be used by itself.
+Arbitrary precision decimal math, used to support [@phensley/cldr](https://www.npmjs.com/package/@phensley/cldr), but can be used by itself.
 
 ## Installation
 
@@ -18,20 +18,34 @@ Yarn:
 yarn add @phensley/decimal
 ```
 
+## Usage
+
+Decimals are immutable plain values. Create one with `decimal()` from a number or string, and
+operate on it with the `decimal*` functions, which return new values. Functions that take a
+decimal also accept a number or string. Rationals work the same way (`rational()`,
+`rationalAdd()`, `rationalToDecimal()`, ...).
+
+```typescript
+import { decimal, decimalAdd, decimalCompare, decimalSetScale, decimalToString } from '@phensley/decimal';
+
+const total = decimalAdd(decimal('0.1'), '0.2');
+decimalToString(total); // '0.3'
+decimalCompare(total, 0.3); // 0
+decimalToString(decimalSetScale('2.665', 2)); // '2.66' (half-even rounding by default)
+```
+
 ## Example
 
 ```typescript
-import { Decimal, DecimalConstants, MathContext } from '@phensley/decimal';
+import { Decimal, DecimalConstants, MathContext, decimal, decimalMultiply, decimalToString } from '@phensley/decimal';
 
 const area = (radius: Decimal, ctx: MathContext) =>
-  DecimalConstants.PI.multiply(radius, ctx).multiply(radius, ctx);
+  decimalMultiply(decimalMultiply(DecimalConstants.PI, radius, ctx), radius, ctx);
 
 const calc = (ctx: MathContext) => {
   for (const r of ['.002', '1', '1.5', '999.999']) {
-    const radius = new Decimal(r);
-    console.log(
-      `area of circle with radius ${r.padEnd(7)} is ${area(radius, ctx)}`
-    );
+    const radius = decimal(r);
+    console.log(`area of circle with radius ${r.padEnd(7)} is ${decimalToString(area(radius, ctx))}`);
   }
   console.log();
 };
@@ -46,20 +60,18 @@ for (const precision of [10, 30]) {
   calc({ precision });
 }
 
-const LIGHT_YEAR_KM = new Decimal('9.461e12');
-const NEAREST_STARS: any = {
+const LIGHT_YEAR_KM = decimal('9.461e12');
+const NEAREST_STARS: { [name: string]: string } = {
   'Proxima Centauri': '4.32',
   "Barnard's Star": '5.96',
   'Wolf 359': '7.78',
-  'Lalande 21185': '8.29'
+  'Lalande 21185': '8.29',
 };
 
 for (const name of Object.keys(NEAREST_STARS)) {
   const distly = NEAREST_STARS[name];
-  const distkm = new Decimal(distly).multiply(LIGHT_YEAR_KM, { precision: 30 });
-  console.log(
-    `Distance to ${name.padEnd(16)} is ${distkm.toString()} kilometers`
-  );
+  const distkm = decimalMultiply(distly, LIGHT_YEAR_KM, { precision: 30 });
+  console.log(`Distance to ${name.padEnd(16)} is ${decimalToString(distkm)} kilometers`);
 }
 ```
 
