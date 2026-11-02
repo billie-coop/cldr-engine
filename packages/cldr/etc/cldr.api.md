@@ -26,6 +26,9 @@ export interface AlgorithmicNumberSystem {
 export const AltIndex: KeyIndex<"short" | "long" | "narrow" | "none" | "variant" | "stand-alone" | "menu">;
 
 // @public
+export type ApostropheMode = 'double-optional' | 'double-required';
+
+// @public
 export type Argument = string | number;
 
 // @public (undocumented)
@@ -197,6 +200,17 @@ export interface CalendarSystem {
 export type CalendarType = 'buddhist' | 'gregory' | 'iso8601' | 'japanese' | 'persian';
 
 // @public
+export interface CatalogIssue {
+    // (undocumented)
+    readonly detail: string;
+    // (undocumented)
+    readonly key: string;
+    readonly language: string;
+    // (undocumented)
+    readonly problem: 'missing' | 'extra' | 'placeholders' | 'unbalanced' | 'no-other';
+}
+
+// @public
 export const characterOrder: (data: LocaleData) => CharacterOrderType;
 
 // @public (undocumented)
@@ -236,6 +250,14 @@ export const enum Chars {
     PLUS = 43
 }
 
+// @public
+export const checkCatalogs: <S extends Record<string, string>>(translator: Translator<S>, options?: CheckCatalogsOptions) => CatalogIssue[];
+
+// @public
+export interface CheckCatalogsOptions {
+    complete?: boolean;
+}
+
 // Warning: (ae-forgotten-export) The symbol "KeyIndexMap" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "checksumIndices" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -272,6 +294,7 @@ export interface CLDROptions {
     config?: SchemaConfig;
     debug?: boolean;
     loader?: (language: string) => any;
+    localeCacheSize?: number;
     packCacheSize?: number;
     patternCacheSize?: number;
     skipChecksum?: boolean;
@@ -306,6 +329,9 @@ export const createLocaleMatcher: (supportedLocales: string | (Locale | Language
 
 // @public
 export const createMessageFormatter: (options?: MessageFormatterOptions) => MessageFormatter;
+
+// @public
+export const createTranslator: <S extends Record<string, string>>(options: TranslatorOptions<S>) => Translator<S>;
 
 // @public (undocumented)
 export interface CurrencyDisplayNameOptions {
@@ -1202,6 +1228,7 @@ export interface Framework {
     readonly config: SchemaConfig;
     // (undocumented)
     readonly indices: KeyIndexMap;
+    readonly localeCache: LRU<LocaleData>;
     // (undocumented)
     readonly options: CLDROptions;
     // Warning: (ae-forgotten-export) The symbol "LRU" needs to be exported by the entry point index.d.ts
@@ -1332,6 +1359,9 @@ export const isJapaneseDate: (x: any) => x is JapaneseDate;
 
 // @public
 export const isLanguageTag: (x: unknown) => x is LanguageTag;
+
+// @public
+export const isMessageKey: <S extends Record<string, string>>(translator: Translator<S>, key: string) => key is keyof S & string;
 
 // @public
 export const iso8601Calendar: CalendarSystem;
@@ -1525,6 +1555,17 @@ export interface MessageArgConverter {
     readonly asString: (arg: MessageArg | undefined) => string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "Walk" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type MessageArgNames<P extends string> = string extends P ? never : Walk<P>;
+
+// @public
+export const messageArgNames: (pattern: string, options?: {
+    formatters?: string[];
+    apostropheMode?: ApostropheMode;
+}) => string[];
+
 // @public
 export type MessageArgs = {
     positional: MessageArg[];
@@ -1544,6 +1585,11 @@ export interface MessageBlockCode {
     // (undocumented)
     [1]: MessageCode[];
 }
+
+// @public
+export type MessageCatalog<K extends string = string> = {
+    readonly [P in K]?: string;
+};
 
 // @public
 export type MessageCode = MessageArgCode | MessageTextCode | MessagePluralCode | MessageBlockCode | MessageSelectCode | MessageSimpleCode | MessageArgSubCode | MessageNoopCode;
@@ -1577,6 +1623,7 @@ export const messageFormatter: (data: LocaleData, options?: MessageFormatterOpti
 
 // @public
 export interface MessageFormatterOptions {
+    apostropheMode?: ApostropheMode;
     cacheSize?: number;
     converter?: MessageArgConverter;
     disableEscapes?: boolean;
@@ -1978,7 +2025,7 @@ export interface PackScript {
 export const parseLanguageTag: (str: string) => LanguageTag;
 
 // @public
-export const parseMessagePattern: (raw: string, matcher: MessageMatcher, disableEscapes?: boolean) => MessageCode;
+export const parseMessagePattern: (raw: string, matcher: MessageMatcher, disableEscapes?: boolean, apostropheMode?: ApostropheMode) => MessageCode;
 
 // @public
 export interface Part {
@@ -2189,6 +2236,9 @@ export const resolveLocale: (id: string | LanguageTag) => Locale;
 
 // @public
 export const resolveLocaleId: (id: string) => Locale;
+
+// @public
+export const resolveMessage: <S extends Record<string, string>>(translator: Translator<S>, locale: string, key: keyof S & string) => [message: string, language: string];
 
 // @public
 export const resolveTimeZoneId: (zoneid: string) => string | undefined;
@@ -2631,6 +2681,60 @@ export const toJapaneseDate: (data: LocaleData, date: CalendarDate | ZonedDateTi
 
 // @public
 export const toPersianDate: (data: LocaleData, date: CalendarDate | ZonedDateTime | Date) => PersianDate;
+
+// Warning: (ae-forgotten-export) The symbol "PatternFor" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const translate: <S extends Record<string, string>, K extends keyof S & string>(translator: Translator<S>, locale: string, key: K, ...args: TranslateArgs<PatternFor<S, K>>) => string;
+
+// @public
+export type TranslateArgs<P extends string> = [MessageArgNames<P>] extends [never] ? [args?: MessageNamedArgs] : [args: {
+    [N in MessageArgNames<P>]: MessageArg;
+} & MessageNamedArgs];
+
+// @public
+export interface Translator<S extends Record<string, string> = Record<string, string>> {
+    // (undocumented)
+    readonly catalogs: {
+        readonly [language: string]: MessageCatalog<keyof S & string> | undefined;
+    };
+    // (undocumented)
+    readonly source: S;
+    // (undocumented)
+    readonly sourceLanguage: string;
+    // @internal (undocumented)
+    readonly state: TranslatorState;
+}
+
+// @public
+export interface TranslatorOptions<S extends Record<string, string>> {
+    apostropheMode?: ApostropheMode;
+    catalogs?: {
+        readonly [language: string]: MessageCatalog<keyof S & string> | undefined;
+    };
+    converter?: MessageArgConverter;
+    formatters?: MessageFormatFuncMap;
+    source: S;
+    sourceLanguage?: string;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TranslatorState" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TranslatorState {
+    // (undocumented)
+    readonly apostropheMode: ApostropheMode;
+    // (undocumented)
+    readonly converter: MessageArgConverter;
+    // (undocumented)
+    readonly formatters: MessageFormatFuncMap;
+    // (undocumented)
+    readonly matcher: MessageMatcher;
+    // (undocumented)
+    readonly parsed: Map<string, MessageCode>;
+    // (undocumented)
+    readonly plurals: Map<string, PluralRules>;
+}
 
 // @public (undocumented)
 export interface UnitConvertOptions {

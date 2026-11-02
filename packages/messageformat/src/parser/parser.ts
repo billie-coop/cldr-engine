@@ -18,6 +18,20 @@ const enum Chars {
 }
 
 /**
+ * How apostrophes quote text in a message pattern, using ICU's names.
+ *
+ * - `double-optional` (ICU's default since ICU 4.8, and what translators expect): an apostrophe
+ *   starts quoted text only right before `{` or `}` (or `#` inside a plural), so `Here's {name}`
+ *   needs no escaping. `''` is always one apostrophe.
+ * - `double-required` (this library's 1.x behaviour, still the default for `createMessageFormatter`):
+ *   every single apostrophe starts quoted text, so `Here's {name}` drops the rest of the message
+ *   and literal apostrophes have to be written `''`.
+ *
+ * @public
+ */
+export type ApostropheMode = 'double-optional' | 'double-required';
+
+/**
  * Parses a string into message code. The result can be used to evaluate the
  * message or serialized to JSON for later evaluation.
  *
@@ -27,7 +41,12 @@ export const parseMessagePattern = (
   raw: string,
   matcher: MessageMatcher,
   disableEscapes?: boolean,
-): MessageCode => outer({ raw, matcher, disableEscapes }, { t: raw, s: 0, e: raw.length });
+  apostropheMode?: ApostropheMode,
+): MessageCode =>
+  outer(
+    { raw, matcher, disableEscapes, optional: apostropheMode === 'double-optional' },
+    { t: raw, s: 0, e: raw.length },
+  );
 
 /**
  * Inputs to the parse of one message pattern.
@@ -36,7 +55,21 @@ interface ParseContext {
   readonly raw: string;
   readonly matcher: MessageMatcher;
   readonly disableEscapes?: boolean;
+  // ICU DOUBLE_OPTIONAL: an apostrophe only quotes before a syntax character.
+  readonly optional: boolean;
 }
+
+/**
+ * True if an apostrophe at `i` starts quoted text: always in `double-required` mode; in
+ * `double-optional` mode only right before `{`, `}`, or `#` where `#` is special.
+ */
+const quotes = (p: ParseContext, i: number, pound: boolean): boolean => {
+  if (!p.optional) {
+    return true;
+  }
+  const next = p.raw[i + 1];
+  return next === Chars.LEFT || next === Chars.RIGHT || (pound && next === Chars.POUND);
+};
 
 /**
  * Hand-implemented parser for ICU message format. Designed to be compact and
@@ -89,7 +122,7 @@ const outer = (p: ParseContext, r: MessageState, argsub?: Argument): MessageCode
         }
         const hidden = str[r.s + 1] === Chars.MINUS;
 
-        const k = seek(p.raw, r.s, r.e);
+        const k = seek(p, r.s, r.e);
         if (k === -1) {
           n.push(textarg(str.substring(r.s, r.e), argsub));
           r.s = r.e;
@@ -125,6 +158,9 @@ const outer = (p: ParseContext, r: MessageState, argsub?: Argument): MessageCode
             // Convert double apostrophe to single
             buf += c;
             r.s++;
+          } else if (!quotes(p, r.s, argsub !== undefined)) {
+            // A lone apostrophe that doesn't quote anything is just an apostrophe
+            buf += c;
           } else {
             // Skip over apostrophe
             r.s++;
@@ -226,7 +262,7 @@ const tag = (
   const hidden = p.raw[r.s + 1] === Chars.MINUS;
 
   // Find matching end delimter
-  const k = seek(p.raw, r.s, r.e);
+  const k = seek(p, r.s, r.e);
 
   // Note this can never be -1 since to get into
   // this code we must have parsed balanced '{' and '}' above.
@@ -343,8 +379,8 @@ const simple = (
  * areas. It ensures we're always dealing with a well-formed tag
  * where all '{' have a corresponding '}'.
  */
-const seek = (raw: string, i: number, j: number): number => {
-  const r = raw;
+const seek = (p: ParseContext, i: number, j: number): number => {
+  const r = p.raw;
   let d = 0; // Track nesting depth
 
   loop: while (i < j) {
@@ -365,9 +401,13 @@ const seek = (raw: string, i: number, j: number): number => {
         break;
 
       case Chars.APOS:
-        if (c === r[i + 1]) {
+        if (p.disableEscapes) {
+          // Escapes disabled: an apostrophe is a plain character (1.x ignored the option here)
+        } else if (c === r[i + 1]) {
           // Skip single escaped apostrophe
           i++;
+        } else if (!quotes(p, i, true)) {
+          // A lone apostrophe that doesn't quote anything
         } else {
           // Find matching apostrophe
           const k = r.indexOf(c, i + 1);

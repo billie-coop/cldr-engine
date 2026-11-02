@@ -5,13 +5,38 @@
 ```ts
 
 // @public
+export type ApostropheMode = 'double-optional' | 'double-required';
+
+// @public
 export type Argument = string | number;
 
 // @public
 export const buildMessageMatcher: (names: string[], sticky?: boolean) => MessageMatcher;
 
 // @public
+export interface CatalogIssue {
+    // (undocumented)
+    readonly detail: string;
+    // (undocumented)
+    readonly key: string;
+    readonly language: string;
+    // (undocumented)
+    readonly problem: 'missing' | 'extra' | 'placeholders' | 'unbalanced' | 'no-other';
+}
+
+// @public
+export const checkCatalogs: <S extends Record<string, string>>(translator: Translator<S>, options?: CheckCatalogsOptions) => CatalogIssue[];
+
+// @public
+export interface CheckCatalogsOptions {
+    complete?: boolean;
+}
+
+// @public
 export const createMessageFormatter: (options?: MessageFormatterOptions) => MessageFormatter;
+
+// @public
+export const createTranslator: <S extends Record<string, string>>(options: TranslatorOptions<S>) => Translator<S>;
 
 // @public
 export interface Decimal {
@@ -32,6 +57,9 @@ export const evaluateMessage: (plurals: PluralRules, converter: MessageArgConver
 export const formatMessage: (formatter: MessageFormatter, message: string, positional: MessageArg[], named: MessageNamedArgs) => string;
 
 // @public
+export const isMessageKey: <S extends Record<string, string>>(translator: Translator<S>, key: string) => key is keyof S & string;
+
+// @public
 export type MessageArg = any;
 
 // @public
@@ -49,6 +77,17 @@ export interface MessageArgConverter {
     // (undocumented)
     readonly asString: (arg: MessageArg | undefined) => string;
 }
+
+// Warning: (ae-forgotten-export) The symbol "Walk" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type MessageArgNames<P extends string> = string extends P ? never : Walk<P>;
+
+// @public
+export const messageArgNames: (pattern: string, options?: {
+    formatters?: string[];
+    apostropheMode?: ApostropheMode;
+}) => string[];
 
 // @public
 export type MessageArgs = {
@@ -69,6 +108,11 @@ export interface MessageBlockCode {
     // (undocumented)
     [1]: MessageCode[];
 }
+
+// @public
+export type MessageCatalog<K extends string = string> = {
+    readonly [P in K]?: string;
+};
 
 // @public
 export type MessageCode = MessageArgCode | MessageTextCode | MessagePluralCode | MessageBlockCode | MessageSelectCode | MessageSimpleCode | MessageArgSubCode | MessageNoopCode;
@@ -99,6 +143,7 @@ export interface MessageFormatter {
 
 // @public
 export interface MessageFormatterOptions {
+    apostropheMode?: ApostropheMode;
     cacheSize?: number;
     converter?: MessageArgConverter;
     disableEscapes?: boolean;
@@ -211,7 +256,7 @@ export interface MessageTextCode {
 }
 
 // @public
-export const parseMessagePattern: (raw: string, matcher: MessageMatcher, disableEscapes?: boolean) => MessageCode;
+export const parseMessagePattern: (raw: string, matcher: MessageMatcher, disableEscapes?: boolean, apostropheMode?: ApostropheMode) => MessageCode;
 
 // @public
 export interface PluralCategoryChoice {
@@ -270,6 +315,9 @@ export interface PluralRules {
 export type regexpFunc = (pattern: string) => RegExp;
 
 // @public
+export const resolveMessage: <S extends Record<string, string>>(translator: Translator<S>, locale: string, key: keyof S & string) => [message: string, language: string];
+
+// @public
 export interface SelectChoice {
     // (undocumented)
     [0]: string;
@@ -288,6 +336,60 @@ export const substringMatcher: (formatters: string[], compile: regexpFunc) => Me
 
 // @public
 export const substringRegexp: (pattern: string) => RegExp;
+
+// Warning: (ae-forgotten-export) The symbol "PatternFor" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const translate: <S extends Record<string, string>, K extends keyof S & string>(translator: Translator<S>, locale: string, key: K, ...args: TranslateArgs<PatternFor<S, K>>) => string;
+
+// @public
+export type TranslateArgs<P extends string> = [MessageArgNames<P>] extends [never] ? [args?: MessageNamedArgs] : [args: {
+    [N in MessageArgNames<P>]: MessageArg;
+} & MessageNamedArgs];
+
+// @public
+export interface Translator<S extends Record<string, string> = Record<string, string>> {
+    // (undocumented)
+    readonly catalogs: {
+        readonly [language: string]: MessageCatalog<keyof S & string> | undefined;
+    };
+    // (undocumented)
+    readonly source: S;
+    // (undocumented)
+    readonly sourceLanguage: string;
+    // @internal (undocumented)
+    readonly state: TranslatorState;
+}
+
+// @public
+export interface TranslatorOptions<S extends Record<string, string>> {
+    apostropheMode?: ApostropheMode;
+    catalogs?: {
+        readonly [language: string]: MessageCatalog<keyof S & string> | undefined;
+    };
+    converter?: MessageArgConverter;
+    formatters?: MessageFormatFuncMap;
+    source: S;
+    sourceLanguage?: string;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TranslatorState" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TranslatorState {
+    // (undocumented)
+    readonly apostropheMode: ApostropheMode;
+    // (undocumented)
+    readonly converter: MessageArgConverter;
+    // (undocumented)
+    readonly formatters: MessageFormatFuncMap;
+    // (undocumented)
+    readonly matcher: MessageMatcher;
+    // (undocumented)
+    readonly parsed: Map<string, MessageCode>;
+    // (undocumented)
+    readonly plurals: Map<string, PluralRules>;
+}
 
 // (No @packageDocumentation comment for this package)
 

@@ -8,6 +8,7 @@ import {
 } from './evaluation';
 import { defaultMessageArgConverter, type MessageArgConverter } from './evaluation/converter';
 import {
+  type ApostropheMode,
   buildMessageMatcher,
   type MessageCode,
   type MessageMatcher,
@@ -58,6 +59,13 @@ export interface MessageFormatterOptions {
    * Disables the escaping of text between matching apostrophes.
    */
   disableEscapes?: boolean;
+
+  /**
+   * How apostrophes quote text. Default 'double-required' (1.x behaviour); 'double-optional'
+   * is ICU's default and lets text like `Here's {name}` through unescaped. Translators made
+   * with `createTranslator` use 'double-optional'.
+   */
+  apostropheMode?: ApostropheMode;
 }
 
 /**
@@ -86,7 +94,7 @@ export const createMessageFormatter = (options: MessageFormatterOptions = {}): M
   const size = options.cacheSize || DEFAULT_CACHE_SIZE;
   const matcher = buildMessageMatcher(Object.keys(formatters));
   const cache = createCache<MessageCode>(
-    (s) => parseMessagePattern(s, matcher, options.disableEscapes),
+    (s) => parseMessagePattern(s, matcher, options.disableEscapes, options.apostropheMode),
     size,
   );
   return { plurals, converter, formatters, matcher, cache };

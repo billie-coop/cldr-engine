@@ -66,15 +66,34 @@ export const characterOrder = (data: LocaleData): CharacterOrderType =>
 export const lineOrder = (data: LocaleData): LineOrderType =>
   fieldGet(data.schema.Layout.lineOrder, data) as LineOrderType;
 
+// One default message formatter per locale, so its parsed-message cache is shared by every
+// caller instead of starting empty on each call.
+const DEFAULT_FORMATTERS = /*#__PURE__*/ new WeakMap<LocaleData, MessageFormatter>();
+
 /**
- * Construct a message formatter that uses the locale's plural rules.
+ * A message formatter that uses the locale's plural rules. Without options the same formatter
+ * (and its cache of parsed messages) is returned for every call with this locale data, so
+ * `formatMessage(messageFormatter(locale), ...)` in a hot path doesn't re-parse. With options a
+ * new formatter is created; keep it if you call it often.
+ *
+ * For an app's own text in several languages, see `createTranslator` / `translate`.
  *
  * @public
  */
 export const messageFormatter = (
   data: LocaleData,
   options?: MessageFormatterOptions,
-): MessageFormatter => createMessageFormatter({ ...options, plurals: data.plurals });
+): MessageFormatter => {
+  if (options) {
+    return createMessageFormatter({ ...options, plurals: data.plurals });
+  }
+  let f = DEFAULT_FORMATTERS.get(data);
+  if (!f) {
+    f = createMessageFormatter({ plurals: data.plurals });
+    DEFAULT_FORMATTERS.set(data, f);
+  }
+  return f;
+};
 
 /**
  * Returns the measurement system in use for the current locale generally,

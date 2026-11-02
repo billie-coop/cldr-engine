@@ -52,6 +52,13 @@ export interface CLDROptions {
   packCacheSize?: number;
 
   /**
+   * Number of loaded locales to keep, so loading the same locale again returns the same
+   * locale data (and its derived caches: number params, date patterns, message formatter).
+   * Default 64.
+   */
+  localeCacheSize?: number;
+
+  /**
    * Size of internal pattern caches. Accepted for compatibility; the pattern caches are now
    * shared module-level caches of a fixed size.
    */
@@ -78,6 +85,8 @@ export interface Framework {
   /** Checksum of the schema config, compared with each pack's. Empty when skipChecksum is set. */
   readonly checksum: string;
   readonly packCache: LRU<Pack>;
+  /** Locale data already built, by locale id and resolved tag. */
+  readonly localeCache: LRU<LocaleData>;
 }
 
 const EMPTY_CONFIG: SchemaConfig = {};
@@ -98,6 +107,7 @@ export const createFramework = (options: CLDROptions, defaultConfig?: SchemaConf
     indices: origin.indices,
     checksum: options.skipChecksum ? '' : checksumIndices(VERSION, origin.indices),
     packCache: createLRU<Pack>(options.packCacheSize || 2),
+    localeCache: createLRU<LocaleData>(options.localeCacheSize || 64),
   };
 };
 
@@ -113,6 +123,11 @@ export const loadLocale = (framework: Framework, locale: Locale | string): Local
   must(loader, Messages.NO_SYNC_LOADER);
   must(locale, Messages.LOCALE_UNDEFINED);
   const resolved = typeof locale === 'string' ? resolveLocale(locale) : locale;
+  const key = cacheKey(resolved);
+  const cached = lruGet(framework.localeCache, key);
+  if (cached !== undefined) {
+    return cached;
+  }
   const language = tagLanguage(resolved.tag);
 
   let pack = lruGet(framework.packCache, language);
@@ -122,7 +137,7 @@ export const loadLocale = (framework: Framework, locale: Locale | string): Local
     check(framework, pack);
     lruSet(framework.packCache, language, pack);
   }
-  return build(framework, resolved, pack);
+  return remember(framework, key, build(framework, resolved, pack));
 };
 
 /**
@@ -139,12 +154,17 @@ export const loadLocaleAsync = (
   must(asyncLoader, Messages.NO_ASYNC_LOADER);
   must(locale, Messages.LOCALE_UNDEFINED);
   const resolved = typeof locale === 'string' ? resolveLocale(locale) : locale;
+  const key = cacheKey(resolved);
+  const cached = lruGet(framework.localeCache, key);
+  if (cached !== undefined) {
+    return Promise.resolve(cached);
+  }
   const language = tagLanguage(resolved.tag);
 
   return new Promise<LocaleData>((resolve, reject) => {
     const pack = lruGet(framework.packCache, language);
     if (pack !== undefined) {
-      resolve(build(framework, resolved, pack));
+      resolve(remember(framework, key, build(framework, resolved, pack)));
       return;
     }
 
@@ -154,7 +174,7 @@ export const loadLocaleAsync = (
         const _pack = loadPack(raw);
         check(framework, _pack);
         lruSet(framework.packCache, language, _pack);
-        resolve(build(framework, resolved, _pack));
+        resolve(remember(framework, key, build(framework, resolved, _pack)));
       })
       .catch(reject);
   });
@@ -186,6 +206,14 @@ export const resolveLocale = (id: string | LanguageTag): Locale => {
   const _id = typeof id === 'string' ? id : tagCompact(id);
   const tag = resolveLanguageTag(id);
   return { id: _id, tag };
+};
+
+// The id as given ('en_CA' and 'en-CA' are different ids) and the tag it resolved to.
+const cacheKey = (locale: Locale): string => `${locale.id}\u0000${tagCompact(locale.tag)}`;
+
+const remember = (framework: Framework, key: string, data: LocaleData): LocaleData => {
+  lruSet(framework.localeCache, key, data);
+  return data;
 };
 
 const build = (framework: Framework, locale: Locale, pack: Pack): LocaleData =>

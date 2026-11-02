@@ -3,3 +3,4 @@ export { PluralRules } from '@phensley/plurals';
 export * from './evaluation';
 export * from './formatter';
 export * from './parser';
+export * from './translator';

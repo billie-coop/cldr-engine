@@ -238,11 +238,21 @@ export const cldrFramework = (
   defaultConfig?: SchemaConfig,
 ): CLDRFramework => {
   const framework = createFramework(options, defaultConfig);
+  // The framework caches locale data, so the same CLDR object is returned for the same locale.
+  const bound = new WeakMap<LocaleData, CLDR>();
+  const bind = (data: LocaleData): CLDR => {
+    let api = bound.get(data);
+    if (!api) {
+      api = bindCLDR(data);
+      bound.set(data, api);
+    }
+    return api;
+  };
   return {
     framework,
     config: () => framework.config,
     info: () => frameworkInfo(framework),
-    get: (locale) => bindCLDR(loadLocale(framework, locale)),
-    getAsync: (locale) => loadLocaleAsync(framework, locale).then(bindCLDR),
+    get: (locale) => bind(loadLocale(framework, locale)),
+    getAsync: (locale) => loadLocaleAsync(framework, locale).then(bind),
   };
 };
