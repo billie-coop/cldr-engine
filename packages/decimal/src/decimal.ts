@@ -71,12 +71,33 @@ const make = (data: number[], sign: number, exp: number, flag: DecimalFlag): Dra
 const copy = (d: Decimal): Draft => make(d.data.slice(), d.sign, d.exp, d.flag);
 
 /**
- * Returns true if the argument is a Decimal value.
+ * Returns true if the argument is a Decimal value: an object with a coefficient array of integer
+ * base 10^7 words, a sign of 1, -1 or 0, a numeric exponent and a valid flag. (The exponent is not
+ * required to be an integer: fractional precision or scale arguments produce fractional ones.)
  *
  * @public
  */
-export const isDecimal = (x: any): x is Decimal =>
-  x !== null && typeof x === 'object' && Array.isArray(x.data) && typeof x.flag === 'number';
+export const isDecimal = (x: any): x is Decimal => {
+  if (x === null || typeof x !== 'object') {
+    return false;
+  }
+  const { data, sign, exp, flag } = x;
+  if (
+    !Array.isArray(data) ||
+    (sign !== 1 && sign !== -1 && sign !== 0) ||
+    typeof exp !== 'number' ||
+    (flag !== DecimalFlag.NONE && flag !== DecimalFlag.NAN && flag !== DecimalFlag.INFINITY)
+  ) {
+    return false;
+  }
+  for (let i = 0; i < data.length; i++) {
+    const w = data[i];
+    if (!Number.isInteger(w) || w < 0 || w >= Constants.RADIX) {
+      return false;
+    }
+  }
+  return true;
+};
 
 /**
  * Construct a Decimal from a number or string. A Decimal argument is returned as-is, since
@@ -184,13 +205,14 @@ export const decimalIsInteger = (n: DecimalArg): boolean => {
 };
 
 /**
- * Return the raw internal properties of the number. Use with caution.
+ * Return the raw internal properties of the number: coefficient words (least-significant first),
+ * sign, exponent and flag. The coefficient is a copy; decimals are immutable and may share it.
  *
  * @public
  */
-export const decimalProperties = (n: DecimalArg): [number[], number, number, number] => {
+export const decimalProperties = (n: DecimalArg): [readonly number[], number, number, number] => {
   const d = decimal(n);
-  return [d.data as number[], d.sign, d.exp, d.flag];
+  return [d.data.slice(), d.sign, d.exp, d.flag];
 };
 
 /**

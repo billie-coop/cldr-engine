@@ -39,19 +39,53 @@ export const newDateFromJD = (
   minDays: number,
 ): CalendarDate => newDate(calendar, unixEpochFromJD(jd, msDay), zoneId, firstDay, minDays);
 
+const isCalendarSystem = (c: any): c is CalendarSystem =>
+  c !== null &&
+  typeof c === 'object' &&
+  typeof c.type === 'string' &&
+  typeof c.name === 'string' &&
+  typeof c.monthCount === 'number' &&
+  typeof c.relatedYearOffset === 'number' &&
+  typeof c.defaultFields === 'object' &&
+  c.defaultFields !== null &&
+  typeof c.daysInMonth === 'function' &&
+  typeof c.daysInYear === 'function' &&
+  typeof c.monthStart === 'function' &&
+  typeof c.computeFields === 'function' &&
+  typeof c.resolveFields === 'function';
+
 /**
  * Returns true if the argument is a calendar date.
  *
  * @public
  */
-export const isCalendarDate = (x: any): x is CalendarDate =>
-  x !== null &&
-  typeof x === 'object' &&
-  Array.isArray(x.fields) &&
-  typeof x.zoneInfo === 'object' &&
-  typeof x.calendar === 'object' &&
-  x.calendar !== null &&
-  typeof x.calendar.computeFields === 'function';
+export const isCalendarDate = (x: any): x is CalendarDate => {
+  if (x === null || typeof x !== 'object') {
+    return false;
+  }
+  const { calendar: c, zoneInfo: z, fields: f } = x;
+  if (!Array.isArray(f)) {
+    return false;
+  }
+  for (let i = 0; i < f.length; i++) {
+    if (typeof f[i] !== 'number') {
+      return false;
+    }
+  }
+  return (
+    typeof x.firstDay === 'number' &&
+    typeof x.minDays === 'number' &&
+    z !== null &&
+    typeof z === 'object' &&
+    typeof z.zoneid === 'string' &&
+    typeof z.stableid === 'string' &&
+    typeof z.abbr === 'string' &&
+    typeof z.metazoneid === 'string' &&
+    typeof z.dst === 'number' &&
+    typeof z.offset === 'number' &&
+    isCalendarSystem(c)
+  );
+};
 
 /**
  * Construct a date in the given calendar from a UNIX epoch (milliseconds, UTC) and time zone.

@@ -7,7 +7,22 @@ export const enum NumberField {
   PLUS = 5,
 }
 
+/**
+ * A parsed number pattern. Parsed patterns are cached and shared, so they are readonly.
+ */
 export interface NumberPattern {
+  readonly nodes: readonly NumberNode[];
+  readonly minInt: number;
+  readonly maxFrac: number;
+  readonly minFrac: number;
+  readonly priGroup: number;
+  readonly secGroup: number;
+}
+
+export type NumberNode = string | NumberField;
+
+/** Pattern being built by the parser. */
+interface PatternBuilder {
   nodes: NumberNode[];
   minInt: number;
   maxFrac: number;
@@ -16,17 +31,15 @@ export interface NumberPattern {
   secGroup: number;
 }
 
-export type NumberNode = string | NumberField;
+const MINUS_NODE: readonly NumberNode[] = [NumberField.MINUS];
 
-const MINUS_NODE: NumberNode[] = [NumberField.MINUS];
-
-const newPattern = (): NumberPattern => ({ nodes: [], minInt: 0, maxFrac: 0, minFrac: 0, priGroup: 0, secGroup: 0 });
+const newPattern = (): PatternBuilder => ({ nodes: [], minInt: 0, maxFrac: 0, minFrac: 0, priGroup: 0, secGroup: 0 });
 
 /**
  * Parse a number pattern into its positive and negative forms.
  */
-export const parseNumberPattern = (raw: string): NumberPattern[] => {
-  let curr: NumberPattern = newPattern();
+export const parseNumberPattern = (raw: string): readonly [NumberPattern, NumberPattern] => {
+  let curr: PatternBuilder = newPattern();
   let buf = '';
   let attached = false;
 
@@ -47,7 +60,7 @@ export const parseNumberPattern = (raw: string): NumberPattern[] => {
 
   const len = raw.length;
 
-  let save: NumberPattern | undefined;
+  let save: PatternBuilder | undefined;
   let ingroup = false;
   let indecimal = false;
   let i = 0;

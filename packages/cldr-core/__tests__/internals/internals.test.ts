@@ -1,4 +1,5 @@
-import { createFramework, CalendarType, SchemaConfig, getCalendarFormatter, selectCalendar } from '../../src';
+import { createFramework, CalendarType, SchemaConfig } from '../../src';
+import { getCalendarFormatter, selectCalendar } from '../../src/internals/calendars/internal';
 import { languageBundle } from '../_helpers';
 
 test('skip checksum', () => {

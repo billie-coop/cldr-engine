@@ -10,11 +10,6 @@ export const addLikelySubtags: (real: string | LanguageTag) => LanguageTag;
 // @public
 export const adjustDecimal: (_data: LocaleData, n: DecimalArg, opts?: DecimalAdjustOptions) => Decimal;
 
-// Warning: (ae-internal-missing-underscore) The name "adjustNumber" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const adjustNumber: (num: Decimal, options?: DecimalAdjustOptions) => Decimal;
-
 // Warning: (ae-internal-missing-underscore) The name "AlgorithmicNumberSystem" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -28,7 +23,7 @@ export interface AlgorithmicNumberSystem {
 // Warning: (ae-forgotten-export) The symbol "KeyIndex" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export const AltIndex: KeyIndex<"none" | "short" | "narrow" | "variant" | "stand-alone" | "long" | "menu">;
+export const AltIndex: KeyIndex<"short" | "long" | "narrow" | "none" | "variant" | "stand-alone" | "menu">;
 
 // @public
 export type Argument = string | number;
@@ -290,12 +285,6 @@ export const cldrVersion: () => string;
 // @public
 export const coerceRational: (n: RationalArg) => Rational;
 
-// Warning: (ae-forgotten-export) The symbol "ContextTransformInfo" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "contextTransform" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const contextTransform: (value: string, info: ContextTransformInfo, context?: ContextType, field?: ContextTransformFieldType) => string;
-
 // @public (undocumented)
 export const ContextTransformFieldIndex: KeyIndex<ContextTransformFieldType>;
 
@@ -316,18 +305,6 @@ export const createLocaleMatcher: (supportedLocales: string | (Locale | Language
 
 // @public
 export const createMessageFormatter: (options?: MessageFormatterOptions) => MessageFormatter;
-
-// Warning: (ae-internal-missing-underscore) The name "CURRENCY_SPACING_MATCHERS" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const CURRENCY_SPACING_MATCHERS: {
-    [x: string]: (s: string) => boolean;
-};
-
-// Warning: (ae-internal-missing-underscore) The name "currencyDisplayName" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const currencyDisplayName: (data: LocaleData, code: CurrencyType) => string;
 
 // @public (undocumented)
 export interface CurrencyDisplayNameOptions {
@@ -362,34 +339,15 @@ export interface CurrencyFractions {
     rounding: number;
 }
 
-// Warning: (ae-forgotten-export) The symbol "PluralType" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "currencyPluralName" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const currencyPluralName: (data: LocaleData, code: string, plural: PluralType) => string;
-
-// Warning: (ae-forgotten-export) The symbol "CurrencySpacingPos" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "CurrencySpacingPattern" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "CurrencySpacing" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @internal (undocumented)
-export type CurrencySpacing = {
-    [P in CurrencySpacingPos]: {
-        [Q in CurrencySpacingPattern]: string;
-    };
-};
-
 // @public (undocumented)
 export const CurrencySpacingPatternIndex: KeyIndex<CurrencySpacingPattern>;
 
+// Warning: (ae-forgotten-export) The symbol "CurrencySpacingPos" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export const CurrencySpacingPosIndex: KeyIndex<CurrencySpacingPos>;
-
-// Warning: (ae-forgotten-export) The symbol "AltType" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "currencySymbol" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const currencySymbol: (data: LocaleData, code: CurrencyType, alt: AltType) => string;
 
 // @public (undocumented)
 export type CurrencySymbolWidthType = 'default' | 'narrow';
@@ -665,17 +623,17 @@ export const dateYearOfWeekOfYearISO: (d: CalendarDate) => number;
 // @public
 export interface DateZoneInfo {
     // (undocumented)
-    abbr: string;
+    readonly abbr: string;
     // (undocumented)
-    dst: number;
+    readonly dst: number;
     // (undocumented)
-    metazoneid: string;
+    readonly metazoneid: string;
     // (undocumented)
-    offset: number;
+    readonly offset: number;
     // (undocumented)
-    stableid: string;
+    readonly stableid: string;
     // (undocumented)
-    zoneid: string;
+    readonly zoneid: string;
 }
 
 // @public (undocumented)
@@ -830,7 +788,7 @@ export const decimalNumberingSystem: (name: string, digits: string[], symbols: N
 export const decimalPrecision: (n: DecimalArg) => number;
 
 // @public
-export const decimalProperties: (n: DecimalArg) => [number[], number, number, number];
+export const decimalProperties: (n: DecimalArg) => [readonly number[], number, number, number];
 
 // @public
 export const decimalScale: (n: DecimalArg) => number;
@@ -918,6 +876,8 @@ export const digitsGet: <T extends string>(arrow: DigitsArrow<T>, bundle: Primit
 export interface DisplayNameOptions {
     // (undocumented)
     context?: ContextType;
+    // Warning: (ae-forgotten-export) The symbol "AltType" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     type?: AltType;
 }
@@ -1001,11 +961,6 @@ export const FieldWidthValues: FieldWidthType[];
 // @public
 export const firstDayOfWeek: (data: LocaleData) => number;
 
-// Warning: (ae-internal-missing-underscore) The name "flexDayPeriod" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const flexDayPeriod: (bundle: Bundle, minutes: number) => DayPeriodType | undefined;
-
 // @public
 export const formatCurrency: (data: LocaleData, n: DecimalArg, code: CurrencyType, options?: CurrencyFormatOptions) => string;
 
@@ -1048,12 +1003,6 @@ export const formatList: (data: LocaleData, items: string[], type?: ListPatternT
 // @public
 export const formatListToParts: (data: LocaleData, items: string[], type?: ListPatternType) => Part[];
 
-// Warning: (ae-forgotten-export) The symbol "AbstractValue" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "formatListValue" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const formatListValue: <R>(data: LocaleData, value: AbstractValue<R>, items: R[], type: ListPatternType) => R;
-
 // @public
 export const formatMessage: (formatter: MessageFormatter, message: string, positional: MessageArg[], named: MessageNamedArgs) => string;
 
@@ -1080,11 +1029,6 @@ export type FormatWidthType = 'short' | 'medium' | 'long' | 'full';
 
 // @public (undocumented)
 export const FormatWidthValues: FormatWidthType[];
-
-// Warning: (ae-internal-missing-underscore) The name "formatWrapper" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const formatWrapper: (format: string, args: string[]) => string;
 
 // @public
 export interface Framework {
@@ -1123,17 +1067,6 @@ export interface General {
     resolveLocale(id: string | LanguageTag): Locale;
 }
 
-// Warning: (ae-forgotten-export) The symbol "CalendarFormatter" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "getCalendarFormatter" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const getCalendarFormatter: (data: LocaleData, calendar: CalendarType) => CalendarFormatter;
-
-// Warning: (ae-internal-missing-underscore) The name "getContextTransformInfo" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const getContextTransformInfo: (data: LocaleData) => ContextTransformInfo;
-
 // @public
 export const getCurrencyDisplayName: (data: LocaleData, code: CurrencyType, opts?: CurrencyDisplayNameOptions) => string;
 
@@ -1149,26 +1082,8 @@ export const getCurrencyPluralName: (data: LocaleData, n: DecimalArg, code: stri
 // @public
 export const getCurrencySymbol: (data: LocaleData, code: CurrencyType, width?: CurrencySymbolWidthType) => string;
 
-// Warning: (ae-forgotten-export) The symbol "DateTimeNode" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "getHourPattern" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const getHourPattern: (raw: string, negative: boolean) => DateTimeNode[];
-
 // @public
 export const getLanguageDisplayName: (data: LocaleData, code: string | LanguageTag, options?: DisplayNameOptions) => string;
-
-// Warning: (ae-forgotten-export) The symbol "NumberParams_2" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "getNumberParams" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const getNumberParams: (data: LocaleData, numberSystem?: NumberSystemType, defaultSystem?: NumberSystemType) => NumberParams_2;
-
-// Warning: (ae-forgotten-export) The symbol "NumberPattern" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "getNumberPattern" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const getNumberPattern: (raw: string, negative: boolean) => NumberPattern;
 
 // @public
 export const getPluralCardinal: (data: LocaleData, n: DecimalArg, options?: DecimalAdjustOptions) => string;
@@ -1188,12 +1103,6 @@ export const getScriptDisplayName: (data: LocaleData, code: string | LanguageTag
 // @public
 export const getUnitDisplayName: (data: LocaleData, name: UnitType, length?: UnitLength) => string;
 
-// Warning: (ae-forgotten-export) The symbol "UnitInfo" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "getUnitInfo" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const getUnitInfo: (data: LocaleData, length: string) => UnitInfo;
-
 // @public
 export const gregorianCalendar: CalendarSystem;
 
@@ -1206,21 +1115,11 @@ export const gregorianDateFromFields: (fields: Partial<CalendarDateFields>, firs
 // @public
 export const gregorianDateFromUnixEpoch: (epoch: number, zoneId: string, firstDay?: number, minDays?: number) => GregorianDate;
 
-// Warning: (ae-internal-missing-underscore) The name "gregorianDaysInYear" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const gregorianDaysInYear: (y: number) => number;
-
 // @public (undocumented)
 export const GregorianEraIndex: KeyIndex<string>;
 
 // @public (undocumented)
 export const GregorianMonthsIndex: KeyIndex<string>;
-
-// Warning: (ae-internal-missing-underscore) The name "gregorianResolveFields" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const gregorianResolveFields: (f: Partial<CalendarDateFields>, zoneId: string, _offset: number) => [number, string];
 
 // @public (undocumented)
 export type Instruction = Digits | Field | Origin | Scope | ScopeMap | Vector;
@@ -1640,9 +1539,6 @@ export const minDaysInFirstWeek: (data: LocaleData) => number;
 export const months: (data: LocaleData, opt?: CalendarFieldsOptions) => any;
 
 // @public
-export const negatePeriod: (fields: Partial<TimePeriod>) => TimePeriod;
-
-// @public
 export const newBuddhistDate: (data: LocaleData, fields: Partial<CalendarDateFields>) => BuddhistDate;
 
 // @public
@@ -1747,49 +1643,6 @@ export const numberOperands: (d: Decimal, c?: number) => NumberOperands;
 // @public
 export const numberOperandsToString: (o: NumberOperands) => string;
 
-// Warning: (ae-internal-missing-underscore) The name "NumberParams" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export interface NumberParams {
-    // (undocumented)
-    afterCurrency: CurrencySpacing;
-    // (undocumented)
-    beforeCurrency: CurrencySpacing;
-    // (undocumented)
-    digits: string[];
-    // (undocumented)
-    latinDigits: string[];
-    // (undocumented)
-    minimumGroupingDigits: number;
-    // Warning: (ae-forgotten-export) The symbol "NumberSystemName" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    numberSystemName: NumberSystemName;
-    // (undocumented)
-    primaryGroupingSize: number;
-    // (undocumented)
-    secondaryGroupingSize: number;
-    // (undocumented)
-    symbols: NumberSymbols;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "NumberRenderer" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface NumberRenderer<R> {
-    // (undocumented)
-    empty(): R;
-    // (undocumented)
-    make(type: string, value: string): R;
-    // (undocumented)
-    render(n: Decimal, pattern: NumberPattern, currencySymbol: string, percentSymbol: string, decimalSymbol: string, minInt: number, grouping?: boolean, exponent?: number): R;
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-    wrap(raw: string, ...args: R[]): R;
-}
-
 // @public
 export interface Numbers {
     adjustDecimal(num: DecimalArg, options?: DecimalAdjustOptions): Decimal;
@@ -1857,6 +1710,8 @@ export interface NumberSystemInfo {
 // @public (undocumented)
 export const NumberSystemsIndex: KeyIndex<NumberSystemCategory>;
 
+// Warning: (ae-forgotten-export) The symbol "NumberSystemName" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export type NumberSystemType = NumberSystemCategory | NumberSystemName;
 
@@ -1939,26 +1794,11 @@ export interface PackScript {
     readonly strings: readonly string[];
 }
 
-// Warning: (ae-internal-missing-underscore) The name "parseDatePattern" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const parseDatePattern: (raw: string) => DateTimeNode[];
-
 // @public
 export const parseLanguageTag: (str: string) => LanguageTag;
 
 // @public
 export const parseMessagePattern: (raw: string, matcher: MessageMatcher, disableEscapes?: boolean) => MessageCode;
-
-// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// Warning: (ae-forgotten-export) The symbol "WrapperNode" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "parseWrapper" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const parseWrapper: (raw: string) => WrapperNode[];
 
 // @public
 export interface Part {
@@ -1970,16 +1810,6 @@ export interface Part {
 
 // @public
 export const partsDecimalFormatter: (decimal: string, group: string) => DecimalFormatter<Part[]>;
-
-// Warning: (ae-internal-missing-underscore) The name "partsRenderer" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const partsRenderer: (params: NumberParams_2) => NumberRenderer<Part[]>;
-
-// Warning: (ae-internal-missing-underscore) The name "PATTERN_CACHE_SIZE" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const PATTERN_CACHE_SIZE = 200;
 
 // @public
 export const persianCalendar: CalendarSystem;
@@ -2033,6 +1863,8 @@ export interface PluralExactChoice {
     [2]: MessageCode;
 }
 
+// Warning: (ae-forgotten-export) The symbol "PluralType" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export const PluralIndex: KeyIndex<PluralType>;
 
@@ -2135,16 +1967,6 @@ export const rationalToDecimal: (un: RationalArg, context?: MathContext) => Deci
 // @public
 export const rationalToString: (un: RationalArg) => string;
 
-// Warning: (ae-internal-missing-underscore) The name "RE_DIGIT" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const RE_DIGIT: RegExp;
-
-// Warning: (ae-internal-missing-underscore) The name "RE_SYMBOL" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const RE_SYMBOL: RegExp;
-
 // @public
 export type regexpFunc = (pattern: string) => RegExp;
 
@@ -2179,37 +2001,6 @@ export interface RelativeTimeFormatOptions extends RelativeTimeFieldFormatOption
 // @public
 export const removeLikelySubtags: (real: string | LanguageTag) => LanguageTag;
 
-// Warning: (ae-internal-missing-underscore) The name "renderCurrency" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const renderCurrency: <T>(data: LocaleData, renderer: NumberRenderer<T>, n: Decimal, code: string, options: CurrencyFormatOptions, params: NumberParams_2) => T;
-
-// Warning: (ae-forgotten-export) The symbol "CalendarContext" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "renderDateInterval" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const renderDateInterval: <R>(calendar: CalendarType, ctx: CalendarContext<CalendarDate>, value: AbstractValue<R>, first: boolean, end: CalendarDate, pattern: DateTimeNode[]) => R;
-
-// Warning: (ae-internal-missing-underscore) The name "renderDateTime" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const renderDateTime: <R>(calendar: CalendarType, ctx: CalendarContext<CalendarDate>, value: AbstractValue<R>, first: boolean, date?: DateTimeNode[], time?: DateTimeNode[], wrapper?: string) => R;
-
-// Warning: (ae-internal-missing-underscore) The name "renderDecimal" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const renderDecimal: <T>(data: LocaleData, renderer: NumberRenderer<T>, n: Decimal, options: DecimalFormatOptions, params: NumberParams_2) => [T, PluralType];
-
-// Warning: (ae-internal-missing-underscore) The name "renderRelativeTimeField" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const renderRelativeTimeField: (data: LocaleData, value: DecimalArg, field: RelativeTimeFieldType, options: RelativeTimeFieldFormatOptions, params: NumberParams_2, transform: ContextTransformInfo) => string;
-
-// Warning: (ae-internal-missing-underscore) The name "renderUnit" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const renderUnit: <T>(data: LocaleData, renderer: NumberRenderer<T>, q: Quantity, options: UnitFormatOptions, params: NumberParams_2) => T;
-
 // @public
 export const resolveLanguageTag: (real: string | LanguageTag) => LanguageTag;
 
@@ -2228,9 +2019,9 @@ export type RoundingModeType = 'up' | 'down' | 'ceiling' | 'floor' | 'half-up' |
 // @public
 export interface Rule {
     // (undocumented)
-    [0]: number;
+    readonly [0]: number;
     // (undocumented)
-    [1]: number[][];
+    readonly [1]: ReadonlyArray<ReadonlyArray<number>>;
 }
 
 // @public (undocumented)
@@ -2387,11 +2178,6 @@ export const scopemap: (name: string, fields: string, block: Instruction[]) => S
 // @public (undocumented)
 export type ScriptIdType = ('Adlm' | 'Afak' | 'Aghb' | 'Ahom' | 'Arab' | 'Aran' | 'Armi' | 'Armn' | 'Avst' | 'Bali' | 'Bamu' | 'Bass' | 'Batk' | 'Beng' | 'Berf' | 'Bhks' | 'Blis' | 'Bopo' | 'Brah' | 'Brai' | 'Bugi' | 'Buhd' | 'Cakm' | 'Cans' | 'Cari' | 'Cham' | 'Cher' | 'Chrs' | 'Cirt' | 'Copt' | 'Cpmn' | 'Cprt' | 'Cyrl' | 'Cyrs' | 'Deva' | 'Diak' | 'Dogr' | 'Dsrt' | 'Dupl' | 'Egyd' | 'Egyh' | 'Egyp' | 'Elba' | 'Elym' | 'Ethi' | 'Gara' | 'Geok' | 'Geor' | 'Glag' | 'Gong' | 'Gonm' | 'Goth' | 'Gran' | 'Grek' | 'Gujr' | 'Gukh' | 'Guru' | 'Hanb' | 'Hang' | 'Hani' | 'Hano' | 'Hans' | 'Hant' | 'Hatr' | 'Hebr' | 'Hira' | 'Hluw' | 'Hmng' | 'Hmnp' | 'Hrkt' | 'Hung' | 'Inds' | 'Ital' | 'Jamo' | 'Java' | 'Jpan' | 'Jurc' | 'Kali' | 'Kana' | 'Kawi' | 'Khar' | 'Khmr' | 'Khoj' | 'Kits' | 'Knda' | 'Kore' | 'Kpel' | 'Krai' | 'Kthi' | 'Lana' | 'Laoo' | 'Latf' | 'Latg' | 'Latn' | 'Lepc' | 'Limb' | 'Lina' | 'Linb' | 'Lisu' | 'Loma' | 'Lyci' | 'Lydi' | 'Mahj' | 'Maka' | 'Mand' | 'Mani' | 'Marc' | 'Maya' | 'Medf' | 'Mend' | 'Merc' | 'Mero' | 'Mlym' | 'Modi' | 'Mong' | 'Moon' | 'Mroo' | 'Mtei' | 'Mult' | 'Mymr' | 'Nagm' | 'Nand' | 'Narb' | 'Nbat' | 'Newa' | 'Nkgb' | 'Nkoo' | 'Nshu' | 'Ogam' | 'Olck' | 'Onao' | 'Orkh' | 'Orya' | 'Osge' | 'Osma' | 'Ougr' | 'Palm' | 'Pauc' | 'Perm' | 'Phag' | 'Phli' | 'Phlp' | 'Phlv' | 'Phnx' | 'Plrd' | 'Prti' | 'Qaag' | 'Rjng' | 'Rohg' | 'Roro' | 'Runr' | 'Samr' | 'Sara' | 'Sarb' | 'Saur' | 'Sgnw' | 'Shaw' | 'Shrd' | 'Sidd' | 'Sidt' | 'Sind' | 'Sinh' | 'Sogd' | 'Sogo' | 'Sora' | 'Soyo' | 'Sund' | 'Sunu' | 'Sylo' | 'Syrc' | 'Syre' | 'Syrj' | 'Syrn' | 'Tagb' | 'Takr' | 'Tale' | 'Talu' | 'Taml' | 'Tang' | 'Tavt' | 'Tayo' | 'Telu' | 'Teng' | 'Tfng' | 'Tglg' | 'Thaa' | 'Thai' | 'Tibt' | 'Tirh' | 'Tnsa' | 'Todr' | 'Tols' | 'Toto' | 'Tutg' | 'Ugar' | 'Vaii' | 'Visp' | 'Vith' | 'Wara' | 'Wcho' | 'Wole' | 'Xpeo' | 'Xsux' | 'Yezi' | 'Yiii' | 'Zanb' | 'Zinh' | 'Zmth' | 'Zsye' | 'Zsym' | 'Zxxx' | 'Zyyy' | 'Zzzz');
 
-// Warning: (ae-internal-missing-underscore) The name "selectCalendar" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const selectCalendar: (data: LocaleData, ca?: CalendarType) => CalendarType;
-
 // @public
 export interface SelectChoice {
     // (undocumented)
@@ -2413,11 +2199,6 @@ export const stringBundle: (id: string, tag: LanguageTag, strings: readonly stri
 
 // @public
 export const stringDecimalFormatter: () => DecimalFormatter<string>;
-
-// Warning: (ae-internal-missing-underscore) The name "stringRenderer" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const stringRenderer: (params: NumberParams_2) => NumberRenderer<string>;
 
 // @public
 export const substituteAliases: (real: string | LanguageTag) => LanguageTag;
@@ -2727,16 +2508,6 @@ export const weekdays: (data: LocaleData, opt?: CalendarFieldsOptions) => any;
 //
 // @public (undocumented)
 export const WeekdayValues: WeekdayType[];
-
-// Warning: (ae-internal-missing-underscore) The name "weekFirstDay" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const weekFirstDay: (region: string) => number;
-
-// Warning: (ae-internal-missing-underscore) The name "weekMinDays" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const weekMinDays: (region: string) => number;
 
 // @public (undocumented)
 export interface ZonedDateTime {

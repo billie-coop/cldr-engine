@@ -4,7 +4,7 @@ export type WrapperNode = number | string;
  * Parse a generic wrapper pattern.
  * Example:  "{1} at {0}"
  */
-export const parseWrapperPattern = (raw: string): WrapperNode[] => {
+export const parseWrapperPattern = (raw: string): readonly WrapperNode[] => {
   const nodes: WrapperNode[] = [];
   const len = raw.length;
 

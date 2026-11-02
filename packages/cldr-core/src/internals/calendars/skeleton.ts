@@ -102,11 +102,14 @@ export const EMPTY = /*#__PURE__*/ dateSkeleton();
  * meta fields.
  */
 export interface DateSkeletonParser {
-  readonly preferredFlex: DateTimeNode[];
-  readonly allowedFlex: DateTimeNode[];
+  readonly preferredFlex: readonly DateTimeNode[];
+  readonly allowedFlex: readonly DateTimeNode[];
 }
 
-export const dateSkeletonParser = (preferredFlex: DateTimeNode[], allowedFlex: DateTimeNode[]): DateSkeletonParser => ({
+export const dateSkeletonParser = (
+  preferredFlex: readonly DateTimeNode[],
+  allowedFlex: readonly DateTimeNode[],
+): DateSkeletonParser => ({
   preferredFlex,
   allowedFlex,
 });
@@ -348,11 +351,11 @@ const getKindDistance = (a: DateSkeleton, b: DateSkeleton): number => {
  * Make field width adjustments to pattern using the given skeleton.
  */
 export const matcherAdjust = (
-  pattern: DateTimeNode[],
+  pattern: readonly DateTimeNode[],
   skeleton: DateSkeleton,
   matched: DateSkeleton,
   decimal: string,
-): DateTimeNode[] => {
+): readonly DateTimeNode[] => {
   const r: DateTimeNode[] = [];
   for (const n of pattern) {
     if (typeof n === 'string') {

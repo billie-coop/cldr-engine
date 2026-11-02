@@ -13,18 +13,18 @@ import { parseWrapper, PATTERN_CACHE_SIZE } from '../general/internal';
 
 export { flexDayPeriod } from './rules';
 
-let patternCache: Cache<DateTimeNode[]> | undefined;
-let hourPatternCache: Cache<[DateTimeNode[], DateTimeNode[]]> | undefined;
+let patternCache: Cache<readonly DateTimeNode[]> | undefined;
+let hourPatternCache: Cache<[readonly DateTimeNode[], readonly DateTimeNode[]]> | undefined;
 
 /**
  * Parse a date pattern (cached).
  *
  * @internal
  */
-export const parseDatePattern = (raw: string): DateTimeNode[] =>
+export const parseDatePattern = (raw: string): readonly DateTimeNode[] =>
   cacheGet(patternCache || (patternCache = createCache(parseDatePatternRaw, PATTERN_CACHE_SIZE)), raw);
 
-const parseHourPattern = (raw: string): [DateTimeNode[], DateTimeNode[]] => {
+const parseHourPattern = (raw: string): [readonly DateTimeNode[], readonly DateTimeNode[]] => {
   const parts = raw.split(';');
   return [parseDatePattern(parts[0]), parseDatePattern(parts[1])];
 };
@@ -34,7 +34,7 @@ const parseHourPattern = (raw: string): [DateTimeNode[], DateTimeNode[]] => {
  *
  * @internal
  */
-export const getHourPattern = (raw: string, negative: boolean): DateTimeNode[] => {
+export const getHourPattern = (raw: string, negative: boolean): readonly DateTimeNode[] => {
   const patterns = cacheGet(
     hourPatternCache || (hourPatternCache = createCache(parseHourPattern, PATTERN_CACHE_SIZE)),
     raw,
@@ -94,8 +94,8 @@ export const renderDateTime = <R>(
   ctx: CalendarContext<CalendarDate>,
   value: AbstractValue<R>,
   first: boolean,
-  date?: DateTimeNode[],
-  time?: DateTimeNode[],
+  date?: readonly DateTimeNode[],
+  time?: readonly DateTimeNode[],
   wrapper?: string,
 ): R => {
   const formatter = getCalendarFormatter(ctx.bundle, calendar);
@@ -129,7 +129,7 @@ export const renderDateInterval = <R>(
   value: AbstractValue<R>,
   first: boolean,
   end: CalendarDate,
-  pattern: DateTimeNode[],
+  pattern: readonly DateTimeNode[],
 ): R => {
   const idx = intervalPatternBoundary(pattern);
   const s = renderDateTime(calendar, ctx, value, first, pattern.slice(0, idx));

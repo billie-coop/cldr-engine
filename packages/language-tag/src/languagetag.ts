@@ -108,8 +108,13 @@ export const languageTag = (
   extlangs: extlangs || [],
 });
 
+const optString = (s: unknown): boolean => s === undefined || typeof s === 'string';
+
+const isStringArray = (a: unknown): boolean => Array.isArray(a) && a.every((s) => typeof s === 'string');
+
 /**
- * Returns true if the argument looks like a language tag.
+ * Returns true if the argument has the shape of a language tag: optional string subtags, a
+ * private use string, an array of extlang strings and an object of extension subtag arrays.
  *
  * @public
  */
@@ -118,11 +123,18 @@ export const isLanguageTag = (x: unknown): x is LanguageTag => {
     return false;
   }
   const t = x as LanguageTag;
+  const ext = t.extensions;
   return (
+    optString(t.language) &&
+    optString(t.script) &&
+    optString(t.region) &&
+    optString(t.variant) &&
     typeof t.privateUse === 'string' &&
-    Array.isArray(t.extlangs) &&
-    typeof t.extensions === 'object' &&
-    t.extensions !== null
+    isStringArray(t.extlangs) &&
+    typeof ext === 'object' &&
+    ext !== null &&
+    !Array.isArray(ext) &&
+    Object.keys(ext).every((k) => isStringArray(ext[k]))
   );
 };
 

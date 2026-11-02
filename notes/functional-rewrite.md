@@ -391,6 +391,101 @@ in-repo `cjs.bench.ts` (`--compare` against the pre-change baseline) agrees: dat
   initialised it).
 - plurals: `getPluralRules` returns a plain record; `numberOperands` is a plain record.
 
+### Fixed after the independent review
+
+- **calendars + `setTimeZoneData` (P1, bug in the port).** The generated metazone index and
+  stable-id map are positional, generated against the bundled tz zone list, but were resolved
+  against the *active* `tzZoneIds()` once, on first calendar use. Replacing the tz data with a
+  different canonical list crashed date creation (`2 != 341`, then `toLowerCase` of undefined) or,
+  with a reordered list, gave zones the wrong metazone — and the cached result depended on whether
+  a calendar operation ran before the replacement. They are now resolved against the list they
+  were generated from (`defaultTimeZoneData`) and joined to the active data by zone id. If the
+  active data makes a bundled *alias* canonical (e.g. `Asia/Calcutta` instead of `Asia/Kolkata`;
+  found by the reviewer's re-check), lookups fall back through the bundled alias map, so the zone
+  keeps its metazone and stable id. Zones the active data adds have no metazone (as `Etc/GMT+1`
+  has none). No change with the bundled data: no bundled canonical id is also a bundled alias, so
+  the fallback is never taken (1.x had no way to replace the data). Maintenance condition: the
+  generated `metazoneData` must stay in sync with the bundled tz data's zone list (the existing
+  `2 != 341` sanity check reports a mismatch). Tests:
+  `cldr-core/__tests__/systems/calendars/tzdata.test.ts`.
+- **Shared parse caches exposed (P2, API).** `parseDatePattern`, `getHourPattern`,
+  `getNumberPattern` and `parseWrapper` returned the arrays/objects stored in the module-level
+  pattern caches, and were importable from `@phensley/cldr(-core)` (via `export * from
+  './internals'`), so a caller could edit them and change formatting for every framework.
+  **API change:** cldr-core's index no longer re-exports `./internals` or `./api/private` (every
+  name there was `@internal`; nothing outside cldr-core used them; 1.x only reached them through
+  `cldr.Internals`, already dropped). Removed from the public entry points: `parseDatePattern`,
+  `getHourPattern`, `getNumberPattern`, `parseWrapper`, `PATTERN_CACHE_SIZE`, `weekFirstDay`,
+  `weekMinDays`, `getCalendarFormatter`, `renderDateTime`, `renderDateInterval`, `selectCalendar`,
+  `flexDayPeriod`, `renderRelativeTimeField`, `contextTransform`, `formatListValue`,
+  `formatWrapper`, `adjustNumber`, `currencySymbol`, `currencyDisplayName`, `currencyPluralName`,
+  `renderDecimal`, `renderCurrency`, `renderUnit`, `getUnitInfo`, `stringRenderer`,
+  `partsRenderer`, `RE_SYMBOL`, `RE_DIGIT`, `CURRENCY_SPACING_MATCHERS`, `getNumberParams`,
+  `getContextTransformInfo` and the types `NumberRenderer`, `NumberParams`, `CurrencySpacing`
+  (`NumberSymbols` stays exported: the public `decimalNumberingSystem` takes one).
+  `getCurrencyForRegion` / `getCurrencyFractions` stay (explicit export, as in 1.x). The parsed node types are now deeply readonly (`DateTimeField = readonly [string, number]`,
+  `readonly DateTimeNode[]`, `readonly WrapperNode[]`, all-readonly `NumberPattern`), so internal
+  code can't mutate them either; no copying was added. Formatting output unchanged.
+  Test: `cldr-core/__tests__/internals/patterncache.test.ts`.
+- **Plural rules shallowly readonly (P2, types).** `PluralRules.cardinals/ordinals` were
+  `readonly Rule[]`, but each `Rule` and its condition arrays were writable and point into the
+  generated, module-wide rule tables (`rules.cardinals[0][0] = 5` compiled and changed `en`
+  everywhere). `Rule`, `Expr`, `Range` and the condition lists are now readonly at every level.
+  Type-only; reading rules is unchanged. Test: `plurals/__tests__/readonly.test.ts`.
+- **Decimal aliasing through `decimalProperties` (P2, behaviour + type).** `decimal(d)` returns `d`
+  itself (values are immutable), where 1.x `new Decimal(d)` copied; but `decimalProperties()`
+  returned the live coefficient array (cast to `number[]`), so editing it changed every value
+  sharing it. 1.x `properties()` also returned its live array, but the copy constructor kept
+  original and copy apart. `decimalProperties` now returns a copy of the coefficient, typed
+  `readonly number[]` (**API change**: return type `[readonly number[], number, number, number]`;
+  writing into it no longer changes the decimal, which 1.x allowed for its own instance).
+  `decimal(d)` still returns `d`. `numberOperands` (plurals, a hot path) reads the fields directly
+  instead of going through `decimalProperties`, so no copy is added there. Values and outputs
+  unchanged. Test: `decimal/__tests__/aliasing.test.ts`.
+- **Writable `zoneInfo` on dates (P2, types).** `CalendarDate.zoneInfo` was a readonly property
+  holding an object with writable fields (1.x kept it protected), so `d.zoneInfo.offset = …`
+  compiled and changed the date's instant without recomputing its fields. Every `DateZoneInfo`
+  field is now readonly; `dateWithZone` / `dateSet` are the supported ways to change the zone.
+  Type-only. Test: `cldr-core/__tests__/systems/calendars/readonly.test.ts`.
+- **Loose shape guards (P3, behaviour).** `isDecimal` only checked `data` and a numeric `flag`, so
+  incomplete objects like `{ data: [1], flag: 2 }` passed; message formatting dispatches on it,
+  so `formatMessage('<{0}>', [{ data: [1], flag: 2 }])` gave `<-Infinity>` where 1.x gave `<>`.
+  The guards now check every field of the declared type, including nested records:
+  `isDecimal` (array of integer base-1e7 words, sign 1/-1/0, numeric exponent, flag 0/1/2;
+  `isRational` builds on it), `isCalendarDate` (numeric fields array, numeric firstDay/minDays, a
+  non-null zone info with all its fields typed, and every field of the `CalendarSystem` record;
+  previously `zoneInfo: null` passed), `isLanguageTag` (optional string subtags, string arrays
+  for extlangs and each extension), and the schema arrow guards (`isFieldArrow`, … checked only
+  `kind`; now also offset/map/len/factors and the nested `KeyIndex` records). These are type
+  checks, not semantic validation (e.g. a calendar record's functions aren't called). The
+  exponent is only required to be a number because the library itself produces fractional
+  exponents from fractional precision/scale/digit arguments (`decimalScientific('123', 1.5)`).
+  Values the library creates all pass (reviewer's sweep: ~15.6k decimals, 2k dates in five
+  calendars, 1.3k tags, 331 schema arrows); the remaining deviation from 1.x `instanceof` is that
+  a *complete* plain object of the right shape is accepted. The stricter `isCalendarDate` costs
+  ~4 ns per `formatDate` call (≈0.5–1%). Message-format
+  outputs for the review's inputs are back to 1.x's. Tests: `decimal/__tests__/guards.test.ts`,
+  `language-tag/__tests__/guards.test.ts`, `messageformat/__tests__/richargs.test.ts`,
+  `cldr-core/__tests__/systems/calendars/guards.test.ts`,
+  `cldr-core/__tests__/schema/schema/guards.test.ts`.
+- **`packages/decimal/README.md`** still taught `new Decimal(...)` / `.multiply(...)`. Rewritten for
+  the function API (usage section + the same example, which prints exactly the output already in
+  the README); also fixed its broken `@phensley/clde` link.
+- **API-export pass (API).** Besides the internals barrel above, three 1.x protected helpers had
+  become public functions through `export *` barrels: `gregorianDaysInYear` and
+  `gregorianResolveFields` (1.x `GregorianDate.daysInYear` / `_set` internals; shared by the
+  Gregorian-based calendar records) and `negatePeriod` (1.x `CalendarDate._negatePeriod`).
+  They are no longer exported (`negatePeriod` moved to the internal `systems/calendars/math.ts`;
+  the calendar barrel lists `gregorian.ts`'s public names explicitly). Method: listed every
+  runtime export of each 2.x package that isn't a 1.x export name, and checked it against the
+  1.x declarations; everything else is a 1.x public method/static as a function, a 1.x export,
+  or part of the documented 2.x API (records, `bind*`, `localeData`, …). Names still exported
+  but tagged `@internal` are all 1.x exports the compiler uses (`origin`, `scope`, `vector`,
+  `checksumIndices`, …) or 1.x exported classes' public methods (`decimalNumberingSystem`,
+  `numberingFormatString`, `fastFormatDecimal`). Other packages' 1.x private members became
+  fields of the plain records (by design), not exported functions. Test:
+  `cldr-core/__tests__/exports.test.ts`.
+
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 
 - timezone 1.x `TzImpl` constructor mutated the `RawData` passed to it (blanked strings after
@@ -472,6 +567,13 @@ properties of undefined" for some field sets (no defaults are applied; listed un
 - **`examples/tree-shaking/measure.mjs`** needs a built 1.x checkout for the 1.x columns
   (`--v1 <path>`); the 2.x numbers don't.
 
+- **Shared values still returned mutable (same as 1.x).** Found while checking the review's
+  findings: `availableLocales()`, `timeZoneIds()` / `tzZoneIds()`, `tzUtcZone()`,
+  `tzZoneMeta(id).countries` and `getCurrencyFractions(code)` return the same module-level
+  object on every call, typed mutable, as 1.x did. Editing them affects every caller. Fixing
+  means `readonly` return types (a compile break for callers that sort/push the result) or
+  copies; left for the 2.0 API decision.
+
 ## Unsure / worth a second look
 
 - **cldr-ext-rbnf `pubnames`** (above): the helper that ported it removed a 1.x in-place mutation of
@@ -482,4 +584,5 @@ properties of undefined" for some field sets (no defaults are applied; listed un
   the shared caches; easy to add back as a function if needed.
 - **Convenience object shape:** I dropped `Internals` (undocumented, `@internal`) and added `data`.
 - **`isLanguageTag` / `isCalendarDate` / `isDecimal`** are shape checks, so a hand-made object of the
-  right shape passes where 1.x `instanceof` failed.
+  right shape passes where 1.x `instanceof` failed. Since the review they check every field of
+  the type (see "Fixed after the independent review"), so only complete objects pass.

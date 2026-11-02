@@ -186,3 +186,17 @@ export const computeBaseFields = (f: number[]): void => {
   }
   f[DateField.DAY_OF_WEEK] = dow;
 };
+
+/**
+ * Negate every field of a time period, filling in missing fields with zero.
+ *
+ * @internal
+ */
+export const negatePeriod = (fields: Partial<TimePeriod>): TimePeriod => {
+  const r: Partial<TimePeriod> = {};
+  for (const f of TIME_PERIOD_FIELDS) {
+    const v = fields[f];
+    r[f] = v ? -v : 0;
+  }
+  return r as TimePeriod;
+};

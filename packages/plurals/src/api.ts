@@ -3,7 +3,7 @@ import { pluralRanges } from './autogen.ranges';
 import type { PluralRules } from './rules';
 import type { Rule, RuleMap } from './types';
 
-const resolve = (r: RuleMap, language: string, region?: string): Rule[] =>
+const resolve = (r: RuleMap, language: string, region?: string): readonly Rule[] =>
   (region ? r[`${language}-${region}`] : undefined) || r[language] || r.root;
 
 /**

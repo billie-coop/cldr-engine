@@ -1,7 +1,8 @@
 import { languageBundle } from '../../_helpers';
 
-import { getNumberParams, getNumberPattern, stringRenderer } from '../../../src';
-import { RE_DIGIT, RE_SYMBOL } from '../../../src/internals/numbers/render';
+import { getNumberParams } from '../../../src/api/private/numbers';
+import { getNumberPattern } from '../../../src/internals/numbers/internal';
+import { RE_DIGIT, RE_SYMBOL, stringRenderer } from '../../../src/internals/numbers/render';
 import { NumberPattern } from '../../../src/parsing/number';
 import { decimal } from '@phensley/decimal';
 

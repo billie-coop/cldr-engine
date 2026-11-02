@@ -4,8 +4,6 @@ import { numberOperands, NumberOperands } from './operands';
 
 import { Expr, Rule } from './types';
 
-export type RuleMap = { [x: string]: Rule[] };
-
 /**
  * Plural range rules for a language: either a single category index that
  * applies to every range, or a map from `((1 << start) << 5) + (1 << end)`
@@ -85,7 +83,7 @@ const evaluate = (operands: NumberOperands, rules: readonly Rule[]): number => {
   return 5;
 };
 
-const execute = (operands: NumberOperands, conditions: number[][]): boolean => {
+const execute = (operands: NumberOperands, conditions: Rule[1]): boolean => {
   // Evaluate each condition and OR them together.
   const len = conditions.length;
   for (let i = 0; i < len; i++) {

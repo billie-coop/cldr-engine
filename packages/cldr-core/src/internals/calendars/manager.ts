@@ -562,7 +562,7 @@ const matchAvailablePattern = (
   date: CalendarDate,
   query: DateSkeleton,
   params: NumberParams,
-): DateTimeNode[] | undefined => {
+): readonly DateTimeNode[] | undefined => {
   const match = patternsMatchAvailable(patterns, query);
   return managerAvailablePattern(patterns, date, query, match, params);
 };
@@ -573,7 +573,7 @@ const managerAvailablePattern = (
   query: DateSkeleton,
   match: DateSkeleton,
   params: NumberParams,
-): DateTimeNode[] | undefined => {
+): readonly DateTimeNode[] | undefined => {
   const pattern = patternsAvailablePattern(patterns, date, match);
   /* istanbul ignore else -- @preserve */
   if (pattern.length) {
@@ -590,7 +590,7 @@ const managerAvailablePattern = (
 const selectWrapper = (
   patterns: CalendarPatterns,
   dateSkel: DateSkeleton,
-  _date: DateTimeNode[],
+  _date: readonly DateTimeNode[],
   atTime: boolean,
 ): string => {
   let wrapKey = 'short';

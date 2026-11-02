@@ -12,8 +12,8 @@ import {
   scopeGet,
   vectorMapping,
   fieldGet,
-  parseDatePattern,
 } from '../src';
+import { parseDatePattern } from '../src/internals/calendars/internal';
 import { getCLDR } from './_helpers';
 import { tagCompact, tagExpanded } from '@phensley/language-tag';
 

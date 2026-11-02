@@ -1,4 +1,4 @@
-import { contextTransform, formatWrapper } from '../../../src';
+import { contextTransform, formatWrapper } from '../../../src/internals/general/internal';
 import { ContextTransformInfo } from '../../../src/common/private';
 
 test('wrapper args', () => {

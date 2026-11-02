@@ -1,4 +1,4 @@
-import { Decimal, decimalProperties } from '@phensley/decimal';
+import { Decimal } from '@phensley/decimal';
 
 /**
  * Returns the number of digits in w, where w < RADIX.
@@ -89,14 +89,12 @@ const ZERO_OPERANDS: NumberOperands = { n: 0, i: 0, v: 0, w: 0, f: 0, t: 0, c: 0
  * @public
  */
 export const numberOperands = (d: Decimal, c: number = 0): NumberOperands => {
-  const props = decimalProperties(d);
-  const flag = props[3];
-  if (flag) {
+  if (d.flag) {
     return ZERO_OPERANDS;
   }
 
-  const data = props[0];
-  let exp = props[2];
+  const data = d.data;
+  let exp = d.exp;
 
   const len = data.length;
   const last = len - 1;

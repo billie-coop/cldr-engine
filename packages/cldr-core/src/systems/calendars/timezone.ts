@@ -1,24 +1,25 @@
 import { MetaZoneType } from '@phensley/cldr-types';
 import { keyIndexGet } from '../../schema/instructions';
 import { TimeZoneStableIdIndex } from '../../schema/schema/timezones';
-import { tzFromUTC, tzResolveId, tzUtcZone, tzZoneIds } from '@phensley/timezone';
+import { defaultTimeZoneData, tzFromUTC, tzResolveId, tzUtcZone } from '@phensley/timezone';
 
 import { zoneAliasRaw } from './autogen.aliases';
 import { metazoneData } from './autogen.zonedata';
 import { numarray, stringToObject } from '../../utils/string';
 
 /**
- * Time zone information carried by a calendar date.
+ * Time zone information carried by a calendar date. Dates are immutable; use `dateWithZone` or
+ * `dateSet` to change the zone.
  *
  * @public
  */
 export interface DateZoneInfo {
-  zoneid: string;
-  stableid: string;
-  abbr: string;
-  dst: number;
-  offset: number;
-  metazoneid: string;
+  readonly zoneid: string;
+  readonly stableid: string;
+  readonly abbr: string;
+  readonly dst: number;
+  readonly offset: number;
+  readonly metazoneid: string;
 }
 
 interface MetazoneRecord {
@@ -88,6 +89,8 @@ interface Metazones {
   readonly metazones: MetazoneRecord[];
   readonly zoneToMetazone: Map<string, number>;
   readonly stableids: Map<string, string>;
+  /** Aliases in the bundled tz data, mapped to the bundled canonical zone id. */
+  readonly aliases: Map<string, string>;
 }
 
 const buildMetazones = (raw: any): Metazones => {
@@ -110,8 +113,11 @@ const buildMetazones = (raw: any): Metazones => {
     metazones.push(rec);
   }
 
-  // mapping of zoneid to metazone records
-  const zoneids = tzZoneIds();
+  // The zone index and stable ids are positional, generated against the canonical zone
+  // list of the bundled tz data. Resolve them against that list, not the active data
+  // (which `setTimeZoneData` can replace with a different list), so lookups are by zone id
+  // and don't depend on which data is active.
+  const zoneids = defaultTimeZoneData.zoneids.split('|');
   const zoneindex = numarray(raw.zoneindex, 36);
 
   // Mapping of tzdb id back to cldr stable id used for schema lookups
@@ -121,7 +127,7 @@ const buildMetazones = (raw: any): Metazones => {
     stableids.set(zoneids[i], p[1]);
   });
 
-  // Sanity-check, since the zoneindex is based off the canonical
+  // Sanity-check, since the zoneindex is based off the bundled canonical
   // zoneids array, but could be generated at different times. our test
   // cases should ensure they're in sync, but warn of a discrepancy
   /* istanbul ignore if -- @preserve */
@@ -136,11 +142,31 @@ const buildMetazones = (raw: any): Metazones => {
       zoneToMetazone.set(zoneids[i].toLowerCase(), mi);
     }
   }
-  return { metazoneids, metazones, zoneToMetazone, stableids };
+
+  // Replacement tz data may make a bundled alias canonical (e.g. Asia/Calcutta instead of
+  // Asia/Kolkata). Lookups fall back through the bundled aliases so such zones keep their
+  // metazone and stable id. No bundled canonical id is also an alias, so with the bundled data
+  // the fallback is never taken.
+  const aliases: Map<string, string> = new Map();
+  defaultTimeZoneData.links.split('|').forEach((e) => {
+    const [alias, j] = e.split(':');
+    aliases.set(alias, zoneids[Number(j)]);
+  });
+  return { metazoneids, metazones, zoneToMetazone, stableids, aliases };
+};
+
+/** Value for a zone id, falling back to the bundled canonical id if it is a bundled alias. */
+const byZone = <T>(m: Metazones, map: Map<string, T>, zoneid: string): T | undefined => {
+  const v = map.get(zoneid);
+  if (v !== undefined) {
+    return v;
+  }
+  const canonical = m.aliases.get(zoneid);
+  return canonical === undefined ? undefined : map.get(canonical);
 };
 
 const getMetazone = (m: Metazones, zoneid: string, utc: number): string | undefined => {
-  const i = m.zoneToMetazone.get(zoneid);
+  const i = byZone(m, m.zoneToMetazone, zoneid);
   if (i !== undefined) {
     const rec = m.metazones[i]!;
     // Note: we don't bother with binary search here since the metazone
@@ -161,7 +187,7 @@ const getMetazone = (m: Metazones, zoneid: string, utc: number): string | undefi
   return undefined;
 };
 
-const getStableId = (m: Metazones, zoneid: string): string => m.stableids.get(zoneid) || zoneid;
+const getStableId = (m: Metazones, zoneid: string): string => byZone(m, m.stableids, zoneid) || zoneid;
 
 // Built lazily on first use.
 let _metazones: Metazones | undefined;

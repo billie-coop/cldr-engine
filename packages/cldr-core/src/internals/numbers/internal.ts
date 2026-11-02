@@ -34,7 +34,7 @@ import { pluralCardinal } from '@phensley/plurals';
 
 let adjustPattern: NumberPattern | undefined;
 
-let numberPatternCache: Cache<NumberPattern[]> | undefined;
+let numberPatternCache: Cache<readonly [NumberPattern, NumberPattern]> | undefined;
 
 /**
  * If n is zero check if it is signed and return abs.

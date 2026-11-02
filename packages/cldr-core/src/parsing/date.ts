@@ -1,4 +1,8 @@
-export type DateTimeField = [string, number];
+/**
+ * A date pattern field: the pattern character and its width. Parsed patterns are cached and
+ * shared, so they are readonly.
+ */
+export type DateTimeField = readonly [string, number];
 
 export type DateTimeNode = DateTimeField | string;
 
@@ -15,7 +19,7 @@ export const DATE_PATTERN_CHARS = [
 /**
  * Parse a datetime pattern into an array of nodes.
  */
-export const parseDatePattern = (raw: string): DateTimeNode[] => {
+export const parseDatePattern = (raw: string): readonly DateTimeNode[] => {
   const nodes: DateTimeNode[] = [];
   if (!raw) {
     return nodes;
@@ -97,7 +101,7 @@ export const parseDatePattern = (raw: string): DateTimeNode[] => {
 /**
  * Scan the date interval pattern and return the index of the first repeated field.
  */
-export const intervalPatternBoundary = (pattern: DateTimeNode[]): number => {
+export const intervalPatternBoundary = (pattern: readonly DateTimeNode[]): number => {
   // Use bit flags to detect first repeated field.
   const data = [0, 0];
   for (let i = 0; i < pattern.length; i++) {
