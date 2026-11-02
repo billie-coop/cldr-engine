@@ -1,5 +1,5 @@
+import { type MeasurementCategory, measurementSystem } from '../../../src';
 import { generalApi } from '../../_helpers';
-import { MeasurementCategory, measurementSystem } from '../../../src';
 
 const api = generalApi;
 

@@ -1,21 +1,20 @@
+import { buildOrigin, checksumIndices, tagRegion } from '@phensley/cldr-core';
 import { createHash } from 'crypto';
 import * as fs from 'fs';
 import { join } from 'path';
-import * as yargs from 'yargs';
+import type * as yargs from 'yargs';
 import * as zlib from 'zlib';
-
-import { buildOrigin, checksumIndices, tagRegion } from '@phensley/cldr-core';
 import { getMain } from '../../cldr';
-import { Encoder, EncoderMachine } from '../../resource/machine';
+import { RBNFCollector } from '../../rbnf';
+import { type Encoder, EncoderMachine } from '../../resource/machine';
 import { ResourcePack } from '../../resource/pack';
-import { loadPatch, applyPatch, PatchFile } from './patch';
-import { buildLocaleMap, checkLanguages, getProjectInfo, ProjectInfo } from './util';
+import { Downloader } from '../downloader/downloader';
 
 import DEFAULT_CONFIG from './config.json';
-import { Downloader } from '../downloader/downloader';
-import { validateConfig } from './validate';
-import { RBNFCollector } from '../../rbnf';
 import { applyFixes } from './fixes';
+import { applyPatch, loadPatch, type PatchFile } from './patch';
+import { buildLocaleMap, checkLanguages, getProjectInfo, type ProjectInfo } from './util';
+import { validateConfig } from './validate';
 
 /**
  * Encodes fields into a resource pack and returns the offset
@@ -51,7 +50,8 @@ export class PackEncoder implements Encoder {
   }
 }
 
-export const sha256 = (data: string | Buffer): string => createHash('sha256').update(data).digest('hex');
+export const sha256 = (data: string | Buffer): string =>
+  createHash('sha256').update(data).digest('hex');
 
 export interface PackArgs {
   out: string;

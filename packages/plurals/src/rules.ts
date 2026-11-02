@@ -1,8 +1,8 @@
-import { Decimal, DecimalArg, decimal } from '@phensley/decimal';
+import { type Decimal, type DecimalArg, decimal } from '@phensley/decimal';
 import { expressions } from './autogen.rules';
-import { numberOperands, NumberOperands } from './operands';
+import { type NumberOperands, numberOperands } from './operands';
 
-import { Expr, Rule } from './types';
+import type { Expr, Rule } from './types';
 
 /**
  * Plural range rules for a language: either a single category index that
@@ -38,7 +38,8 @@ export interface PluralRules {
  *
  * @public
  */
-export const pluralOperands = (_rules: PluralRules, d: Decimal): NumberOperands => numberOperands(d);
+export const pluralOperands = (_rules: PluralRules, d: Decimal): NumberOperands =>
+  numberOperands(d);
 
 /**
  * Cardinal plural category of `n`, with optional compact exponent `c`.

@@ -1,5 +1,5 @@
 // 2.x: date formatting only, using the functions directly.
-import { createFramework, loadLocale, formatDate } from '@phensley/cldr';
+import { createFramework, formatDate, loadLocale } from '@phensley/cldr';
 
 const framework = createFramework({ loader: (language) => globalThis.loadPack(language) });
 const en = loadLocale(framework, 'en');

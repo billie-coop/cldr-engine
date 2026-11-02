@@ -1,4 +1,4 @@
-import { parseNumberPattern as parse, NumberField } from '../../src/parsing/number';
+import { NumberField, parseNumberPattern as parse } from '../../src/parsing/number';
 
 test('parse', () => {
   const pos0 = {

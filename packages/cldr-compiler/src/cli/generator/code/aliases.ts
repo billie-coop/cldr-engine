@@ -1,9 +1,3 @@
-import * as fs from 'fs';
-import { join } from 'path';
-import * as zlib from 'zlib';
-import { tzResolveId, tzZoneIds } from '@phensley/timezone';
-import { getSupplemental } from '../../../cldr';
-import { objectToString, Code, HEADER, NOLINT_MAXLINE } from './util';
 import {
   parseLanguageTag,
   tagExtlangs,
@@ -14,6 +8,12 @@ import {
   tagScript,
   tagVariant,
 } from '@phensley/cldr-core';
+import { tzResolveId, tzZoneIds } from '@phensley/timezone';
+import * as fs from 'fs';
+import { join } from 'path';
+import * as zlib from 'zlib';
+import { getSupplemental } from '../../../cldr';
+import { Code, HEADER, NOLINT_MAXLINE, objectToString } from './util';
 
 /**
  * Split string into lines and split each line into a colon-delimited

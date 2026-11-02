@@ -1,5 +1,6 @@
 import { bench, describe } from 'vitest';
 import {
+  type CalendarDate,
   dateAdd,
   dateDayOfMonth,
   dateDayOfWeekInMonth,
@@ -16,7 +17,6 @@ import {
   gregorianDateFromFields,
   gregorianDateFromUnixEpoch,
   persianDateFromUnixEpoch,
-  CalendarDate,
 } from '../src';
 import { counter, N } from './_locale';
 
@@ -41,7 +41,12 @@ describe('date creation', () => {
   });
   bench('gregorian from fields', () => {
     const k = next();
-    gregorianDateFromFields({ year: 2000 + (k & 31), month: 1 + (k % 12), day: 1 + (k % 28), zoneId: NY });
+    gregorianDateFromFields({
+      year: 2000 + (k & 31),
+      month: 1 + (k % 12),
+      day: 1 + (k % 28),
+      zoneId: NY,
+    });
   });
 });
 

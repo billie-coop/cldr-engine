@@ -1,14 +1,14 @@
 import {
-  Decimal,
-  RoundingModeType,
+  type Decimal,
   decimalIsInteger,
   decimalPrecision,
   decimalScale,
   decimalSetScale,
   decimalStripTrailingZeros,
+  type RoundingModeType,
 } from '@phensley/decimal';
-import { NumberFormatOptions } from '../../common/numbers';
-import { NumberPattern } from '../../parsing/number';
+import type { NumberFormatOptions } from '../../common/numbers';
+import type { NumberPattern } from '../../parsing/number';
 
 /**
  * Number formatting parameters for a single format call, combining user-supplied options with
@@ -44,7 +44,8 @@ export const numberContext = (
   // we will use significant digits unless any fraction option is set. Otherwise we use
   // significant digits if any significant digit option is set.
   const optFrac = o.minimumFractionDigits !== undefined || o.maximumFractionDigits !== undefined;
-  const optSig = o.minimumSignificantDigits !== undefined || o.maximumSignificantDigits !== undefined;
+  const optSig =
+    o.minimumSignificantDigits !== undefined || o.maximumSignificantDigits !== undefined;
   return {
     options: o,
     roundingMode,
@@ -96,7 +97,11 @@ export const numberContextSetCompact = (
  *
  * @internal
  */
-export const numberContextAdjust = (ctx: NumberContext, n: Decimal, scientific: boolean = false): Decimal => {
+export const numberContextAdjust = (
+  ctx: NumberContext,
+  n: Decimal,
+  scientific: boolean = false,
+): Decimal => {
   // TODO: consider moving this logic into Decimal since it could be useful
   // to adjust a number using several options in a single pass. Could be
   // more efficient, making fewer copies.
@@ -137,7 +142,11 @@ export const numberContextAdjust = (ctx: NumberContext, n: Decimal, scientific: 
 
     // If user hasn't requested minimum fraction digits, and requested to trim zero fractions,
     // and the number is an integer, force it to render as a whole number.
-    if (ctx.options.trimZeroFractions && !ctx.options.minimumFractionDigits && decimalIsInteger(n)) {
+    if (
+      ctx.options.trimZeroFractions &&
+      !ctx.options.minimumFractionDigits &&
+      decimalIsInteger(n)
+    ) {
       // Trim zeros when whole number display is possible
       n = decimalSetScale(n, 0, ctx.roundingMode);
     } else if (decimalScale(n) < ctx.minFrac) {
@@ -180,7 +189,8 @@ const setPatternImpl = (
   }
 
   if (minFrac !== undefined && minFrac > -1) {
-    ctx.minFrac = maxFrac !== undefined && maxFrac > -1 ? (maxFrac < minFrac ? maxFrac : minFrac) : minFrac;
+    ctx.minFrac =
+      maxFrac !== undefined && maxFrac > -1 ? (maxFrac < minFrac ? maxFrac : minFrac) : minFrac;
     if (ctx.minFrac > ctx.maxFrac) {
       ctx.maxFrac = ctx.minFrac;
     }
@@ -196,8 +206,12 @@ const setPatternImpl = (
     const optMinSig = o.minimumSignificantDigits;
     const optMaxSig = o.maximumSignificantDigits;
 
-    let minSig = scientific ? orDefault(optMinSig, pattern.minFrac) : orDefault(optMinSig, minSigDigits);
-    let maxSig = scientific ? orDefault(optMaxSig, pattern.maxFrac) : orDefault(optMaxSig, maxSigDigits);
+    let minSig = scientific
+      ? orDefault(optMinSig, pattern.minFrac)
+      : orDefault(optMinSig, minSigDigits);
+    let maxSig = scientific
+      ? orDefault(optMaxSig, pattern.maxFrac)
+      : orDefault(optMaxSig, maxSigDigits);
 
     if (minSig !== -1 && maxSig !== -1 && minSig > maxSig) {
       maxSig = minSig;

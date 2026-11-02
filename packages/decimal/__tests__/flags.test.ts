@@ -1,5 +1,5 @@
 import {
-  Decimal,
+  type Decimal,
   DecimalConstants,
   decimal,
   decimalAbs,

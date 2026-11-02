@@ -1,6 +1,6 @@
-import { buildConfig, unitsApi } from '../_helpers';
-import { Quantity } from '../../lib';
+import type { Quantity } from '../../lib';
 import { formatQuantity } from '../../src';
+import { buildConfig, unitsApi } from '../_helpers';
 
 test('custom units', () => {
   const cfg = buildConfig({ 'unit-id': ['mile', 'foot'] });

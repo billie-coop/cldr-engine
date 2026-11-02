@@ -1,5 +1,5 @@
 import {
-  Decimal,
+  type Decimal,
   decimal,
   decimalAbs,
   decimalCompare,
@@ -16,11 +16,14 @@ import {
   ANGLE,
   AREA,
   CONSUMPTION,
+  convertUnits,
+  createUnitConverter,
   DIGITAL,
   DIGITAL_DECIMAL,
   DURATION,
   ELECTRIC,
   ENERGY,
+  type FactorDef,
   FORCE,
   FREQUENCY,
   GRAPHICS_PER,
@@ -37,16 +40,13 @@ import {
   SUBSTANCE,
   TEMPERATURE,
   TORQUE,
-  VOLUME,
-  VOLUME_UK,
-  FactorDef,
-  convertUnits,
-  createUnitConverter,
   unitConverterAdd,
   unitConverterFactors,
   unitConverterGet,
   unitFactors,
   unitFactorsGet,
+  VOLUME,
+  VOLUME_UK,
 } from '../src';
 
 const CATEGORIES: [string, FactorDef[]][] = [
@@ -261,7 +261,8 @@ test('every CLDR unit dimension is registered in some category', () => {
 
 test('previously missing or wrong units convert per CLDR 48.2.0', () => {
   const c = converter();
-  const cvt = (cat: string, src: string, dst: string) => convertUnits(c, cat, decimal(1), src, dst)!;
+  const cvt = (cat: string, src: string, dst: string) =>
+    convertUnits(c, cat, decimal(1), src, dst)!;
 
   // pressure
   expect(decimalToString(cvt('pressure', 'atmosphere', 'pascal'))).toEqual('101325');
@@ -274,14 +275,18 @@ test('previously missing or wrong units convert per CLDR 48.2.0', () => {
   expect(decimalToString(cvt('energy', 'calorie', 'joule'))).toEqual('4.184');
   expect(decimalToString(cvt('energy', 'foodcalorie', 'joule'))).toEqual('4184');
   expect(decimalToString(cvt('energy', 'kilocalorie', 'joule'))).toEqual('4184');
-  expect(decimalToString(cvt('energy', 'electronvolt', 'joule'))).toEqual('0.0000000000000000001602177');
+  expect(decimalToString(cvt('energy', 'electronvolt', 'joule'))).toEqual(
+    '0.0000000000000000001602177',
+  );
   close(cvt('energy', 'british-thermal-unit', 'kilowatt-hour'), '0.000292875073469');
   close(cvt('energy', 'therm-us', 'kilowatt-hour'), '29.300111111111111');
 
   // mass
   close(cvt('mass', 'grain', 'pound'), '0.0001428571428571428571428571428');
   close(cvt('mass', 'slug', 'kilogram'), '14.593902937206365');
-  expect(decimalToString(cvt('mass', 'dalton', 'kilogram'))).toEqual('0.00000000000000000000000000166053878283');
+  expect(decimalToString(cvt('mass', 'dalton', 'kilogram'))).toEqual(
+    '0.00000000000000000000000000166053878283',
+  );
   close(cvt('mass', 'earth-mass', 'kilogram'), '5.9722e24');
 
   // volume
@@ -344,7 +349,13 @@ test('hand-maintained and CLDR factors agree on shared edges', () => {
   for (const [cat, src, dst, expected] of checks) {
     const conv = unitConverterGet(c, cat, src, dst)!;
     const fac = conv.factors.reduce((p, f) => rationalMultiply(p, f), rational(1));
-    expect({ cat, src, dst, direct: conv.path.length === 2, equal: rationalCompare(fac, expected) === 0 }).toEqual({
+    expect({
+      cat,
+      src,
+      dst,
+      direct: conv.path.length === 2,
+      equal: rationalCompare(fac, expected) === 0,
+    }).toEqual({
       cat,
       src,
       dst,
@@ -377,18 +388,30 @@ test('electric units are registered but not mutually convertible', () => {
     ]),
   );
   expect(unitConverterGet(c, 'electric', 'volt', 'ohm')).toBe(undefined);
-  expect(decimalToString(convertUnits(c, 'electric', decimal(2), 'ampere', 'milliampere')!)).toEqual('2000');
+  expect(
+    decimalToString(convertUnits(c, 'electric', decimal(2), 'ampere', 'milliampere')!),
+  ).toEqual('2000');
 });
 
 test('volume UK variant localizes generic units without US leakage', () => {
   const c = converter();
   // UK gallon is the imperial gallon (4.54609 L), not the US gallon
-  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'gallon', 'liter')!)).toEqual('4.54609');
-  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'pint', 'liter')!)).toEqual('0.56826125');
-  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'cup', 'milliliter')!)).toEqual('284.1');
+  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'gallon', 'liter')!)).toEqual(
+    '4.54609',
+  );
+  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'pint', 'liter')!)).toEqual(
+    '0.56826125',
+  );
+  expect(decimalToString(convertUnits(c, 'volume-uk', decimal(1), 'cup', 'milliliter')!)).toEqual(
+    '284.1',
+  );
   // US category keeps the US values
-  expect(decimalToString(convertUnits(c, 'volume', decimal(1), 'gallon', 'liter')!)).toEqual('3.785411784');
-  expect(decimalToString(convertUnits(c, 'volume', decimal(1), 'pint', 'liter')!)).toEqual('0.473176473');
+  expect(decimalToString(convertUnits(c, 'volume', decimal(1), 'gallon', 'liter')!)).toEqual(
+    '3.785411784',
+  );
+  expect(decimalToString(convertUnits(c, 'volume', decimal(1), 'pint', 'liter')!)).toEqual(
+    '0.473176473',
+  );
   // imperial-specific units convert in both
   close(convertUnits(c, 'volume', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');
   close(convertUnits(c, 'volume-uk', decimal(1), 'pint-imperial', 'liter')!, '0.56826125');

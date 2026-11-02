@@ -1,19 +1,22 @@
 import {
-  CalendarDate,
-  TimePeriod,
-  TimePeriodField,
+  type CalendarDate,
   dateAdd,
   dateDifference,
   dateToDateTimeString,
   dateToString,
   gregorianDateFromUnixEpoch,
+  type TimePeriod,
+  type TimePeriodField,
 } from '../../../src';
 import { MAR_11_2000, NEW_YORK, SEP_01_2000, SEP_15_2000, UTC } from './_referencedates';
 
 const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const period = (t: Partial<TimePeriod>): TimePeriod =>
-  Object.assign({ year: 0, month: 0, week: 0, day: 0, hour: 0, minute: 0, second: 0, millis: 0 }, t);
+  Object.assign(
+    { year: 0, month: 0, week: 0, day: 0, hour: 0, minute: 0, second: 0, millis: 0 },
+    t,
+  );
 
 const cldrstr = (c: CalendarDate): string =>
   dateToDateTimeString(c, { includeZoneOffset: true, optionalMilliseconds: true });
@@ -272,13 +275,23 @@ test('all fields', () => {
   const start = gregorian(MAR_11_2000, NEW_YORK);
   expect(cldrstr(start)).toEqual('2000-03-11 03:00:25-05:00');
 
-  end = dateAdd(start, { year: 1, month: 1, day: 1, hour: 12, minute: 30, second: 30, millis: 15000 });
+  end = dateAdd(start, {
+    year: 1,
+    month: 1,
+    day: 1,
+    hour: 12,
+    minute: 30,
+    second: 30,
+    millis: 15000,
+  });
   expect(cldrstr(end)).toEqual('2001-04-12 15:31:10-04:00');
 
   t = dateDifference(start, end, { fields: ['year', 'month', 'day', 'hour', 'minute', 'second'] });
   expect(t).toEqual(period({ year: 1, month: 1, day: 1, hour: 12, minute: 30, second: 45 }));
 
-  t = dateDifference(start, end, { fields: ['year', 'month', 'day', 'hour', /* minute */ 'second'] });
+  t = dateDifference(start, end, {
+    fields: ['year', 'month', 'day', 'hour', /* minute */ 'second'],
+  });
   expect(t).toEqual(period({ year: 1, month: 1, day: 1, hour: 12, second: 30 * 60 + 45 }));
 
   t = dateDifference(start, end, { fields: ['year', 'month', 'day', /* hour, minute */ 'second'] });
@@ -348,6 +361,8 @@ test('difference edge cases', () => {
 
   // If no valid fields are passed in, it will
   // return the raw difference with no field rollup
-  t = dateDifference(start, end, { fields: ['foobar' as TimePeriodField, 'baz' as TimePeriodField] });
+  t = dateDifference(start, end, {
+    fields: ['foobar' as TimePeriodField, 'baz' as TimePeriodField],
+  });
   expect(t).toEqual(period({ month: 2, day: 15 }));
 });

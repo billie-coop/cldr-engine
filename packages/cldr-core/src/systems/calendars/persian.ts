@@ -2,7 +2,7 @@ import { CalendarConstants } from './constants';
 import { dateFromFields, dateFromUnixEpoch, isCalendarDate } from './core';
 import { DateField } from './fields';
 import { unixEpochFromJD, wallTimeToMillis } from './math';
-import { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
+import type { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
 import { floorDiv } from './util';
 
 /**
@@ -42,7 +42,8 @@ export const persianDateFromUnixEpoch = (
  *
  * @public
  */
-export const isPersianDate = (x: any): x is PersianDate => isCalendarDate(x) && x.calendar.type === 'persian';
+export const isPersianDate = (x: any): x is PersianDate =>
+  isCalendarDate(x) && x.calendar.type === 'persian';
 
 const floor = Math.floor;
 
@@ -94,7 +95,8 @@ const persianDaysInMonth = (y: number, m: number): number => MONTH_COUNT[m][leap
 const persianDaysInYear = (y: number): number => (leapPersian(y) ? 366 : 365);
 
 const persianMonthStart = (eyear: number, month: number, _useMonth: boolean): number => {
-  let jd = CalendarConstants.JD_PERSIAN_EPOCH - 1 + 365 * (eyear - 1) + floor((8 * eyear + 21) / 33);
+  let jd =
+    CalendarConstants.JD_PERSIAN_EPOCH - 1 + 365 * (eyear - 1) + floor((8 * eyear + 21) / 33);
   if (month !== 0) {
     const mc = MONTH_COUNT;
     const m = floor(month);
@@ -139,7 +141,11 @@ const persianYmdToJD = (y: number, m: number, d: number): number => {
  * Persian dates are set in the date's own time zone using its current offset; the
  * 'zoneId' field is ignored (1.x behaviour).
  */
-const persianResolveFields = (f: Partial<CalendarDateFields>, zoneId: string, offset: number): [number, string] => {
+const persianResolveFields = (
+  f: Partial<CalendarDateFields>,
+  zoneId: string,
+  offset: number,
+): [number, string] => {
   const jd = persianYmdToJD(f.year!, f.month!, f.day!);
   const ms = wallTimeToMillis(f) - offset;
   return [unixEpochFromJD(jd, ms), zoneId];

@@ -1,13 +1,13 @@
-import { KeyIndexMap, Schema } from '@phensley/cldr-types';
-import { createLRU, lruGet, lruSet, lruSize, LRU } from '@phensley/cldr-utils';
-import { tagCompact, tagLanguage, LanguageTag } from '@phensley/language-tag';
-import { resolveLanguageTag, Locale } from '@phensley/locale';
+import type { KeyIndexMap, Schema } from '@phensley/cldr-types';
+import { createLRU, type LRU, lruGet, lruSet, lruSize } from '@phensley/cldr-utils';
+import { type LanguageTag, tagCompact, tagLanguage } from '@phensley/language-tag';
+import { type Locale, resolveLanguageTag } from '@phensley/locale';
 
 import { buildSchema } from './internals/schema';
-import { localeData, LocaleData } from './locale-data';
-import { loadPack, packGet, Pack } from './resource/pack';
+import { type LocaleData, localeData } from './locale-data';
 import { checksumIndices } from './resource/checksum';
-import { buildOrigin, SchemaConfig } from './schema/code/index';
+import { loadPack, type Pack, packGet } from './resource/pack';
+import { buildOrigin, type SchemaConfig } from './schema/code/index';
 import { VERSION } from './utils/version';
 
 const enum Messages {
@@ -131,7 +131,10 @@ export const loadLocale = (framework: Framework, locale: Locale | string): Local
  *
  * @public
  */
-export const loadLocaleAsync = (framework: Framework, locale: Locale | string): Promise<LocaleData> => {
+export const loadLocaleAsync = (
+  framework: Framework,
+  locale: Locale | string,
+): Promise<LocaleData> => {
   const { asyncLoader } = framework.options;
   must(asyncLoader, Messages.NO_ASYNC_LOADER);
   must(locale, Messages.LOCALE_UNDEFINED);
@@ -162,7 +165,8 @@ export const loadLocaleAsync = (framework: Framework, locale: Locale | string): 
  *
  * @public
  */
-export const frameworkInfo = (framework: Framework): string => `packs loaded: ${lruSize(framework.packCache)}`;
+export const frameworkInfo = (framework: Framework): string =>
+  `packs loaded: ${lruSize(framework.packCache)}`;
 
 /**
  * Return the library version.
@@ -185,7 +189,13 @@ export const resolveLocale = (id: string | LanguageTag): Locale => {
 };
 
 const build = (framework: Framework, locale: Locale, pack: Pack): LocaleData =>
-  localeData(locale, packGet(pack, locale.tag), framework.schema, framework.indices, framework.config);
+  localeData(
+    locale,
+    packGet(pack, locale.tag),
+    framework.schema,
+    framework.indices,
+    framework.config,
+  );
 
 /**
  * Verify the resource pack is compatible with the schema config checksum.

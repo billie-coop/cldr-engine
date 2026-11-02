@@ -1,5 +1,5 @@
 import {
-  Decimal,
+  type Decimal,
   DecimalConstants,
   decimal,
   decimalAbs,
@@ -20,36 +20,40 @@ import {
   decimalToInteger,
   decimalToString,
 } from '@phensley/decimal';
-import { pluralCardinal, pluralOrdinal, PluralRules } from '@phensley/plurals';
+import { type PluralRules, pluralCardinal, pluralOrdinal } from '@phensley/plurals';
 import {
-  ApplyLeft2NumFormatInst,
-  ApplyLeft2RuleInst,
-  ApplyLeftNumFormatInst,
-  ApplyLeftRuleInst,
-  NormalRadixRule,
-  NormalRule,
+  type ApplyLeft2NumFormatInst,
+  type ApplyLeft2RuleInst,
+  type ApplyLeftNumFormatInst,
+  type ApplyLeftRuleInst,
+  type NormalRadixRule,
+  type NormalRule,
   Opcode,
   PLURALS,
+  type RBNFInst,
+  type RBNFRule,
   RuleType,
-  RBNFInst,
-  RBNFRule,
-  SubLeftInst,
+  type SubLeftInst,
 } from './rbnftypes';
 import { binarySearch } from './utils';
 
 // Divisors based on the number of integer digits in the number being formatted.
 // A 2-digit number's divisor will be '1e1', 3-digit '1e2' and so on.
 // This table stops just past the largest base value found in the RBNF dataset.
-const DIVISORS: Decimal[] = /*#__PURE__*/ [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map(
-  (e) => decimal(`1e${e}`),
-);
+const DIVISORS: Decimal[] = /*#__PURE__*/ [
+  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+].map((e) => decimal(`1e${e}`));
 
 const { ONE, ZERO } = DecimalConstants;
 const MINUS_ONE = /*#__PURE__*/ decimalNegate(ONE);
 const TEN = /*#__PURE__*/ decimal(10);
 
 type IntegerSubInst =
-  ApplyLeftRuleInst | ApplyLeft2RuleInst | ApplyLeft2NumFormatInst | ApplyLeftNumFormatInst | SubLeftInst;
+  | ApplyLeftRuleInst
+  | ApplyLeft2RuleInst
+  | ApplyLeft2NumFormatInst
+  | ApplyLeftNumFormatInst
+  | SubLeftInst;
 
 export interface RBNFSymbols {
   decimal: string;
@@ -66,8 +70,10 @@ export type RBNFDecimalFormatter = (pattern: string, n: Decimal) => string;
  */
 export interface RBNFEngineHooks {
   /** Called each time the instructions of a rule are evaluated. */
+  // biome-ignore lint/suspicious/noConfusingVoidType: a hook may return a cleanup function or nothing
   readonly evalinst?: (n: Decimal, rule: RBNFRule, ri: number, si: number) => (() => void) | void;
   /** Called each time a modulus substitution is performed. */
+  // biome-ignore lint/suspicious/noConfusingVoidType: a hook may return a cleanup function or nothing
   readonly modulussub?: (n: Decimal) => (() => void) | void;
 }
 
@@ -177,7 +183,8 @@ export const createRBNF = <S extends RBNFSet = RBNFSet>(
 /**
  * Fetch the rulesets for the given locale id.
  */
-export const rbnfGet = <S extends RBNFSet>(rbnf: RBNF<S>, id: string): S | undefined => rbnf.locales.get(id);
+export const rbnfGet = <S extends RBNFSet>(rbnf: RBNF<S>, id: string): S | undefined =>
+  rbnf.locales.get(id);
 
 /**
  * Return the RBNF formatted representation of a number for the set's
@@ -210,7 +217,9 @@ export const rbnfSetFormat = (
     format(e, n, si);
   }
   if (e.errors.length) {
-    console.log(`ERRORS: '${set.language}' rule '${rulename}' number '${decimalToString(n)}'  ${e.errors.join('\n')}`);
+    console.log(
+      `ERRORS: '${set.language}' rule '${rulename}' number '${decimalToString(n)}'  ${e.errors.join('\n')}`,
+    );
   }
   return e.buf;
 };
@@ -302,7 +311,9 @@ const match = (e: Engine, n: Decimal, si: number): number => {
           );
           if (j < i) {
             const name = e.set.allnames[si];
-            e.errors.push(`Malformed rules in ruleset '${name}' at ${i} for ${decimalToString(n)}: got ${j}`);
+            e.errors.push(
+              `Malformed rules in ruleset '${name}' at ${i} for ${decimalToString(n)}: got ${j}`,
+            );
             return -1;
           }
           return j;
@@ -314,7 +325,14 @@ const match = (e: Engine, n: Decimal, si: number): number => {
   return -1;
 };
 
-const evalinst = (e: Engine, n: Decimal, i: RBNFInst[], r: RBNFRule, ri: number, si: number): void => {
+const evalinst = (
+  e: Engine,
+  n: Decimal,
+  i: RBNFInst[],
+  r: RBNFRule,
+  ri: number,
+  si: number,
+): void => {
   const done = e.hooks && e.hooks.evalinst ? e.hooks.evalinst(n, r, ri, si) : undefined;
   for (let j = 0; j < i.length; j++) {
     const inst = i[j];
@@ -331,7 +349,7 @@ const evalinst = (e: Engine, n: Decimal, i: RBNFInst[], r: RBNFRule, ri: number,
         break;
 
       case Opcode.CARDINAL:
-      case Opcode.ORDINAL:
+      case Opcode.ORDINAL: {
         const q = decimalDivmod(n, getradix(e, r))[0];
         const cat = plural(e, decimalStripTrailingZeros(q), inst[0] === Opcode.CARDINAL);
         // Select string matching plural category, and fall back to 'other'
@@ -343,6 +361,7 @@ const evalinst = (e: Engine, n: Decimal, i: RBNFInst[], r: RBNFRule, ri: number,
           symbol(e, subs[0][1]);
         }
         break;
+      }
 
       case Opcode.SUB_LEFT:
       case Opcode.APPLY_LEFT_RULE:
@@ -436,7 +455,14 @@ const integersub = (e: Engine, n: Decimal, inst: IntegerSubInst, _ri: number, si
   }
 };
 
-const numeratorsub = (e: Engine, n: Decimal, inst: RBNFInst, _base: number, _ri: number, _si: number): void => {
+const numeratorsub = (
+  e: Engine,
+  n: Decimal,
+  inst: RBNFInst,
+  _base: number,
+  _ri: number,
+  _si: number,
+): void => {
   switch (inst[0]) {
     case Opcode.APPLY_LEFT_2_RULE:
       format(e, n, inst[1]);
@@ -444,7 +470,14 @@ const numeratorsub = (e: Engine, n: Decimal, inst: RBNFInst, _base: number, _ri:
   }
 };
 
-const multipliersub = (e: Engine, n: Decimal, inst: RBNFInst, radix: Decimal, _ri: number, si: number): void => {
+const multipliersub = (
+  e: Engine,
+  n: Decimal,
+  inst: RBNFInst,
+  radix: Decimal,
+  _ri: number,
+  si: number,
+): void => {
   const [q] = decimalDivmod(n, radix);
   switch (inst[0]) {
     case Opcode.APPLY_LEFT_RULE:
@@ -458,7 +491,14 @@ const multipliersub = (e: Engine, n: Decimal, inst: RBNFInst, radix: Decimal, _r
   }
 };
 
-const modulussub = (e: Engine, n: Decimal, inst: RBNFInst, radix: Decimal, _ri: number, si: number): void => {
+const modulussub = (
+  e: Engine,
+  n: Decimal,
+  inst: RBNFInst,
+  radix: Decimal,
+  _ri: number,
+  si: number,
+): void => {
   const done = e.hooks && e.hooks.modulussub ? e.hooks.modulussub(n) : undefined;
   const r = decimalDivmod(n, radix)[1];
   switch (inst[0]) {

@@ -1,11 +1,11 @@
-import { UnitType } from '@phensley/cldr-types';
-import { Part } from '@phensley/decimal';
-import { ListPatternType } from '../common/general';
-import { Quantity, UnitFormatOptions, UnitLength } from '../common/units';
-import { LocaleData } from '../locale-data';
+import type { UnitType } from '@phensley/cldr-types';
+import type { Part } from '@phensley/decimal';
+import type { ListPatternType } from '../common/general';
+import type { Quantity, UnitFormatOptions, UnitLength } from '../common/units';
 import { formatListValue } from '../internals/general/internal';
 import { partsRenderer, stringRenderer } from '../internals/numbers/render';
 import { getUnitInfo, renderUnit } from '../internals/units/internal';
+import type { LocaleData } from '../locale-data';
 import { vectorGet } from '../schema/schema/arrows';
 import { partsValue } from '../utils/render';
 import { formatList } from './general';
@@ -18,7 +18,8 @@ const DEFAULT_OPTIONS: UnitFormatOptions = { length: 'long', style: 'decimal' };
  *
  * @public
  */
-export const availableUnits = (data: LocaleData): UnitType[] => data.indices['unit-id'].keys.slice(0) as UnitType[];
+export const availableUnits = (data: LocaleData): UnitType[] =>
+  data.indices['unit-id'].keys.slice(0) as UnitType[];
 
 /**
  * Get the display name of a unit.
@@ -33,7 +34,11 @@ export const getUnitDisplayName = (data: LocaleData, name: UnitType, length?: Un
  *
  * @public
  */
-export const formatQuantity = (data: LocaleData, q: Quantity, options?: UnitFormatOptions): string => {
+export const formatQuantity = (
+  data: LocaleData,
+  q: Quantity,
+  options?: UnitFormatOptions,
+): string => {
   options = options || DEFAULT_OPTIONS;
   const params = getNumberParams(data, options.nu);
   return renderUnit(data, stringRenderer(params), q, options, params);
@@ -44,7 +49,11 @@ export const formatQuantity = (data: LocaleData, q: Quantity, options?: UnitForm
  *
  * @public
  */
-export const formatQuantityToParts = (data: LocaleData, q: Quantity, options?: UnitFormatOptions): Part[] => {
+export const formatQuantityToParts = (
+  data: LocaleData,
+  q: Quantity,
+  options?: UnitFormatOptions,
+): Part[] => {
   options = options || DEFAULT_OPTIONS;
   const params = getNumberParams(data, options.nu);
   return renderUnit(data, partsRenderer(params), q, options, params);
@@ -55,7 +64,11 @@ export const formatQuantityToParts = (data: LocaleData, q: Quantity, options?: U
  *
  * @public
  */
-export const formatQuantitySequence = (data: LocaleData, qs: Quantity[], options?: UnitFormatOptions): string => {
+export const formatQuantitySequence = (
+  data: LocaleData,
+  qs: Quantity[],
+  options?: UnitFormatOptions,
+): string => {
   options = options || DEFAULT_OPTIONS;
   const items = qs.map((q) => formatQuantity(data, q, options));
   const type = selectListType(options);

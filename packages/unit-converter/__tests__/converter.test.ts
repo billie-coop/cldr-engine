@@ -1,7 +1,11 @@
+import { type Decimal, decimal, decimalToString, rationalToString } from '@phensley/decimal';
 import {
-  UnitConversion,
+  ACCELERATION,
+  ANGLE,
   convertUnits,
   createUnitConverter,
+  LENGTH,
+  type UnitConversion,
   unitConverterAdd,
   unitConverterCategories,
   unitConverterFactors,
@@ -9,8 +13,6 @@ import {
   unitConverterHas,
   unitFactors,
 } from '../src';
-import { ACCELERATION, ANGLE, LENGTH } from '../src';
-import { Decimal, rationalToString, decimal, decimalToString } from '@phensley/decimal';
 
 test('converter', () => {
   let c = createUnitConverter();
@@ -56,8 +58,14 @@ test('constructor', () => {
   c = unitConverterAdd(c, 'angle', unitFactors(ANGLE));
   c = unitConverterAdd(c, 'angle-2', unitFactors(ANGLE));
   expect(unitConverterHas(c, 'angle')).toEqual(true);
-  expect(unitConverterGet(c, 'angle', 'degree', 'arc-minute')!.path).toEqual(['degree', 'arc-minute']);
-  expect(unitConverterGet(c, 'angle-2', 'degree', 'arc-minute')!.path).toEqual(['degree', 'arc-minute']);
+  expect(unitConverterGet(c, 'angle', 'degree', 'arc-minute')!.path).toEqual([
+    'degree',
+    'arc-minute',
+  ]);
+  expect(unitConverterGet(c, 'angle-2', 'degree', 'arc-minute')!.path).toEqual([
+    'degree',
+    'arc-minute',
+  ]);
 });
 
 test('immutable add and initial categories', () => {

@@ -1,5 +1,5 @@
-import { numbersApi } from '../../_helpers';
 import { formatCurrency } from '../../../src';
+import { numbersApi } from '../../_helpers';
 
 test('cash rounding DKK', () => {
   const api = numbersApi('en');

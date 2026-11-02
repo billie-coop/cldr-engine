@@ -1,7 +1,7 @@
 import * as filepath from 'path';
+import { type DefaultArrayMap, FrequencySet, type StandardOffsetMap } from './types';
 import { TZif } from './tzif';
-import { DefaultArrayMap, FrequencySet, StandardOffsetMap } from './types';
-import { ZoneTabEntry, ZoneTabMap } from './zonetab';
+import type { ZoneTabEntry, ZoneTabMap } from './zonetab';
 
 const MAXLEN = '/* eslint-disable max-len */\n\n';
 

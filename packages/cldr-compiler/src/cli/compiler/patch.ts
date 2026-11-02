@@ -1,8 +1,8 @@
+import { applyOperation, type Operation } from 'fast-json-patch';
 import * as fs from 'fs';
-import * as filepath from 'path';
 import { default as minimatch } from 'minimatch';
+import * as filepath from 'path';
 import * as yaml from 'yaml';
-import { applyOperation, Operation } from 'fast-json-patch';
 
 export interface Patch {
   locales: string;
@@ -23,14 +23,14 @@ export interface PatchFile {
  */
 export const loadPatch = (path: string): PatchFile => {
   const ext = filepath.extname(path);
-  if (ext != '.json' && ext != '.yaml') {
+  if (ext !== '.json' && ext !== '.yaml') {
     throw new Error(`unsupported file type: '${ext}'`);
   }
 
   const raw = fs.readFileSync(path, { encoding: 'utf-8' });
-  const patchfile = (ext == '.yaml' ? yaml.parse(raw) : JSON.parse(raw)) as PatchFile;
+  const patchfile = (ext === '.yaml' ? yaml.parse(raw) : JSON.parse(raw)) as PatchFile;
   const { version, patches } = patchfile;
-  if (version != 1) {
+  if (version !== 1) {
     throw new Error(`unsupported version ${version} in patch ${path}`);
   }
   if (!Array.isArray(patches)) {
@@ -51,7 +51,7 @@ export const applyPatch = (locale: string, doc: any, patchfile: PatchFile) => {
     if (!matchesLocale(locale, patch.locales)) {
       continue;
     }
-    if (patchfile.path != 'internal') {
+    if (patchfile.path !== 'internal') {
       console.warn(`patching:    ${locale} from ${patchfile.path}`);
     }
     for (const op of patch.operations) {

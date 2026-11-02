@@ -1,18 +1,18 @@
 import {
-  Decimal,
-  DecimalFormatter,
-  Part,
+  type Decimal,
+  type DecimalFormatter,
   decimalFormat,
+  type Part,
   partsDecimalFormatter,
   stringDecimalFormatter,
 } from '@phensley/decimal';
 
-import { CurrencySpacingPatterns, NumberParams } from '../../common/private';
-import { NumberField, NumberPattern } from '../../parsing/number';
-import { NumberRenderer } from '../internals';
+import type { CurrencySpacingPatterns, NumberParams } from '../../common/private';
+import { NumberField, type NumberPattern } from '../../parsing/number';
 import { fastFormatDecimal } from '../../systems/numbering/decimal';
-import { AbstractValue, partsValue, stringValue } from '../../utils/render';
+import { type AbstractValue, partsValue, stringValue } from '../../utils/render';
 import { parseWrapper } from '../general/internal';
+import type { NumberRenderer } from '../internals';
 
 /**
  * Renders formatted numbers as strings or parts. The two kinds differ only in how values are
@@ -233,7 +233,11 @@ export const CURRENCY_SPACING_MATCHERS: { [x: string]: (s: string) => boolean } 
   '[[:^S:]&[:^Z:]]': (s: string) => !RE_SYMBOL.test(s),
 };
 
-const insertBetween = (spacing: CurrencySpacingPatterns, currency: string, surrounding: string): boolean => {
+const insertBetween = (
+  spacing: CurrencySpacingPatterns,
+  currency: string,
+  surrounding: string,
+): boolean => {
   return (
     CURRENCY_SPACING_MATCHERS[spacing.currencyMatch](currency) &&
     CURRENCY_SPACING_MATCHERS[spacing.surroundingMatch](surrounding)

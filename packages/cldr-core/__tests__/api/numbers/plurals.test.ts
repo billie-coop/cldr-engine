@@ -1,6 +1,6 @@
 import { decimal } from '@phensley/decimal';
-import { numbersApi } from '../../_helpers';
 import { getPluralCardinal, getPluralOrdinal } from '../../../src';
+import { numbersApi } from '../../_helpers';
 
 test('cardinals', () => {
   // Main test cases are under engine/plurals. These are here to confirm

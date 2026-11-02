@@ -1,5 +1,5 @@
 import {
-  LanguageTag,
+  type LanguageTag,
   languageTag,
   tagCompact,
   tagExtensions,
@@ -13,8 +13,8 @@ import {
   tagVariant,
 } from '@phensley/language-tag';
 import { resolveLanguageTag } from '@phensley/locale';
-import { stringBundle, Bundle, ExceptionIndex } from './bundle';
 import { numarray } from '../utils/string';
+import { type Bundle, type ExceptionIndex, stringBundle } from './bundle';
 
 const enum Chars {
   // Fields in a resource pack are separated by an UNDERSCORE character
@@ -100,7 +100,14 @@ const packScriptGet = (script: PackScript, tag: LanguageTag): Bundle => {
     );
     index = script.cache[region] || decodeRegion(script, region);
   }
-  return stringBundle(tagCompact(tag), tag, script.strings, script.exceptions, index, script.spellout);
+  return stringBundle(
+    tagCompact(tag),
+    tag,
+    script.strings,
+    script.exceptions,
+    index,
+    script.spellout,
+  );
 };
 
 /**

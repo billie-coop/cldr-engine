@@ -1,5 +1,5 @@
-import { numbersApi } from '../../_helpers';
 import { formatDecimal } from '../../../src';
+import { numbersApi } from '../../_helpers';
 
 test('compact rounding up to next divisor', () => {
   const api = numbersApi('en');

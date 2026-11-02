@@ -1,4 +1,4 @@
-import { Day, DayDuration, DayUnit } from './types';
+import type { Day, DayDuration, DayUnit } from './types';
 
 /**
  * Days are stored as their year, month and day, so they read well in logs and JSON. Arithmetic
@@ -9,7 +9,8 @@ import { Day, DayDuration, DayUnit } from './types';
 // Same range as JavaScript Date: +/- 100,000,000 days around 1970-01-01.
 const MAX_EPOCH_DAY = 100000000;
 
-const isInt = (n: unknown): n is number => typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
+const isInt = (n: unknown): n is number =>
+  typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
 
 const floorDiv = (a: number, b: number): number => Math.floor(a / b);
 
@@ -18,7 +19,8 @@ const floorDiv = (a: number, b: number): number => Math.floor(a / b);
  *
  * @public
  */
-export const isLeapYear = (year: number): boolean => (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+export const isLeapYear = (year: number): boolean =>
+  (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
 const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
@@ -45,7 +47,10 @@ const fromEpochDay = (z: number): Day => {
   z += 719468;
   const era = floorDiv(z, 146097);
   const doe = z - era * 146097;
-  const yoe = floorDiv(doe - floorDiv(doe, 1460) + floorDiv(doe, 36524) - floorDiv(doe, 146096), 365);
+  const yoe = floorDiv(
+    doe - floorDiv(doe, 1460) + floorDiv(doe, 36524) - floorDiv(doe, 146096),
+    365,
+  );
   const doy = doe - (365 * yoe + floorDiv(yoe, 4) - floorDiv(yoe, 100));
   const mp = floorDiv(5 * doy + 2, 153);
   const day = doy - floorDiv(153 * mp + 2, 5) + 1;
@@ -385,7 +390,8 @@ export const dayStartOfWeek = (d: Day, firstDay: number): Day => {
  *
  * @public
  */
-export const dayEndOfWeek = (d: Day, firstDay: number): Day => checked(epochOf(dayStartOfWeek(d, firstDay)) + 6);
+export const dayEndOfWeek = (d: Day, firstDay: number): Day =>
+  checked(epochOf(dayStartOfWeek(d, firstDay)) + 6);
 
 /**
  * The first day of the day's month or year.
@@ -423,7 +429,13 @@ export const dayRange = (start: Day, end: Day, step: DayDuration = { days: 1 }):
   const last = epochOf(end);
   const months = intOf(step.years, 'years') * 12 + intOf(step.months, 'months');
   const days = intOf(step.weeks, 'weeks') * 7 + intOf(step.days, 'days');
-  if (!isFinite(months) || !isFinite(days) || months < 0 || days < 0 || (months === 0 && days === 0)) {
+  if (
+    !isFinite(months) ||
+    !isFinite(days) ||
+    months < 0 ||
+    days < 0 ||
+    (months === 0 && days === 0)
+  ) {
     throw new RangeError('Range step must be positive');
   }
   const r: Day[] = [];

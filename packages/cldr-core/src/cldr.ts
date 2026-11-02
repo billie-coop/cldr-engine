@@ -2,28 +2,28 @@
 // functions to a LocaleData. Importing this module pulls in every locale function; use the
 // functions directly (e.g. `formatDecimal(locale, n)`) when bundle size matters.
 
-import { Schema } from '@phensley/cldr-types';
+import type { Schema } from '@phensley/cldr-types';
 import { decimal } from '@phensley/decimal';
 import { parseLanguageTag } from '@phensley/language-tag';
-import { Locale } from '@phensley/locale';
+import type { Locale } from '@phensley/locale';
 
-import { Calendars, General, Numbers, Units } from './api/api';
+import type { Calendars, General, Numbers, Units } from './api/api';
 import * as cal from './api/calendars';
 import * as gen from './api/general';
 import * as num from './api/numbers';
 import * as uni from './api/units';
 import {
+  type CLDROptions,
   createFramework,
+  type Framework,
   frameworkInfo,
   loadLocale,
   loadLocaleAsync,
   resolveLocale,
-  CLDROptions,
-  Framework,
 } from './framework';
 import { getCurrencyForRegion, getCurrencyFractions } from './internals/numbers/util';
-import { LocaleData } from './locale-data';
-import { SchemaConfig } from './schema/code/index';
+import type { LocaleData } from './locale-data';
+import type { SchemaConfig } from './schema/code/index';
 
 /**
  * Interface exporting all functionality for a given locale.
@@ -94,13 +94,16 @@ export const bindCalendars = (data: LocaleData): Calendars => ({
   formatDate: (date, options) => cal.formatDate(data, date, options),
   formatDateToParts: (date, options) => cal.formatDateToParts(data, date, options),
   formatDateInterval: (start, end, options) => cal.formatDateInterval(data, start, end, options),
-  formatDateIntervalToParts: (start, end, options) => cal.formatDateIntervalToParts(data, start, end, options),
-  formatRelativeTimeField: (value, field, options) => cal.formatRelativeTimeField(data, value, field, options),
+  formatDateIntervalToParts: (start, end, options) =>
+    cal.formatDateIntervalToParts(data, start, end, options),
+  formatRelativeTimeField: (value, field, options) =>
+    cal.formatRelativeTimeField(data, value, field, options),
   formatRelativeTime: (start, end, options) => cal.formatRelativeTime(data, start, end, options),
   formatDateRaw: (date, options) => cal.formatDateRaw(data, date, options),
   formatDateRawToParts: (date, options) => cal.formatDateRawToParts(data, date, options),
   formatDateWrapper: (date, time, options) => cal.formatDateWrapper(data, date, time, options),
-  formatDateWrapperToParts: (date, time, options) => cal.formatDateWrapperToParts(data, date, time, options),
+  formatDateWrapperToParts: (date, time, options) =>
+    cal.formatDateWrapperToParts(data, date, time, options),
   now: (zoneId) => cal.now(data, zoneId),
   nowBuddhist: (zoneId) => cal.nowBuddhist(data, zoneId),
   nowGregorian: (zoneId) => cal.nowGregorian(data, zoneId),
@@ -169,7 +172,8 @@ export const bindUnits = (data: LocaleData): Units => ({
   formatQuantity: (q, options) => uni.formatQuantity(data, q, options),
   formatQuantityToParts: (q, options) => uni.formatQuantityToParts(data, q, options),
   formatQuantitySequence: (q, options) => uni.formatQuantitySequence(data, q, options),
-  formatQuantitySequenceToParts: (q, options) => uni.formatQuantitySequenceToParts(data, q, options),
+  formatQuantitySequenceToParts: (q, options) =>
+    uni.formatQuantitySequenceToParts(data, q, options),
 });
 
 /**
@@ -183,7 +187,10 @@ export const bindCLDR = (data: LocaleData): CLDR => {
   // compares and serializes as its data.
   const group = <T>(name: string, bind: (d: LocaleData) => T): void => {
     let value: T | undefined;
-    Object.defineProperty(api, name, { enumerable: false, get: () => value || (value = bind(data)) });
+    Object.defineProperty(api, name, {
+      enumerable: false,
+      get: () => value || (value = bind(data)),
+    });
   };
   group('Calendars', bindCalendars);
   group('General', bindGeneral);
@@ -226,7 +233,10 @@ export interface CLDRFramework {
  *
  * @public
  */
-export const cldrFramework = (options: CLDROptions, defaultConfig?: SchemaConfig): CLDRFramework => {
+export const cldrFramework = (
+  options: CLDROptions,
+  defaultConfig?: SchemaConfig,
+): CLDRFramework => {
   const framework = createFramework(options, defaultConfig);
   return {
     framework,

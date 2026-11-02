@@ -116,7 +116,15 @@ export interface FieldsSpec {
 }
 
 export type Spec =
-  DigitsSpec | PluralSpec | AltSpec | KeysSpec | AltKeysSpec | FieldSpec | FieldsSpec | PluralKeysSpec | PointSpec;
+  | DigitsSpec
+  | PluralSpec
+  | AltSpec
+  | KeysSpec
+  | AltKeysSpec
+  | FieldSpec
+  | FieldsSpec
+  | PluralKeysSpec
+  | PointSpec;
 
 /**
  * Apply the field mapping specs to the object, converting hierarchy of keys
@@ -145,6 +153,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
           const key = `${base}-count-${c}`;
           const pfx = [`${base.length}`, c];
           const v = obj[key];
+          // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
           if (typeof v === undefined) {
             res.push(pfx);
           } else if (typeof v === 'string') {
@@ -161,6 +170,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
         const [key, rkey, c] = keys;
         const v = obj[key];
         const pfx = [rkey, c];
+        // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
         if (typeof v === undefined) {
           res.push(pfx);
         } else if (typeof v === 'string') {
@@ -179,6 +189,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
       const key = spec.field;
       const v = obj[key];
       const pfx = [rkey];
+      // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
       if (typeof v === undefined) {
         res.push(pfx);
       } else if (typeof v === 'string') {
@@ -203,6 +214,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
         }
         const v = obj[key];
         const pfx = [rkey];
+        // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
         if (typeof v === undefined) {
           res.push(pfx);
         } else if (typeof v === 'string') {
@@ -232,6 +244,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
       for (const key of Object.keys(obj)) {
         const pfx = [key];
         const v = obj[key];
+        // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
         if (typeof v === undefined) {
           res.push(pfx);
         } else if (typeof v === 'string') {
@@ -252,6 +265,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
           const [key, rkey, c] = keys;
           const v = obj[key];
           const pfx = [rkey, c];
+          // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
           if (typeof v === undefined) {
             res.push(pfx);
           } else if (typeof v === 'string') {
@@ -273,6 +287,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
       for (const key of normal) {
         const v = obj[key];
         const pfx = [key, 'other'];
+        // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
         if (typeof v === undefined) {
           res.push(pfx);
         } else if (typeof v === 'string') {
@@ -290,6 +305,7 @@ const tabular = (specs: Spec[], obj: any): string[][] => {
           const [key, rkey, c] = keys;
           const v = obj[key];
           const pfx = [rkey, c];
+          // biome-ignore lint/correctness/useValidTypeof: 1.x bug, always false; kept so the packs stay byte-identical
           if (typeof v === undefined) {
             res.push(pfx);
           } else if (typeof v === 'string') {

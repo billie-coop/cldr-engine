@@ -1,7 +1,7 @@
 /// <reference path="../../../typings.d.ts" />
 
 import * as fs from 'fs';
-import * as yargs from 'yargs';
+import type * as yargs from 'yargs';
 
 import { availableLocales, load } from '../../../cldr';
 
@@ -24,7 +24,8 @@ const MAIN = [
   'units',
 ];
 
-const isObject = (o: any): boolean => (typeof o === 'object' ? o !== null && !Array.isArray(o) : false);
+const isObject = (o: any): boolean =>
+  typeof o === 'object' ? o !== null && !Array.isArray(o) : false;
 
 const extractValues = (o: any): string[] => {
   let r: string[] = [];

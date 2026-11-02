@@ -1,10 +1,12 @@
 export {
   isLanguageTag,
+  LanguageTag,
+  LanguageTagField,
   languageTag,
   tagCompact,
   tagExpanded,
-  tagExtensions,
   tagExtensionSubtags,
+  tagExtensions,
   tagExtlangs,
   tagHasLanguage,
   tagHasRegion,
@@ -15,8 +17,6 @@ export {
   tagScript,
   tagToString,
   tagVariant,
-  LanguageTag,
-  LanguageTagField,
 } from './languagetag';
 export { parseLanguageTag } from './parser';
-export { substituteRegionAliases, FastTag } from './util';
+export { FastTag, substituteRegionAliases } from './util';

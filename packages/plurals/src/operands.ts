@@ -1,4 +1,4 @@
-import { Decimal } from '@phensley/decimal';
+import type { Decimal } from '@phensley/decimal';
 
 /**
  * Returns the number of digits in w, where w < RADIX.
@@ -204,4 +204,5 @@ export const numberOperands = (d: Decimal, c: number = 0): NumberOperands => {
  *
  * @public
  */
-export const numberOperandsToString = (o: NumberOperands): string => FIELDS.map((f) => `${f}: ${o[f]}`).join(', ');
+export const numberOperandsToString = (o: NumberOperands): string =>
+  FIELDS.map((f) => `${f}: ${o[f]}`).join(', ');

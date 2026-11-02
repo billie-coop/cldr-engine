@@ -1,5 +1,5 @@
-import { ContextType, NumberSystemCategory, NumberSystemName } from '@phensley/cldr-types';
-import { RoundingModeType } from '@phensley/decimal';
+import type { ContextType, NumberSystemCategory, NumberSystemName } from '@phensley/cldr-types';
+import type { RoundingModeType } from '@phensley/decimal';
 
 /**
  * @public
@@ -40,7 +40,11 @@ export type NumberFormatStyleType = 'decimal' | 'short' | 'long' | 'scientific';
  * @public
  */
 export type DecimalFormatStyleType =
-  NumberFormatStyleType | 'percent' | 'percent-scaled' | 'permille' | 'permille-scaled';
+  | NumberFormatStyleType
+  | 'percent'
+  | 'percent-scaled'
+  | 'permille'
+  | 'permille-scaled';
 
 /**
  * @public

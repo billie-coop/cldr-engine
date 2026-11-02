@@ -1,8 +1,7 @@
-import { calendarsApi } from '../../_helpers';
 import {
-  LocaleData,
-  CalendarDate,
+  type CalendarDate,
   dateToString,
+  type LocaleData,
   now,
   nowBuddhist,
   nowGregorian,
@@ -10,6 +9,7 @@ import {
   nowJapanese,
   nowPersian,
 } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 test('now', () => {
   const zone = 'America/New_York';

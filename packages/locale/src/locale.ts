@@ -1,10 +1,10 @@
 import {
-  parseLanguageTag,
+  type LanguageTag,
   languageTag,
+  parseLanguageTag,
   tagHasLanguage,
   tagHasRegion,
   tagHasScript,
-  LanguageTag,
 } from '@phensley/language-tag';
 import { resolveLanguageTag } from './resolver';
 

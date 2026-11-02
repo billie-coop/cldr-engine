@@ -1,4 +1,4 @@
-import { UnitType } from '@phensley/cldr-types';
+import type { UnitType } from '@phensley/cldr-types';
 import { unitFactors, unitFactorsGet } from '../src';
 
 test('duplicate factors', () => {

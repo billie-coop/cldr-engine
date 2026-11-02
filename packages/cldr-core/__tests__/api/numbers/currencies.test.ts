@@ -1,15 +1,15 @@
-import { ContextType, CurrencyType } from '@phensley/cldr-types';
-import { Part } from '@phensley/decimal';
+import type { ContextType, CurrencyType } from '@phensley/cldr-types';
+import type { Part } from '@phensley/decimal';
 
 import {
-  CurrencyFormatOptions,
-  CurrencyFormatStyleType,
-  getCurrencyForRegion,
-  getCurrencyFractions,
+  type CurrencyFormatOptions,
+  type CurrencyFormatStyleType,
   formatCurrency,
   formatCurrencyToParts,
   formatDecimal,
   getCurrencyDisplayName,
+  getCurrencyForRegion,
+  getCurrencyFractions,
   getCurrencyPluralName,
   getCurrencySymbol,
 } from '../../../src';

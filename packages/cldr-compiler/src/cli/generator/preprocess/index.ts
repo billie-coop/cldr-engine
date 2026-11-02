@@ -1,13 +1,13 @@
 import * as fs from 'fs';
-import * as yargs from 'yargs';
 import { join } from 'path';
+import type * as yargs from 'yargs';
 import { getSupplemental } from '../../../cldr';
 
 import { getCurrencyInfo } from './currency';
 import { getMatching } from './matching';
 import { getMetazones } from './metazones';
-import { getPlurals } from './plurals';
 import { getPluralRanges } from './pluralranges';
+import { getPlurals } from './plurals';
 import { getSubtags } from './subtags';
 import { getSymbols } from './symbols';
 import { getTimeData } from './timedata';
@@ -62,6 +62,8 @@ export const preprocessOptions = (argv: yargs.Argv) =>
     'data',
     'Preprocess data files',
     (y: yargs.Argv) =>
-      y.option('w', { alias: 'which', type: 'array', description: 'Which data' }).choices('w', Object.keys(OUTPUTS)),
+      y
+        .option('w', { alias: 'which', type: 'array', description: 'Which data' })
+        .choices('w', Object.keys(OUTPUTS)),
     run,
   );

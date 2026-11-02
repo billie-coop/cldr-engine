@@ -1,4 +1,4 @@
-import { KeyIndexMap } from '@phensley/cldr-types';
+import type { KeyIndexMap } from '@phensley/cldr-types';
 import { checksumGet, checksumUpdate, createChecksum } from '@phensley/cldr-utils';
 
 /**

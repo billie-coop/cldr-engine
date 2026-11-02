@@ -4,11 +4,11 @@
  * Flattens, filters and normalizes the raw CLDR JSON hierarchy.
  */
 
+import { applyOperation, type Operation } from 'fast-json-patch';
 import * as fs from 'fs';
-import { join, resolve } from 'path';
 import * as L from 'partial.lenses';
+import { join, resolve } from 'path';
 import * as yaml from 'yaml';
-import { applyOperation, Operation } from 'fast-json-patch';
 
 import {
   transformCalendar,
@@ -37,7 +37,8 @@ const _timeZoneNames = ['dates', 'timeZoneNames'];
 
 const _dateFields = ['dates', 'fields'];
 
-const isTimeZone = (o: any) => typeof o === 'object' && (!!o['exemplarCity'] || !!o['short'] || !!o['long']);
+const isTimeZone = (o: any) =>
+  typeof o === 'object' && (!!o['exemplarCity'] || !!o['short'] || !!o['long']);
 
 const isTimeZoneAlias = (o: any) => '_replacement' in o;
 
@@ -296,15 +297,24 @@ const coreCalendarSchema = (name: string) => {
   const intervals = prefix('dateTimeFormats', 'intervalFormats');
 
   return {
-    availableFormats: get([prefix('dateTimeFormats', 'availableFormats'), (o: any) => filterFormats(o, false)]),
-    pluralFormats: get([prefix('dateTimeFormats', 'availableFormats'), (o: any) => filterFormats(o, true)]),
+    availableFormats: get([
+      prefix('dateTimeFormats', 'availableFormats'),
+      (o: any) => filterFormats(o, false),
+    ]),
+    pluralFormats: get([
+      prefix('dateTimeFormats', 'availableFormats'),
+      (o: any) => filterFormats(o, true),
+    ]),
     dateFormats: get([prefix('dateFormats', _sizeProps), getDateFormat]),
     dateSkeletons: get(prefix('dateSkeletons', _sizeProps)),
     dayPeriods: get(prefix('dayPeriods', _formats)),
     dateTimeFormats: get(prefix('dateTimeFormats', _sizeProps)),
     dateTimeFormatsAt: get(prefix('dateTimeFormats-atTime', 'standard', _sizeProps)),
     eras: get([prefix('eras'), fixEras]),
-    intervalFormats: get([L.compose(intervals, L.remove(L.props('intervalFormatFallback'))), fixIntervals]),
+    intervalFormats: get([
+      L.compose(intervals, L.remove(L.props('intervalFormatFallback'))),
+      fixIntervals,
+    ]),
     intervalFormatFallback: get(L.compose(intervals, 'intervalFormatFallback')),
     months: get(prefix('months', _formats)),
     quarters: get(prefix('quarters', _formats)),
@@ -547,8 +557,13 @@ export const load = (path: string, optional = false) => {
  * Flattens and exports the main hierarchy for a given language.
  */
 export const getMain = (language: string, transform: boolean = true) => {
-  const access = (group: any, fileName: string, optional = false, transformer?: (o: any) => any) => {
-    let data = load(`main/${language}/${fileName}`, optional);
+  const access = (
+    group: any,
+    fileName: string,
+    optional = false,
+    transformer?: (o: any) => any,
+  ) => {
+    const data = load(`main/${language}/${fileName}`, optional);
     // CLDR 44 release has at least one error we need to correct before transforming
     // the JSON according to our schema. We patch these errors before processing the
     // JSON documents.
@@ -576,18 +591,38 @@ export const getMain = (language: string, transform: boolean = true) => {
 
     Names: {
       languages: {
-        ...access({ displayName: get(['localeDisplayNames', 'languages']) }, 'languages', false, transformLanguage),
+        ...access(
+          { displayName: get(['localeDisplayNames', 'languages']) },
+          'languages',
+          false,
+          transformLanguage,
+        ),
       },
       scripts: {
-        ...access({ displayName: get(['localeDisplayNames', 'scripts']) }, 'scripts', false, transformScript),
+        ...access(
+          { displayName: get(['localeDisplayNames', 'scripts']) },
+          'scripts',
+          false,
+          transformScript,
+        ),
       },
       regions: {
-        ...access({ displayName: get(['localeDisplayNames', 'territories']) }, 'territories', false, transformRegion),
+        ...access(
+          { displayName: get(['localeDisplayNames', 'territories']) },
+          'territories',
+          false,
+          transformRegion,
+        ),
       },
     },
 
     ...access({ Characters: get(['characters']) }, 'characters'),
-    ...access({ Currencies: get(['numbers', 'currencies']) }, 'currencies', false, transformCurrencies),
+    ...access(
+      { Currencies: get(['numbers', 'currencies']) },
+      'currencies',
+      false,
+      transformCurrencies,
+    ),
     ...access({ ListPatterns: get(['listPatterns', listPattern]) }, 'listPatterns'),
     ...access({ Territories: get(['localeDisplayNames']) }, 'territories'),
 
@@ -659,11 +694,12 @@ export const getExtensions = () => {
 /**
  * Available locales.
  */
-export const availableLocales = () => _availableLocales('modern').filter((v) => v !== 'root' && v !== 'und');
+export const availableLocales = () =>
+  _availableLocales('modern').filter((v) => v !== 'root' && v !== 'und');
 
 const _availableLocales = (_group: string): string[] => {
   const covered = cldrjson('supplemental', 'coverageLevels')['effectiveCoverageLevels'];
-  let locales: string[] = [];
+  const locales: string[] = [];
   for (const id of Object.keys(covered)) {
     if (covered[id] === 'modern') {
       locales.push(id);

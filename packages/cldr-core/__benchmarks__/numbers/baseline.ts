@@ -1,8 +1,8 @@
 /// <reference path="../../../cldr-utils/__benchmarks__/typings.d.ts" />
 
+import { decimal, decimalToString } from '@phensley/decimal';
 import { join } from 'path';
 import { makeSuite, readLines } from '../../../cldr-utils/__benchmarks__/util';
-import { decimal, decimalToString } from '@phensley/decimal';
 
 export const numberFormatBaselineSuite = makeSuite('Number Format Baseline');
 

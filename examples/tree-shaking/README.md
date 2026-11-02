@@ -4,7 +4,7 @@ Small entry points that use one area of the library, bundled with rollup + terse
 with the same usage against 1.x.
 
 ```bash
-pnpm build                                          # build lib-es for every package
+yarn build                                          # build lib-es for every package
 node examples/tree-shaking/measure.mjs --v1 <path>  # <path>: a built 1.x checkout (v1.16.0)
 ```
 

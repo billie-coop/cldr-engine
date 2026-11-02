@@ -1,6 +1,9 @@
+import type {
+  DateFieldType,
+  DateFieldWidthType,
+  RelativeTimeFieldType,
+} from '@phensley/cldr-types';
 import { keyIndex } from '../instructions';
-
-import { DateFieldType, DateFieldWidthType, RelativeTimeFieldType } from '@phensley/cldr-types';
 
 /**
  * @public

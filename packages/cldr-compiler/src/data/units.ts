@@ -1,4 +1,4 @@
-import { applyMappings, Mapping, Mappings } from './utils';
+import { applyMappings, type Mapping, Mappings } from './utils';
 
 const widths = ['long', 'short', 'narrow'];
 
@@ -7,7 +7,10 @@ const mappings: Mapping[] = [
   Mappings.fields(widths).keys().field('displayName').remap(0, 2, 1, 3),
   Mappings.fields(widths).keys().field('perUnitPattern').remap(0, 2, 1, 3),
   Mappings.fields(widths).field('per').field('compoundUnitPattern', 'perPattern').remap(0, 2, 3),
-  Mappings.fields(widths).field('times').field('compoundUnitPattern', 'timesPattern').remap(0, 2, 3),
+  Mappings.fields(widths)
+    .field('times')
+    .field('compoundUnitPattern', 'timesPattern')
+    .remap(0, 2, 3),
   Mappings.point('unitIds').field('names').keys().point('1').remap(0, 2, 3),
 ];
 

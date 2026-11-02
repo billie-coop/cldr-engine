@@ -1,6 +1,6 @@
-import { languageTag, LanguageTag } from './languagetag';
-import { replaceRegion, stringToObject } from './util';
 import * as subtags from './autogen.subtags';
+import { type LanguageTag, languageTag } from './languagetag';
+import { replaceRegion, stringToObject } from './util';
 
 // Subtag separator
 const SEP = '-';

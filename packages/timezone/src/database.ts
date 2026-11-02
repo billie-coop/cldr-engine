@@ -1,5 +1,5 @@
 import { binarySearch } from '@phensley/cldr-utils';
-import { RawData, ZoneInfo, ZoneMeta } from './types';
+import type { RawData, ZoneInfo, ZoneMeta } from './types';
 
 /**
  * A single local time type of a zone: abbreviation, dst flag and UTC offset.
@@ -246,7 +246,12 @@ const recordFromWall = (rec: ZoneRecord, wall: number): [number, ZoneInfoRec] =>
  *
  * @internal
  */
-export const tzdbLookup = (db: TzDatabase, id: string, t: number, isutc: boolean): [number, ZoneInfo] | undefined => {
+export const tzdbLookup = (
+  db: TzDatabase,
+  id: string,
+  t: number,
+  isutc: boolean,
+): [number, ZoneInfo] | undefined => {
   const rec = tzdbRecord(db, id);
   if (rec) {
     const [zoneid, r] = rec;

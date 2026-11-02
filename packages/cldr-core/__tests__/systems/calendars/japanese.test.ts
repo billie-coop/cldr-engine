@@ -1,5 +1,3 @@
-import { DayOfWeek } from '../../../src/systems/calendars/fields';
-import { JapaneseDate } from '../../../src/systems/calendars/japanese';
 import {
   dateEra,
   dateExtendedYear,
@@ -9,6 +7,8 @@ import {
   dateYear,
   japaneseDateFromUnixEpoch,
 } from '../../../src';
+import { DayOfWeek } from '../../../src/systems/calendars/fields';
+import type { JapaneseDate } from '../../../src/systems/calendars/japanese';
 
 const make = (e: number, z: string) => japaneseDateFromUnixEpoch(e, z, DayOfWeek.SUNDAY, 1);
 

@@ -1,7 +1,8 @@
 import {
-  DecimalArg,
+  type DecimalArg,
   DecimalConstants,
-  Rational,
+  decimal,
+  type Rational,
   rational,
   rationalAdd,
   rationalCompare,
@@ -12,7 +13,6 @@ import {
   rationalSubtract,
   rationalToDecimal,
   rationalToString,
-  decimal,
 } from '../src';
 
 const rat = (a: DecimalArg, b: DecimalArg): Rational => rational(a, b);
@@ -50,7 +50,9 @@ test('divide', () => {
 test('add', () => {
   expect(rationalAdd(parse('1 / 5'), '1 / 4')).toEqual(parse('9 / 20'));
   expect(rationalAdd(parse('1 / 5'), 1)).toEqual(parse('6 / 5'));
-  expect(rationalCompare(rationalAdd(rationalMultiply(parse('273.15'), '9 / 5'), '-459.67'), '32 / 1')).toEqual(0);
+  expect(
+    rationalCompare(rationalAdd(rationalMultiply(parse('273.15'), '9 / 5'), '-459.67'), '32 / 1'),
+  ).toEqual(0);
   expect(rationalCompare(rationalAdd(parse('1 / 3'), '1 / 3'), '2 / 3')).toEqual(0);
 });
 

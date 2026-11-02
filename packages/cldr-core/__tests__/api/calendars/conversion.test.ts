@@ -1,8 +1,5 @@
-import { calendarsApi } from '../../_helpers';
-
 import {
-  CalendarDate,
-  GregorianDate,
+  type CalendarDate,
   dateDayOfMonth,
   dateHour,
   dateHourOfDay,
@@ -15,8 +12,10 @@ import {
   dateUnixEpoch,
   dateWithZone,
   dateYear,
+  type GregorianDate,
   toGregorianDate,
 } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 const NEW_YORK = 'America/New_York';
 const LOS_ANGELES = 'America/Los_Angeles';

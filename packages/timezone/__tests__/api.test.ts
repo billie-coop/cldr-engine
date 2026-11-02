@@ -1,5 +1,5 @@
+import { tzFromUTC, tzResolveId, tzUtcZone, tzZoneIds, type ZoneInfo } from '../src';
 import { Timestamp } from './_helpers';
-import { ZoneInfo, tzFromUTC, tzResolveId, tzUtcZone, tzZoneIds } from '../src';
 
 const OCT272019_010000 = new Timestamp(1572138000000);
 

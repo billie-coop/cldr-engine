@@ -1,12 +1,21 @@
-import { DigitsArrow, FieldArrow, ScopeArrow, Vector1Arrow, Vector2Arrow, Vector3Arrow } from './arrows';
-
-import { DateTimePatternFieldType, EraWidthType, FormatWidthType } from './calendars';
-
-import { DateFieldType, DateFieldWidthType, RelativeTimeFieldType } from './datefields';
-
-import { ListPatternPositionType } from './general';
-
-import {
+import type {
+  DigitsArrow,
+  FieldArrow,
+  ScopeArrow,
+  Vector1Arrow,
+  Vector2Arrow,
+  Vector3Arrow,
+} from './arrows';
+import type { ContextTransformFieldType } from './autogen.context';
+import type { CurrencyType } from './autogen.currencies';
+import type { LanguageIdType, RegionIdType, ScriptIdType } from './autogen.identifiers';
+import type { MetaZoneType } from './autogen.timezones';
+import type { UnitType } from './autogen.units';
+import type { DateTimePatternFieldType, EraWidthType, FormatWidthType } from './calendars';
+import type { DateFieldType, DateFieldWidthType, RelativeTimeFieldType } from './datefields';
+import type { ListPatternPositionType } from './general';
+import type { AltType, DayPeriodAltType, EraAltType, PluralType } from './misc';
+import type {
   CurrencySpacingPattern,
   CurrencySpacingPos,
   NumberMiscPatternType,
@@ -14,14 +23,6 @@ import {
   NumberSystemCategory,
   NumberSystemName,
 } from './numbers';
-
-import { LanguageIdType, RegionIdType, ScriptIdType } from './autogen.identifiers';
-import { ContextTransformFieldType } from './autogen.context';
-import { CurrencyType } from './autogen.currencies';
-import { MetaZoneType } from './autogen.timezones';
-import { UnitType } from './autogen.units';
-
-import { AltType, DayPeriodAltType, EraAltType, PluralType } from './misc';
 
 // CALENDARS
 

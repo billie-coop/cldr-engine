@@ -1,19 +1,19 @@
 /// <reference path="../../../cldr-utils/__benchmarks__/typings.d.ts" />
 
-import { Suite } from 'benchmark';
+import type { Suite } from 'benchmark';
 import { makeSuite } from '../../../cldr-utils/__benchmarks__/util';
 import { calendarsApi } from '../../__tests__/_helpers';
+import type { RelativeTimeFormatOptions } from '../../lib';
 import {
-  LocaleData,
-  DateFormatOptions,
-  TimePeriod,
+  type DateFormatOptions,
   dateAdd,
   dateUnixEpoch,
-  gregorianDateFromUnixEpoch,
   formatDate,
   formatRelativeTime,
+  gregorianDateFromUnixEpoch,
+  type LocaleData,
+  type TimePeriod,
 } from '../../src';
-import { RelativeTimeFormatOptions } from '../../lib';
 
 const BUNDLES: { [x: string]: LocaleData } = {
   en: calendarsApi('en'),

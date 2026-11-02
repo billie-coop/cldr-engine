@@ -1,5 +1,5 @@
-import { generalApi } from '../../_helpers';
 import { characterOrder, lineOrder } from '../../../src';
+import { generalApi } from '../../_helpers';
 
 test('character order', () => {
   let api = generalApi('en');

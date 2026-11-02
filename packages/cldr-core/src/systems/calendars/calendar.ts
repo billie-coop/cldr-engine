@@ -1,14 +1,19 @@
-import { DateTimePatternField, DateTimePatternFieldType, MetaZoneType } from '@phensley/cldr-types';
+import {
+  DateTimePatternField,
+  type DateTimePatternFieldType,
+  type MetaZoneType,
+} from '@phensley/cldr-types';
 import { getTZC } from '../../internals/calendars/zoneutil';
 import { INTERNAL_NUMBERING, numberingFormatString } from '../numbering/decimal';
 import { CalendarConstants } from './constants';
 import { newDate } from './core';
 import { DateField } from './fields';
 import { gregorianCalendar } from './gregorian';
-import { TimePeriodField } from './interval';
-import { CalendarDate, CalendarDateFields, CalendarType } from './types';
+import type { TimePeriodField } from './interval';
+import type { CalendarDate, CalendarDateFields, CalendarType } from './types';
 
-const zeropad = (n: number, w: number): string => numberingFormatString(INTERNAL_NUMBERING, n, false, w);
+const zeropad = (n: number, w: number): string =>
+  numberingFormatString(INTERNAL_NUMBERING, n, false, w);
 
 /**
  * @public
@@ -85,7 +90,12 @@ const { floor } = Math;
 /**
  * @internal
  */
-export type CalendarFromUnixEpoch<T> = (epoch: number, zoneId: string, firstDay: number, minDays: number) => T;
+export type CalendarFromUnixEpoch<T> = (
+  epoch: number,
+  zoneId: string,
+  firstDay: number,
+  minDays: number,
+) => T;
 
 const differenceFields: [number, DateTimePatternFieldType][] = [
   [DateField.ERA, DateTimePatternField.ERA],
@@ -126,7 +136,8 @@ export const dateToLocalISOString = (d: CalendarDate): string => toISOString(d, 
  *
  * @public
  */
-export const dateUnixEpoch = (d: CalendarDate): number => d.fields[DateField.LOCAL_MILLIS] - d.zoneInfo.offset;
+export const dateUnixEpoch = (d: CalendarDate): number =>
+  d.fields[DateField.LOCAL_MILLIS] - d.zoneInfo.offset;
 
 /**
  * First day of week.
@@ -193,7 +204,8 @@ export const dateRelatedYear = (d: CalendarDate): number =>
  *
  * @public
  */
-export const dateYearOfWeekOfYear = (d: CalendarDate): number => weekOfYear(d, d.firstDay, d.minDays)[1];
+export const dateYearOfWeekOfYear = (d: CalendarDate): number =>
+  weekOfYear(d, d.firstDay, d.minDays)[1];
 
 /**
  * Week of year.
@@ -279,7 +291,8 @@ export const dateOrdinalDayOfWeek = (d: CalendarDate): number => {
  *
  * @public
  */
-export const dateDayOfWeekInMonth = (d: CalendarDate): number => (((d.fields[DateField.DAY_OF_MONTH] - 1) / 7) | 0) + 1;
+export const dateDayOfWeekInMonth = (d: CalendarDate): number =>
+  (((d.fields[DateField.DAY_OF_MONTH] - 1) / 7) | 0) + 1;
 
 /**
  * Day of month.
@@ -344,7 +357,8 @@ export const dateMillisecondsInDay = (d: CalendarDate): number => d.fields[DateF
  *
  * @public
  */
-export const dateMetaZoneId = (d: CalendarDate): MetaZoneType => d.zoneInfo.metazoneid as MetaZoneType;
+export const dateMetaZoneId = (d: CalendarDate): MetaZoneType =>
+  d.zoneInfo.metazoneid as MetaZoneType;
 
 /**
  * Timezone identifier.
@@ -593,7 +607,13 @@ export const dateEndOf = (d: CalendarDate, field: CalendarDateModFields): Calend
 };
 
 const toISOString = (d: CalendarDate, utc: boolean): string => {
-  const g = newDate(gregorianCalendar, dateUnixEpoch(d), utc ? 'Etc/UTC' : d.zoneInfo.zoneid, d.firstDay, d.minDays);
+  const g = newDate(
+    gregorianCalendar,
+    dateUnixEpoch(d),
+    utc ? 'Etc/UTC' : d.zoneInfo.zoneid,
+    d.firstDay,
+    d.minDays,
+  );
   let z = 'Z';
   if (!utc) {
     const o = (d.zoneInfo.offset / CalendarConstants.ONE_MINUTE_MS) | 0;

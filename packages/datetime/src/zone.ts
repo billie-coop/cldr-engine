@@ -1,7 +1,7 @@
 import { tzFromUTC, tzResolveId } from '@phensley/timezone';
 import { dayFromEpochDay, dayToEpochDay } from './day';
 import { timeOfDayFromMillis, timeOfDayToMillis } from './time-of-day';
-import { Day, Disambiguation, Instant, TimeOfDay } from './types';
+import type { Day, Disambiguation, Instant, TimeOfDay } from './types';
 
 /**
  * The only functions that take a time zone. Everything else in this package is plain integer
@@ -42,7 +42,8 @@ export const checkInstant = (instant: Instant): void => {
  */
 export const timeZoneId = (zone: string): string => {
   // The tz data indexes canonical spellings, aliases and their lower case forms.
-  const id = typeof zone === 'string' ? tzResolveId(zone) || tzResolveId(zone.toLowerCase()) : undefined;
+  const id =
+    typeof zone === 'string' ? tzResolveId(zone) || tzResolveId(zone.toLowerCase()) : undefined;
   if (!id) {
     throw new RangeError(`Unknown time zone: ${JSON.stringify(zone)}`);
   }
@@ -176,7 +177,12 @@ const result = (t: number): Instant => {
  *
  * @public
  */
-export const dayAtTime = (d: Day, time: TimeOfDay, zone: string, options?: DayAtTimeOptions): Instant =>
+export const dayAtTime = (
+  d: Day,
+  time: TimeOfDay,
+  zone: string,
+  options?: DayAtTimeOptions,
+): Instant =>
   result(
     wallToInstant(
       dayToEpochDay(d) * MS_PER_DAY + timeOfDayToMillis(time),

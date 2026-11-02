@@ -1,4 +1,4 @@
-import { ZoneMeta, tzZoneMeta } from '../src';
+import { tzZoneMeta, type ZoneMeta } from '../src';
 
 test('standard offset', () => {
   let r: ZoneMeta | undefined;
@@ -29,7 +29,20 @@ test('standard offset', () => {
   expect(r.stdoffset).toEqual(0);
   expect(r.latitude).toEqual(5.316667);
   expect(r.longitude).toEqual(-4.033333);
-  expect(r.countries).toEqual(['CI', 'BF', 'GH', 'GM', 'GN', 'IS', 'ML', 'MR', 'SH', 'SL', 'SN', 'TG']);
+  expect(r.countries).toEqual([
+    'CI',
+    'BF',
+    'GH',
+    'GM',
+    'GN',
+    'IS',
+    'ML',
+    'MR',
+    'SH',
+    'SL',
+    'SN',
+    'TG',
+  ]);
 
   r = tzZoneMeta('CET')!;
   expect(r.zoneid).toEqual('Europe/Brussels');

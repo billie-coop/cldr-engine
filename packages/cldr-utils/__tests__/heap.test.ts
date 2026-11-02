@@ -1,5 +1,5 @@
-import { RandString } from './rng';
 import { createHeap, heapEmpty, heapPop, heapPush } from '../src';
+import { RandString } from './rng';
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz';
 

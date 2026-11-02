@@ -14,7 +14,14 @@ export const enum DecimalFlag {
  *
  * @public
  */
-export type RoundingModeType = 'up' | 'down' | 'ceiling' | 'floor' | 'half-up' | 'half-down' | 'half-even';
+export type RoundingModeType =
+  | 'up'
+  | 'down'
+  | 'ceiling'
+  | 'floor'
+  | 'half-up'
+  | 'half-down'
+  | 'half-even';
 
 /**
  * Sets the scale or precision, and the rounding mode for a math operation.

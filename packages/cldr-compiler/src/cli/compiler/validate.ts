@@ -1,5 +1,5 @@
+import type { SchemaConfig } from '@phensley/cldr-core';
 import DEFAULT_CONFIG from './config.json';
-import { SchemaConfig } from '@phensley/cldr-core';
 
 const LIM = 10;
 

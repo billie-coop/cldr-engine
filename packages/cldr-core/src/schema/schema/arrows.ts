@@ -1,4 +1,4 @@
-import {
+import type {
   DigitsArrow,
   FieldArrow,
   KeyIndex,
@@ -23,7 +23,11 @@ export const fieldArrow = (offset: number): FieldArrow => ({ kind: 'field', offs
 const isArrow = (x: any): boolean => x !== null && typeof x === 'object';
 
 const isKeyIndex = (x: any): boolean =>
-  isArrow(x) && isArrow(x.index) && Array.isArray(x.keys) && typeof x.size === 'number' && typeof x.last === 'number';
+  isArrow(x) &&
+  isArrow(x.index) &&
+  Array.isArray(x.keys) &&
+  typeof x.size === 'number' &&
+  typeof x.last === 'number';
 
 /**
  * @public
@@ -36,12 +40,16 @@ export const isFieldArrow = (x: any): x is FieldArrow =>
  *
  * @public
  */
-export const fieldGet = (arrow: FieldArrow, bundle: PrimitiveBundle): string => bundleGet(bundle, arrow.offset);
+export const fieldGet = (arrow: FieldArrow, bundle: PrimitiveBundle): string =>
+  bundleGet(bundle, arrow.offset);
 
 /**
  * @public
  */
-export const scopeArrow = <T extends string, R>(map: { [P in T]: R }): ScopeArrow<T, R> => ({ kind: 'scope', map });
+export const scopeArrow = <T extends string, R>(map: { [P in T]: R }): ScopeArrow<T, R> => ({
+  kind: 'scope',
+  map,
+});
 
 /**
  * @public
@@ -54,7 +62,8 @@ export const isScopeArrow = (x: any): x is ScopeArrow<any, any> =>
  *
  * @public
  */
-export const scopeGet = <T extends string, R>(arrow: ScopeArrow<T, R>, key: T): R | undefined => arrow.map[key];
+export const scopeGet = <T extends string, R>(arrow: ScopeArrow<T, R>, key: T): R | undefined =>
+  arrow.map[key];
 
 /**
  * Special vector to store a pluralized number pattern and its divisor together.
@@ -183,7 +192,11 @@ export const vectorExists = (arrow: VectorArrowBase, bundle: PrimitiveBundle): b
  *
  * @public
  */
-export function vectorGet<T extends string>(arrow: Vector1Arrow<T>, bundle: PrimitiveBundle, key: T | T[]): string;
+export function vectorGet<T extends string>(
+  arrow: Vector1Arrow<T>,
+  bundle: PrimitiveBundle,
+  key: T | T[],
+): string;
 /** @public */
 export function vectorGet<T extends string, S extends string>(
   arrow: Vector2Arrow<T, S>,
@@ -218,7 +231,10 @@ export function vectorGet(arrow: VectorArrowBase, bundle: PrimitiveBundle, ...ke
  *
  * @public
  */
-export function vectorMapping<T extends string>(arrow: Vector1Arrow<T>, bundle: PrimitiveBundle): { [P in T]: string };
+export function vectorMapping<T extends string>(
+  arrow: Vector1Arrow<T>,
+  bundle: PrimitiveBundle,
+): { [P in T]: string };
 /** @public */
 export function vectorMapping<T extends string, S extends string>(
   arrow: Vector2Arrow<T, S>,
@@ -260,7 +276,13 @@ const vectorIndex = (arrow: VectorArrowBase, keys: Key[], ix: number, k: number)
   return -1;
 };
 
-const vectorLookup = (arrow: VectorArrowBase, bundle: PrimitiveBundle, keys: Key[], ix: number, k: number): string => {
+const vectorLookup = (
+  arrow: VectorArrowBase,
+  bundle: PrimitiveBundle,
+  keys: Key[],
+  ix: number,
+  k: number,
+): string => {
   const key = keys[ix];
   const args = typeof key === 'string' ? [key] : key;
   const last = args.length - 1;
@@ -273,8 +295,9 @@ const vectorLookup = (arrow: VectorArrowBase, bundle: PrimitiveBundle, keys: Key
       return '';
     }
     const kk = k + j * arrow.factors[ix];
-    const val = ix === arrow.last ? bundleGet(bundle, kk) : vectorLookup(arrow, bundle, keys, ix + 1, kk);
-    if (!!val) {
+    const val =
+      ix === arrow.last ? bundleGet(bundle, kk) : vectorLookup(arrow, bundle, keys, ix + 1, kk);
+    if (val) {
       return val;
     }
   }

@@ -1,22 +1,22 @@
 import commonjs from '@rollup/plugin-commonjs';
-import filesize from "rollup-plugin-filesize";
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
+import filesize from 'rollup-plugin-filesize';
 
 const libName = 'cldrengine';
-const isProd = process.env.NODE_ENV == 'production';
+const isProd = process.env.NODE_ENV === 'production';
 
 const plugins = [
   json({
     jsnext: true,
     compact: true,
     preferConst: true,
-    namedExports: true
+    namedExports: true,
   }),
   resolve({
     mainFields: ['module'],
-    extension: ['.js', '.json']
+    extension: ['.js', '.json'],
   }),
   commonjs({
     extensions: ['.json', '.js'],
@@ -24,16 +24,20 @@ const plugins = [
 ];
 
 if (isProd) {
-  plugins.push(terser({
-    output: {
-      ecma: 5
-    }
-  }));
+  plugins.push(
+    terser({
+      output: {
+        ecma: 5,
+      },
+    }),
+  );
 }
 
-plugins.push(filesize({
-  showBrotliSize: true
-}));
+plugins.push(
+  filesize({
+    showBrotliSize: true,
+  }),
+);
 
 const tasks = [
   {

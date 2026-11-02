@@ -1,8 +1,14 @@
 import { tzFromWall } from '@phensley/timezone';
 import { dateFromFields, dateFromUnixEpoch, isCalendarDate } from './core';
-import { daysInMonth, initGregorianFields, leapGregorian, monthStart, ymdToJD } from './gregorianmath';
+import {
+  daysInMonth,
+  initGregorianFields,
+  leapGregorian,
+  monthStart,
+  ymdToJD,
+} from './gregorianmath';
 import { unixEpochFromJD, wallTimeToMillis } from './math';
-import { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
+import type { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
 
 /**
  * A date in the Gregorian calendar (or one of the calendars built on it).

@@ -1,18 +1,17 @@
-import { Part } from '@phensley/decimal';
-
-import { languageBundle, unitsApi } from '../../_helpers';
+import type { Part } from '@phensley/decimal';
 import {
-  Quantity,
-  UnitFormatOptions,
-  vectorGet,
-  fieldGet,
   availableUnits,
+  fieldGet,
   formatQuantity,
   formatQuantitySequence,
   formatQuantitySequenceToParts,
   formatQuantityToParts,
   getUnitDisplayName,
+  type Quantity,
+  type UnitFormatOptions,
+  vectorGet,
 } from '../../../src';
+import { languageBundle, unitsApi } from '../../_helpers';
 
 test('available units', () => {
   const api = unitsApi('en');
@@ -128,7 +127,11 @@ test('per unit', () => {
   s = formatQuantity(api, { value: '17.9887', unit: 'terabit', per: 'minute' });
   expect(s).toEqual('17.989 terabits per minute');
 
-  s = formatQuantity(api, { value: '17.9887', unit: 'terabit', per: 'minute' }, { length: 'narrow' });
+  s = formatQuantity(
+    api,
+    { value: '17.9887', unit: 'terabit', per: 'minute' },
+    { length: 'narrow' },
+  );
   expect(s).toEqual('17.989Tb/min');
 
   s = formatQuantity(api, { value: '30.7899', unit: 'kilogram', per: 'lux' });
@@ -283,13 +286,21 @@ test('format string', () => {
   s = formatQuantity(api, { value: '123', unit: 'meter' });
   expect(s).toEqual('123 meters');
 
-  s = formatQuantity(api, { value: '12345', unit: 'meter' }, { style: 'long', minimumFractionDigits: 1 });
+  s = formatQuantity(
+    api,
+    { value: '12345', unit: 'meter' },
+    { style: 'long', minimumFractionDigits: 1 },
+  );
   expect(s).toEqual('12.3 thousand meters');
 
   s = formatQuantity(api, { value: '1', unit: 'pound' }, { style: 'long' });
   expect(s).toEqual('1 pound');
 
-  s = formatQuantity(api, { value: '1', unit: 'pound' }, { style: 'long', minimumFractionDigits: 1 });
+  s = formatQuantity(
+    api,
+    { value: '1', unit: 'pound' },
+    { style: 'long', minimumFractionDigits: 1 },
+  );
   expect(s).toEqual('1.0 pounds');
 
   s = formatQuantity(
@@ -346,7 +357,11 @@ test('format parts', () => {
     { type: 'literal', value: ' per hour' },
   ]);
 
-  p = formatQuantityToParts(api, { value: '123', unit: 'meter', per: 'hour' }, { length: 'narrow' });
+  p = formatQuantityToParts(
+    api,
+    { value: '123', unit: 'meter', per: 'hour' },
+    { length: 'narrow' },
+  );
   expect(p).toEqual([
     { type: 'integer', value: '123' },
     { type: 'literal', value: 'm' },

@@ -1,5 +1,5 @@
-import { makeSuite } from './util';
 import { checksumGet, checksumUpdate, createChecksum } from '../src';
+import { makeSuite } from './util';
 
 export const fnv1aSuite = makeSuite('FNV1a');
 

@@ -1,7 +1,20 @@
-import { parseLanguageTag, languageTag, tagExpanded, tagExtensions, tagRegion } from '@phensley/language-tag';
-import { LanguageTag, Locale, LocaleMatch, LocaleMatcher, createLocaleMatcher, matchLocale } from '../src';
-import { loadMatchCases } from './util';
+import {
+  languageTag,
+  parseLanguageTag,
+  tagExpanded,
+  tagExtensions,
+  tagRegion,
+} from '@phensley/language-tag';
+import {
+  createLocaleMatcher,
+  type LanguageTag,
+  type Locale,
+  type LocaleMatch,
+  type LocaleMatcher,
+  matchLocale,
+} from '../src';
 import { parse, sortEntries } from '../src/matcher';
+import { loadMatchCases } from './util';
 
 test('basics', () => {
   const matcher = createLocaleMatcher('en, en_GB, zh, pt_AR, es-419');
@@ -128,7 +141,9 @@ test('constructor args', () => {
   expect(tagExpanded(m.locale.tag)).toEqual('en-Latn-US');
 
   // Disable alias substitution
-  matcher = createLocaleMatcher([{ id: 'en', tag: parseLanguageTag('eng-Latn-US') }], { resolve: false });
+  matcher = createLocaleMatcher([{ id: 'en', tag: parseLanguageTag('eng-Latn-US') }], {
+    resolve: false,
+  });
   m = matchLocale(matcher, 'en');
   expect(tagExpanded(m.locale.tag)).toEqual('eng-Latn-US');
 });

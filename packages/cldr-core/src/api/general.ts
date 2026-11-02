@@ -1,9 +1,14 @@
-import { AltType, CharacterOrderType, ContextType, LineOrderType, Vector2Arrow } from '@phensley/cldr-types';
-import { createMessageFormatter, MessageFormatter, MessageFormatterOptions } from '@phensley/messageformat';
-import { Part } from '@phensley/decimal';
+import type {
+  AltType,
+  CharacterOrderType,
+  ContextType,
+  LineOrderType,
+  Vector2Arrow,
+} from '@phensley/cldr-types';
+import type { Part } from '@phensley/decimal';
 import {
+  type LanguageTag,
   parseLanguageTag,
-  LanguageTag,
   tagHasLanguage,
   tagHasRegion,
   tagHasScript,
@@ -11,10 +16,20 @@ import {
   tagRegion,
   tagScript,
 } from '@phensley/language-tag';
-import { DisplayNameOptions, ListPatternType, MeasurementCategory, MeasurementSystem } from '../common/general';
-import { LocaleData } from '../locale-data';
+import {
+  createMessageFormatter,
+  type MessageFormatter,
+  type MessageFormatterOptions,
+} from '@phensley/messageformat';
+import type {
+  DisplayNameOptions,
+  ListPatternType,
+  MeasurementCategory,
+  MeasurementSystem,
+} from '../common/general';
 import { resolveLocale } from '../framework';
 import { contextTransform, formatListValue } from '../internals/general/internal';
+import type { LocaleData } from '../locale-data';
 import { fieldGet, vectorGet } from '../schema/schema/arrows';
 import { partsValue, stringValue } from '../utils/render';
 import { getContextTransformInfo } from './private/api';
@@ -27,7 +42,11 @@ type LanguageTagFunc = (t: LanguageTag) => string;
 const F_LANG_REGION = (t: LanguageTag): string => `${tagLanguage(t)}-${tagRegion(t)}`;
 const F_LANG_SCRIPT = (t: LanguageTag): string => `${tagLanguage(t)}-${tagScript(t)}`;
 
-const LANGUAGE_FUNCS: LanguageTagFunc[] = [F_LANG_REGION, F_LANG_SCRIPT, (t: LanguageTag): string => tagLanguage(t)];
+const LANGUAGE_FUNCS: LanguageTagFunc[] = [
+  F_LANG_REGION,
+  F_LANG_SCRIPT,
+  (t: LanguageTag): string => tagLanguage(t),
+];
 
 /**
  * Returns the character order for the current locale, e.g. "ltr" for left-to-right
@@ -52,8 +71,10 @@ export const lineOrder = (data: LocaleData): LineOrderType =>
  *
  * @public
  */
-export const messageFormatter = (data: LocaleData, options?: MessageFormatterOptions): MessageFormatter =>
-  createMessageFormatter({ ...options, plurals: data.plurals });
+export const messageFormatter = (
+  data: LocaleData,
+  options?: MessageFormatterOptions,
+): MessageFormatter => createMessageFormatter({ ...options, plurals: data.plurals });
 
 /**
  * Returns the measurement system in use for the current locale generally,
@@ -61,7 +82,10 @@ export const messageFormatter = (data: LocaleData, options?: MessageFormatterOpt
  *
  * @public
  */
-export const measurementSystem = (data: LocaleData, category?: MeasurementCategory): MeasurementSystem => {
+export const measurementSystem = (
+  data: LocaleData,
+  category?: MeasurementCategory,
+): MeasurementSystem => {
   const region = data.region;
   switch (category) {
     case 'temperature':
@@ -102,7 +126,11 @@ export const formatList = (data: LocaleData, items: string[], type?: ListPattern
  *
  * @public
  */
-export const formatListToParts = (data: LocaleData, items: string[], type?: ListPatternType): Part[] => {
+export const formatListToParts = (
+  data: LocaleData,
+  items: string[],
+  type?: ListPatternType,
+): Part[] => {
   const parts: Part[][] = items.map((i) => [{ type: 'item', value: i }]);
   return formatListValue(data, partsValue(), parts, type || 'and');
 };
@@ -223,10 +251,13 @@ const getVectorAlt = <T extends string>(
   arrow: Vector2Arrow<AltType, T>,
   code: string,
   type: AltType,
-): string => vectorGet(arrow, data, type, code as unknown as T) || vectorGet(arrow, data, 'none', code as unknown as T);
+): string =>
+  vectorGet(arrow, data, type, code as unknown as T) ||
+  vectorGet(arrow, data, 'none', code as unknown as T);
 
 // Default an options context value
-const _ctx = (o: DisplayNameOptions): ContextType => _def(o, 'context', 'begin-sentence' as ContextType);
+const _ctx = (o: DisplayNameOptions): ContextType =>
+  _def(o, 'context', 'begin-sentence' as ContextType);
 
 // Default an option value
 const _def = <O, K extends keyof O, T>(o: O, k: K, t: T): T => (o[k] as unknown as T) || t;

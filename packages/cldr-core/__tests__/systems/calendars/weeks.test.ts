@@ -1,6 +1,3 @@
-import { GregorianDate } from '../../../src/systems/calendars';
-import { DayOfWeek } from '../../../src/systems/calendars/fields';
-import { NEW_YORK } from './_referencedates';
 import {
   dateAdd,
   dateSubtract,
@@ -11,6 +8,9 @@ import {
   dateYearOfWeekOfYearISO,
   gregorianDateFromUnixEpoch,
 } from '../../../src';
+import type { GregorianDate } from '../../../src/systems/calendars';
+import { DayOfWeek } from '../../../src/systems/calendars/fields';
+import { NEW_YORK } from './_referencedates';
 
 const make = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, DayOfWeek.SUNDAY, 1);
 

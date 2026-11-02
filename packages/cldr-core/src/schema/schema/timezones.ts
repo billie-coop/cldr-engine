@@ -1,6 +1,6 @@
-import { MetaZoneType } from '@phensley/cldr-types';
-import { MetaZoneValues, TimeZoneStableIds } from './autogen.timezones';
+import type { MetaZoneType } from '@phensley/cldr-types';
 import { keyIndex } from '../instructions';
+import { MetaZoneValues, TimeZoneStableIds } from './autogen.timezones';
 
 /**
  * @public

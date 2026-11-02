@@ -1,8 +1,8 @@
 /// <reference path="../../../cldr-utils/__benchmarks__/typings.d.ts" />
 
+import { decimal } from '@phensley/decimal';
 import { join } from 'path';
 import { makeSuite, readLines } from '../../../cldr-utils/__benchmarks__/util';
-import { decimal } from '@phensley/decimal';
 
 export const numberParseSuite = makeSuite('Number Parse');
 

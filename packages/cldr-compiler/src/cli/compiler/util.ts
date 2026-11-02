@@ -1,7 +1,7 @@
+import { type Locale, resolveLanguageTag, tagLanguage } from '@phensley/cldr-core';
 import * as fs from 'fs';
 import { join } from 'path';
 import { availableLocales } from '../../cldr';
-import { Locale, resolveLanguageTag, tagLanguage } from '@phensley/cldr-core';
 
 /**
  * Write data to a file.

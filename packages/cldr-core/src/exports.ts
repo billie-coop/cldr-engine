@@ -19,8 +19,7 @@ export {
   ScriptIdType,
   UnitType,
 } from '@phensley/cldr-types';
-
-export * from './schema';
+export * from '@phensley/datetime';
 
 export * from '@phensley/decimal';
 
@@ -35,5 +34,4 @@ export * from '@phensley/messageformat';
 export * from '@phensley/plurals';
 
 export { ZoneInfo } from '@phensley/timezone';
-
-export * from '@phensley/datetime';
+export * from './schema';

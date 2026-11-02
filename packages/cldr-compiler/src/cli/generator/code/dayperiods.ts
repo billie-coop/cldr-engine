@@ -1,7 +1,15 @@
-import { Code, HEADER } from './util';
 import { getSupplemental } from '../../../cldr';
+import { Code, HEADER } from './util';
 
-const KEYS: string[] = ['afternoon1', 'evening1', 'midnight', 'morning1', 'morning2', 'night1', 'noon'];
+const KEYS: string[] = [
+  'afternoon1',
+  'evening1',
+  'midnight',
+  'morning1',
+  'morning2',
+  'night1',
+  'noon',
+];
 
 const INDEX = KEYS.reduce((o: any, k: string, i: number) => {
   o[k] = i;

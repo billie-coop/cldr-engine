@@ -1,8 +1,14 @@
-import { Decimal, DecimalConstants, decimalCompare, decimalSubtract } from '@phensley/decimal';
-import { PluralRules, pluralCardinal, pluralOrdinal } from '@phensley/plurals';
-import { MessageArg, MessageArgs, MessageNamedArgs } from './args';
-import { MessageArgConverter } from './converter';
-import { Argument, MessageCode, MessageOpType, PluralChoiceType, PluralNumberType } from '../parser';
+import { type Decimal, DecimalConstants, decimalCompare, decimalSubtract } from '@phensley/decimal';
+import { type PluralRules, pluralCardinal, pluralOrdinal } from '@phensley/plurals';
+import {
+  type Argument,
+  type MessageCode,
+  MessageOpType,
+  PluralChoiceType,
+  PluralNumberType,
+} from '../parser';
+import type { MessageArg, MessageArgs, MessageNamedArgs } from './args';
+import type { MessageArgConverter } from './converter';
 
 /**
  * User-defined message formatter function.
@@ -41,7 +47,13 @@ const argRef = (key: Argument): string => `{${key}}`;
 
 // Save a bit of processing of common exact matches
 const exact = (n: string): Decimal | undefined =>
-  n === '0' ? DecimalConstants.ZERO : n === '1' ? DecimalConstants.ONE : n === '2' ? DecimalConstants.TWO : undefined;
+  n === '0'
+    ? DecimalConstants.ZERO
+    : n === '1'
+      ? DecimalConstants.ONE
+      : n === '2'
+        ? DecimalConstants.TWO
+        : undefined;
 
 /**
  * Inputs to the evaluation of one message.

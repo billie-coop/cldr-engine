@@ -1,23 +1,26 @@
 import {
-  parseMessagePattern,
-  stickyRegexp,
-  MessageCode,
+  type MessageCode,
   MessageOpType,
   PluralChoiceType,
   PluralNumberType,
+  parseMessagePattern,
   stickyMatcher,
+  stickyRegexp,
 } from '../src';
 
 const NAMES = ['decimal', 'number'];
 
 const matcher = () => stickyMatcher(NAMES, stickyRegexp);
 
-const parse = (s: string, disableEscapes?: boolean) => parseMessagePattern(s, matcher(), disableEscapes);
+const parse = (s: string, disableEscapes?: boolean) =>
+  parseMessagePattern(s, matcher(), disableEscapes);
 
 test('basic', () => {
   let c: MessageCode;
 
-  c = parse('{name} {height , select , tall {is tall} short {is short} mid {is of average height}}');
+  c = parse(
+    '{name} {height , select , tall {is tall} short {is short} mid {is of average height}}',
+  );
   expect(c).toEqual([
     MessageOpType.BLOCK,
     [
@@ -210,7 +213,10 @@ test('arg substitution interior', () => {
           MessageOpType.BLOCK,
           [
             [MessageOpType.TEXT, ' '],
-            [MessageOpType.BLOCK, [[MessageOpType.TEXT, 'A '], [MessageOpType.ARGSUB], [MessageOpType.TEXT, ' B']]],
+            [
+              MessageOpType.BLOCK,
+              [[MessageOpType.TEXT, 'A '], [MessageOpType.ARGSUB], [MessageOpType.TEXT, ' B']],
+            ],
             [MessageOpType.TEXT, ' '],
           ],
         ],

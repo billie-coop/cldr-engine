@@ -1,26 +1,4 @@
 import {
-  CalendarDate,
-  DecimalConstants,
-  PersianDate,
-  buildMessageMatcher,
-  getCurrencyForRegion,
-  getCurrencyFractions,
-  parseMessagePattern,
-  decimal,
-  decimalToString,
-  rational,
-  rationalToDecimal,
-  languageTag,
-  tagLanguage,
-  tagRegion,
-  tagScript,
-  createLocaleMatcher,
-  matchLocale,
-  getPluralRules,
-  pluralCardinal,
-  defaultMessageArgConverter,
-} from '../src';
-import {
   buddhistDateFromUnixEpoch,
   dateType,
   dateYear,
@@ -29,6 +7,28 @@ import {
   japaneseDateFromUnixEpoch,
   persianDateFromUnixEpoch,
 } from '@phensley/cldr-core';
+import {
+  buildMessageMatcher,
+  type CalendarDate,
+  createLocaleMatcher,
+  DecimalConstants,
+  decimal,
+  decimalToString,
+  defaultMessageArgConverter,
+  getCurrencyForRegion,
+  getCurrencyFractions,
+  getPluralRules,
+  languageTag,
+  matchLocale,
+  type PersianDate,
+  parseMessagePattern,
+  pluralCardinal,
+  rational,
+  rationalToDecimal,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+} from '../src';
 
 // These tests are simply to ensure that all top-level exported symbols are present and functional.
 
@@ -53,11 +53,36 @@ test('plural rules', () => {
 });
 
 test('currency fractions', () => {
-  expect(getCurrencyFractions('AUD')).toEqual({ cashDigits: 2, cashRounding: 0, digits: 2, rounding: 0 });
-  expect(getCurrencyFractions('CAD')).toEqual({ cashDigits: 2, cashRounding: 5, digits: 2, rounding: 0 });
-  expect(getCurrencyFractions('JPY')).toEqual({ cashDigits: 0, cashRounding: 0, digits: 0, rounding: 0 });
-  expect(getCurrencyFractions('USD')).toEqual({ cashDigits: 2, cashRounding: 0, digits: 2, rounding: 0 });
-  expect(getCurrencyFractions('FOO')).toEqual({ cashDigits: 2, cashRounding: 0, digits: 2, rounding: 0 });
+  expect(getCurrencyFractions('AUD')).toEqual({
+    cashDigits: 2,
+    cashRounding: 0,
+    digits: 2,
+    rounding: 0,
+  });
+  expect(getCurrencyFractions('CAD')).toEqual({
+    cashDigits: 2,
+    cashRounding: 5,
+    digits: 2,
+    rounding: 0,
+  });
+  expect(getCurrencyFractions('JPY')).toEqual({
+    cashDigits: 0,
+    cashRounding: 0,
+    digits: 0,
+    rounding: 0,
+  });
+  expect(getCurrencyFractions('USD')).toEqual({
+    cashDigits: 2,
+    cashRounding: 0,
+    digits: 2,
+    rounding: 0,
+  });
+  expect(getCurrencyFractions('FOO')).toEqual({
+    cashDigits: 2,
+    cashRounding: 0,
+    digits: 2,
+    rounding: 0,
+  });
 });
 
 test('currency regions', () => {

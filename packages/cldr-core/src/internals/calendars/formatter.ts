@@ -1,8 +1,8 @@
-import { CalendarSchema, ContextType, TimeZoneSchema } from '@phensley/cldr-types';
-import { LocaleData } from '../../locale-data';
-import { CalendarDate } from '../../systems/calendars/types';
-import { ContextTransformInfo, NumberingSystem } from '../../common/private';
-import { DateFormatAltOptions } from '../../common/calendars';
+import type { CalendarSchema, ContextType, TimeZoneSchema } from '@phensley/cldr-types';
+import type { DateFormatAltOptions } from '../../common/calendars';
+import type { ContextTransformInfo, NumberingSystem } from '../../common/private';
+import type { LocaleData } from '../../locale-data';
+import type { CalendarDate } from '../../systems/calendars/types';
 
 /**
  * All context needed for a single format operation.

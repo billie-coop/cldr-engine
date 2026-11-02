@@ -1,5 +1,5 @@
+import { tzFromUTC, type ZoneInfo } from '../src';
 import { Timestamp } from './_helpers';
-import { ZoneInfo, tzFromUTC } from '../src';
 
 // See tz 2022b NEWS. Several zones whose timestamps since 1970 are
 // duplicates have been moved to the backzone file and replaced

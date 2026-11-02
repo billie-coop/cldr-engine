@@ -1,10 +1,10 @@
 import {
-  GregorianDate,
   dateAdd,
   dateSubtract,
   dateTimeZoneOffset,
   dateToString,
   dateUnixEpoch,
+  type GregorianDate,
   gregorianDateFromUnixEpoch,
 } from '../../../src';
 import { NEW_YORK } from './_referencedates';

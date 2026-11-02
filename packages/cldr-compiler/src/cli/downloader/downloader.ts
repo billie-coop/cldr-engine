@@ -1,10 +1,9 @@
+import chalk from 'chalk';
 import * as fs from 'fs';
+import fetch, { type Response } from 'node-fetch';
+import * as filepath from 'path';
 import * as tar from 'tar';
 import * as zlib from 'zlib';
-import * as filepath from 'path';
-
-import chalk from 'chalk';
-import fetch, { Response } from 'node-fetch';
 
 /*
  * Replacement for 'cldr-data-downloader'
@@ -139,9 +138,11 @@ export class Downloader {
     }
 
     // Write output
-    entry.pipe(fs.createWriteStream(filepath.join(DATAROOT, path), { encoding: 'utf-8' })).on('error', (e: Error) => {
-      error(`failure writing entry ${path}: ${e}`);
-    });
+    entry
+      .pipe(fs.createWriteStream(filepath.join(DATAROOT, path), { encoding: 'utf-8' }))
+      .on('error', (e: Error) => {
+        error(`failure writing entry ${path}: ${e}`);
+      });
   }
 
   private loadstate(): State {

@@ -1,5 +1,13 @@
+import {
+  dayPeriods,
+  type EraWidthType,
+  eras,
+  type FieldWidthType,
+  months,
+  quarters,
+  weekdays,
+} from '../../../src';
 import { calendarsApi } from '../../_helpers';
-import { EraWidthType, FieldWidthType, dayPeriods, eras, months, quarters, weekdays } from '../../../src';
 
 test('era', () => {
   const en = calendarsApi('en');

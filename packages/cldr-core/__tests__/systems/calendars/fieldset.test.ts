@@ -1,8 +1,6 @@
 import { RNG } from '../../../../cldr-utils/__tests__/rng';
 import {
-  BuddhistDate,
-  GregorianDate,
-  PersianDate,
+  type BuddhistDate,
   buddhistDateFromUnixEpoch,
   dateCompare,
   dateFields,
@@ -10,8 +8,10 @@ import {
   dateToISOString,
   dateToString,
   dateWithZone,
+  type GregorianDate,
   gregorianDateFromFields,
   gregorianDateFromUnixEpoch,
+  type PersianDate,
   persianDateFromUnixEpoch,
 } from '../../../src';
 
@@ -46,7 +46,7 @@ test('leap', () => {
 });
 
 test('gregorian fields', () => {
-  let d1 = gregorianDateFromUnixEpoch(APR_03_2020, 'America/New_York');
+  const d1 = gregorianDateFromUnixEpoch(APR_03_2020, 'America/New_York');
   expect(dateToString(d1)).toEqual('Gregorian 2020-04-03 14:08:52.123 America/New_York');
   expect(dateToISOString(d1)).toEqual('2020-04-03T18:08:52.123Z');
   expect(dateFields(d1)).toEqual({
@@ -61,7 +61,7 @@ test('gregorian fields', () => {
   });
 
   // Round-trip from fields to obtain idential value
-  let d2 = gregorianDateFromFields(dateFields(d1));
+  const d2 = gregorianDateFromFields(dateFields(d1));
   expect(dateToString(d2)).toEqual('Gregorian 2020-04-03 14:08:52.123 America/New_York');
   expect(dateToISOString(d2)).toEqual('2020-04-03T18:08:52.123Z');
 });
@@ -78,21 +78,39 @@ test('gregorian set field', () => {
   );
 
   // Moving month backwards into DST
-  expect(dateToString(dateSet(d, { month: 2 }))).toEqual('Gregorian 2020-02-03 14:08:52.123 America/New_York');
-  expect(dateToString(dateSet(d, { month: 0 }))).toEqual('Gregorian 2020-01-03 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: 2 }))).toEqual(
+    'Gregorian 2020-02-03 14:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { month: 0 }))).toEqual(
+    'Gregorian 2020-01-03 14:08:52.123 America/New_York',
+  );
 
   // Clamp invalid month to 1 <= m <= 12
-  expect(dateToString(dateSet(d, { month: -5 }))).toEqual('Gregorian 2020-01-03 14:08:52.123 America/New_York');
-  expect(dateToString(dateSet(d, { month: 24 }))).toEqual('Gregorian 2020-12-03 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: -5 }))).toEqual(
+    'Gregorian 2020-01-03 14:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { month: 24 }))).toEqual(
+    'Gregorian 2020-12-03 14:08:52.123 America/New_York',
+  );
 
   // Clamp invalid day to 1 <= day <= (days in month)
-  expect(dateToString(dateSet(d, { day: -60 }))).toEqual('Gregorian 2020-04-01 14:08:52.123 America/New_York');
-  expect(dateToString(dateSet(d, { day: 60 }))).toEqual('Gregorian 2020-04-30 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { day: -60 }))).toEqual(
+    'Gregorian 2020-04-01 14:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { day: 60 }))).toEqual(
+    'Gregorian 2020-04-30 14:08:52.123 America/New_York',
+  );
 
   // Clamp hour, minute, second, millis to 0 <= n <= 60
-  expect(dateToString(dateSet(d, { hour: 10 }))).toEqual('Gregorian 2020-04-03 10:08:52.123 America/New_York');
-  expect(dateToString(dateSet(d, { hour: -10 }))).toEqual('Gregorian 2020-04-03 00:08:52.123 America/New_York');
-  expect(dateToString(dateSet(d, { hour: 0 }))).toEqual('Gregorian 2020-04-03 00:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { hour: 10 }))).toEqual(
+    'Gregorian 2020-04-03 10:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { hour: -10 }))).toEqual(
+    'Gregorian 2020-04-03 00:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { hour: 0 }))).toEqual(
+    'Gregorian 2020-04-03 00:08:52.123 America/New_York',
+  );
 
   // Gregorian cutover
   expect(dateToString(dateSet(d, { year: 1582, month: 10, day: 3 }))).toEqual(
@@ -123,7 +141,9 @@ test('gregorian set field', () => {
   );
 
   // Set to invalid zone
-  expect(dateToString(dateSet(d, { zoneId: 'ZZZ' }))).toEqual('Gregorian 2020-04-03 14:08:52.123 Etc/UTC');
+  expect(dateToString(dateSet(d, { zoneId: 'ZZZ' }))).toEqual(
+    'Gregorian 2020-04-03 14:08:52.123 Etc/UTC',
+  );
 });
 
 test('buddhist fields', () => {
@@ -171,18 +191,30 @@ test('persian set field', () => {
   let d: PersianDate;
 
   d = persianDateFromUnixEpoch(APR_03_2020, 'America/New_York', 1, 1);
-  expect(dateToString(dateSet(d, { year: 1997, day: 20 }))).toEqual('Persian 1997-01-20 13:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { year: 1997, day: 20 }))).toEqual(
+    'Persian 1997-01-20 13:08:52.123 America/New_York',
+  );
 
   // Clamp invalid month to 1 <= m <= 12
-  expect(dateToString(dateSet(d, { month: -5 }))).toEqual('Persian 1399-01-15 14:08:52.123 America/New_York');
-  expect(dateToString(dateSet(d, { month: 24 }))).toEqual('Persian 1399-12-15 13:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { month: -5 }))).toEqual(
+    'Persian 1399-01-15 14:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { month: 24 }))).toEqual(
+    'Persian 1399-12-15 13:08:52.123 America/New_York',
+  );
 
   // Clamp invalid day to 1 <= day <= (days in month)
-  expect(dateToString(dateSet(d, { day: -60 }))).toEqual('Persian 1399-01-01 14:08:52.123 America/New_York');
-  expect(dateToString(dateSet(d, { day: 60 }))).toEqual('Persian 1399-01-31 14:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { day: -60 }))).toEqual(
+    'Persian 1399-01-01 14:08:52.123 America/New_York',
+  );
+  expect(dateToString(dateSet(d, { day: 60 }))).toEqual(
+    'Persian 1399-01-31 14:08:52.123 America/New_York',
+  );
 
   // Time calculation is shared with Gregorian so this is sufficient
-  expect(dateToString(dateSet(d, { hour: 5 }))).toEqual('Persian 1399-01-15 05:08:52.123 America/New_York');
+  expect(dateToString(dateSet(d, { hour: 5 }))).toEqual(
+    'Persian 1399-01-15 05:08:52.123 America/New_York',
+  );
 
   // Just change zone
   expect(dateToString(dateWithZone(dateSet(d, {}), 'America/Los_Angeles'))).toEqual(

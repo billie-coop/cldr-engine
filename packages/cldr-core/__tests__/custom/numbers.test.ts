@@ -1,5 +1,5 @@
-import { numbersApi } from '../_helpers';
 import { formatDecimal } from '../../src';
+import { numbersApi } from '../_helpers';
 
 test('custom number system', () => {
   const api = numbersApi('en', { ['number-system-name']: ['arabext'] });

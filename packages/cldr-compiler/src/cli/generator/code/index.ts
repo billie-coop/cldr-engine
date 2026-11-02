@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import { join } from 'path';
-import * as yargs from 'yargs';
-import { Code } from './util';
-
+import type * as yargs from 'yargs';
 import { getAliases } from './aliases';
 import { getCalendarPrefs } from './calendar';
 import { getConfig } from './config';
@@ -13,13 +11,14 @@ import { getDistance } from './distance';
 import { getIdentifiers } from './identifiers';
 import { getLocale } from './locale';
 import { getPartition } from './partition';
-import { getPlurals } from './plurals';
 import { getPluralRanges } from './pluralranges';
+import { getPlurals } from './plurals';
 import { getRBNF } from './rbnf';
 import { getSubtags } from './subtags';
 import { getSystems } from './systems';
 import { getTimeData } from './timedata';
 import { getUnits } from './units';
+import type { Code } from './util';
 import { getWeekData } from './weekdata';
 import { getZones } from './zones';
 

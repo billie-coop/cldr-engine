@@ -1,10 +1,10 @@
-import { languageBundle } from '../../_helpers';
+import { decimal } from '@phensley/decimal';
 
 import { getNumberParams } from '../../../src/api/private/numbers';
 import { getNumberPattern } from '../../../src/internals/numbers/internal';
 import { RE_DIGIT, RE_SYMBOL, stringRenderer } from '../../../src/internals/numbers/render';
-import { NumberPattern } from '../../../src/parsing/number';
-import { decimal } from '@phensley/decimal';
+import type { NumberPattern } from '../../../src/parsing/number';
+import { languageBundle } from '../../_helpers';
 
 test('number renderer', () => {
   const en = languageBundle('en');

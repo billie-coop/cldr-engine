@@ -91,6 +91,7 @@ export interface Vector2Arrow<T extends string, S extends string> extends Vector
  *
  * @public
  */
-export interface Vector3Arrow<T extends string, S extends string, U extends string> extends VectorArrowBase {
+export interface Vector3Arrow<T extends string, S extends string, U extends string>
+  extends VectorArrowBase {
   readonly keysets: readonly [KeyIndex<T>, KeyIndex<S>, KeyIndex<U>];
 }

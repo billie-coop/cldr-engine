@@ -1,11 +1,11 @@
 import { Temporal } from '@js-temporal/polyfill';
 import {
-  CalendarDate,
-  TimePeriod,
+  type CalendarDate,
   dateAdd,
   dateToDateTimeString,
   dateUnixEpoch,
   gregorianDateFromUnixEpoch,
+  type TimePeriod,
 } from '../../../src';
 import {
   APR_02_2000,
@@ -292,7 +292,11 @@ test('addition temporal compat general', () => {
     [JAN_01_2000, { year: -29, month: -29 }, '1968-08-01 12:30:00-04:00'],
     [JAN_01_2000, { day: -1001 }, '1997-04-05 12:30:00-05:00'],
     [JAN_01_2000, { year: -109, second: -9 }, '1891-01-01 12:29:51-05:00'],
-    [JAN_01_2000, { hour: -97, minute: -97, second: -97, millis: -97 }, '1999-12-28 09:51:22.903-05:00'],
+    [
+      JAN_01_2000,
+      { hour: -97, minute: -97, second: -97, millis: -97 },
+      '1999-12-28 09:51:22.903-05:00',
+    ],
 
     // Spring DST boundary 2025
     [MAR_09_2025, { minute: 0 }, '2025-03-09 01:59:00-05:00'],
@@ -327,10 +331,10 @@ const checkCases = (cases: TestCase[], datefunc: DateFunc) => {
   for (const [index, [epoch, added, expected]] of enumerate(cases)) {
     const temp1 = Temporal.Instant.fromEpochMilliseconds(epoch).toZonedDateTimeISO(NY);
     const cldr1 = datefunc(epoch, NY);
-    let temp2 = temp1.add(periodToDurationLike(added));
-    let cldr2 = dateAdd(cldr1, added);
+    const temp2 = temp1.add(periodToDurationLike(added));
+    const cldr2 = dateAdd(cldr1, added);
 
-    let msg = `case ${index} ${JSON.stringify(added)}`;
+    const msg = `case ${index} ${JSON.stringify(added)}`;
     if (expected !== undefined) {
       // Optional comparison to a known string for sanity-checking
       expect(cldrstr(cldr2), msg).toEqual(expected);

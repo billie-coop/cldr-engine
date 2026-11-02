@@ -33,9 +33,17 @@ const mappings = [
     .digits()
     .remap(0, 1, 2, 3, 6, 5, 7),
 
-  Mappings.field('numberSystem').keys().field('currencyFormats').plural('unitPattern').remap(0, 1, 2, 3, 4, 5),
+  Mappings.field('numberSystem')
+    .keys()
+    .field('currencyFormats')
+    .plural('unitPattern')
+    .remap(0, 1, 2, 3, 4, 5),
 
-  Mappings.field('numberSystem').keys().field('decimalFormats').field('standard').remap(0, 1, 2, 3, 4),
+  Mappings.field('numberSystem')
+    .keys()
+    .field('decimalFormats')
+    .field('standard')
+    .remap(0, 1, 2, 3, 4),
 
   Mappings.field('numberSystem')
     .keys()

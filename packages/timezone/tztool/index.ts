@@ -1,11 +1,10 @@
-import * as yargs from 'yargs';
 import * as fs from 'fs';
 import * as filepath from 'path';
-
-import { TZif } from './tzif';
-import { setupTZDB } from './tzdb';
-import { parseZIC } from './zic';
+import * as yargs from 'yargs';
 import { encodeZones } from './encode';
+import { setupTZDB } from './tzdb';
+import { TZif } from './tzif';
+import { parseZIC } from './zic';
 import { parseZoneTab } from './zonetab';
 
 const VERSION = '2025b';

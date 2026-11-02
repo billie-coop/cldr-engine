@@ -1,8 +1,9 @@
-import { TimeOfDay } from './types';
+import type { TimeOfDay } from './types';
 
 const MS_PER_DAY = 86400000;
 
-const isInt = (n: unknown): n is number => typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
+const isInt = (n: unknown): n is number =>
+  typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
 
 const valid = (h: number, m: number, s: number, ms: number): boolean =>
   isInt(h) &&
@@ -24,7 +25,12 @@ const valid = (h: number, m: number, s: number, ms: number): boolean =>
  *
  * @public
  */
-export const timeOfDay = (hour: number, minute: number = 0, second: number = 0, millis: number = 0): TimeOfDay => {
+export const timeOfDay = (
+  hour: number,
+  minute: number = 0,
+  second: number = 0,
+  millis: number = 0,
+): TimeOfDay => {
   if (!valid(hour, minute, second, millis)) {
     throw new RangeError(`Invalid time of day: ${hour}:${minute}:${second}.${millis}`);
   }
@@ -73,7 +79,9 @@ export const timeOfDayToMillis = (t: TimeOfDay): number => millisOf(t);
  */
 export const timeOfDayFromMillis = (ms: number): TimeOfDay => {
   if (!isInt(ms) || ms < 0 || ms >= MS_PER_DAY) {
-    throw new RangeError(`Milliseconds since midnight must be an integer from 0 to 86399999: ${ms}`);
+    throw new RangeError(
+      `Milliseconds since midnight must be an integer from 0 to 86399999: ${ms}`,
+    );
   }
   const millis = ms % 1000;
   const s = (ms - millis) / 1000;

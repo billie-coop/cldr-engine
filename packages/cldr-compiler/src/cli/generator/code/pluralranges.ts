@@ -1,4 +1,4 @@
-import { formatSource, Code, HEADER } from './util';
+import { Code, formatSource, HEADER } from './util';
 
 const encode = (data: any) => {
   if (typeof data === 'number') {

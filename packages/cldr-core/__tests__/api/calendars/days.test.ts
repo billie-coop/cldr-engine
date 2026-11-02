@@ -47,9 +47,13 @@ test('format day', () => {
 test('format day interval', () => {
   const en = calendarsApi('en');
   expect(formatDayInterval(en, day(2026, 1, 1), DUE)).toEqual('Jan 1\u2009–\u200931, 2026');
-  expect(formatDayInterval(en, day(2025, 12, 15), DUE)).toEqual('Dec 15, 2025\u2009–\u2009Jan 31, 2026');
+  expect(formatDayInterval(en, day(2025, 12, 15), DUE)).toEqual(
+    'Dec 15, 2025\u2009–\u2009Jan 31, 2026',
+  );
   expect(formatDayInterval(en, DUE, DUE)).toEqual('Jan 31, 2026');
-  expect(formatDayInterval(en, day(2026, 1, 1), DUE, { skeleton: 'MMMd' })).toEqual('Jan 1\u2009–\u200931');
+  expect(formatDayInterval(en, day(2026, 1, 1), DUE, { skeleton: 'MMMd' })).toEqual(
+    'Jan 1\u2009–\u200931',
+  );
   expect(formatDayInterval(calendarsApi('de'), day(2026, 1, 1), DUE)).toEqual('1.–31. Jan. 2026');
   expect(
     formatDayIntervalToParts(en, day(2026, 1, 1), DUE)
@@ -95,9 +99,15 @@ test('format day relative', () => {
 test('format instant', () => {
   const en = calendarsApi('en');
   const t = Date.UTC(2026, 0, 31, 17);
-  expect(formatInstant(en, t, 'America/Vancouver', { datetime: 'medium' })).toEqual('Jan 31, 2026, 9:00:00\u202fAM');
-  expect(formatInstant(en, t, 'Asia/Tokyo', { datetime: 'medium' })).toEqual('Feb 1, 2026, 2:00:00\u202fAM');
-  expect(formatInstant(en, t, 'America/Vancouver', { skeleton: 'MMMdjmz' })).toEqual('Jan 31, 9:00\u202fAM PST');
+  expect(formatInstant(en, t, 'America/Vancouver', { datetime: 'medium' })).toEqual(
+    'Jan 31, 2026, 9:00:00\u202fAM',
+  );
+  expect(formatInstant(en, t, 'Asia/Tokyo', { datetime: 'medium' })).toEqual(
+    'Feb 1, 2026, 2:00:00\u202fAM',
+  );
+  expect(formatInstant(en, t, 'America/Vancouver', { skeleton: 'MMMdjmz' })).toEqual(
+    'Jan 31, 9:00\u202fAM PST',
+  );
   expect(
     formatInstantToParts(en, t, 'UTC', { skeleton: 'Hm' })
       .map((p) => p.value)
@@ -114,8 +124,12 @@ test('format instant', () => {
 
 test('locale week start', () => {
   const wed = day(2026, 1, 28);
-  expect(dayToString(dayStartOfWeek(wed, firstDayOfWeek(calendarsApi('en-US'))))).toEqual('2026-01-25');
-  expect(dayToString(dayStartOfWeek(wed, firstDayOfWeek(calendarsApi('de-DE'))))).toEqual('2026-01-26');
+  expect(dayToString(dayStartOfWeek(wed, firstDayOfWeek(calendarsApi('en-US'))))).toEqual(
+    '2026-01-25',
+  );
+  expect(dayToString(dayStartOfWeek(wed, firstDayOfWeek(calendarsApi('de-DE'))))).toEqual(
+    '2026-01-26',
+  );
 });
 
 test('invalid values, unsupported days and foreign skeleton fields throw', () => {
@@ -124,7 +138,9 @@ test('invalid values, unsupported days and foreign skeleton fields throw', () =>
   expect(() => formatDay(en, bad)).toThrow(RangeError);
   expect(() => formatDayInterval(en, day(2026, 2, 1), bad)).toThrow(RangeError);
   expect(() => formatDayRelative(en, bad, DUE)).toThrow(RangeError);
-  expect(() => formatTimeOfDay(en, { hour: 24, minute: 0, second: 0, millis: 0 })).toThrow(RangeError);
+  expect(() => formatTimeOfDay(en, { hour: 24, minute: 0, second: 0, millis: 0 })).toThrow(
+    RangeError,
+  );
 
   // The shared calendar formatter uses the Julian calendar before the 1582 reform.
   expect(formatDay(en, day(1582, 10, 15), { date: 'full' })).toEqual('Friday, October 15, 1582');

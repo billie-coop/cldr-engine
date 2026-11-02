@@ -1,5 +1,6 @@
-import { KeyIndex, KeyIndexMap } from '@phensley/cldr-types';
-import { keyIndex, origin, Origin } from '../instructions';
+import type { KeyIndex, KeyIndexMap } from '@phensley/cldr-types';
+import { keyIndex, type Origin, origin } from '../instructions';
+import { AltIndex, DayPeriodAltIndex, EraAltIndex, PluralIndex } from '../schema/enums';
 import {
   BUDDHIST,
   BUDDHIST_INDICES,
@@ -18,7 +19,6 @@ import { NAMES } from './names';
 import { NUMBERS, NUMBERS_INDICES } from './numbers';
 import { TIMEZONE, TIMEZONE_INDICES } from './timezones';
 import { UNITS } from './units';
-import { AltIndex, DayPeriodAltIndex, EraAltIndex, PluralIndex } from '../schema/enums';
 
 const EMPTY_INDEX = /*#__PURE__*/ keyIndex([]);
 
@@ -115,7 +115,14 @@ export interface SchemaConfig {
 
 type SchemaConfigKey = keyof SchemaConfig;
 
-const COPY: SchemaConfigKey[] = ['currency-id', 'language-id', 'script-id', 'region-id', 'unit-id', 'timezone-id'];
+const COPY: SchemaConfigKey[] = [
+  'currency-id',
+  'language-id',
+  'script-id',
+  'region-id',
+  'unit-id',
+  'timezone-id',
+];
 
 /**
  * Creates the origin of the code that builds the schema accessor for a config: the schema

@@ -1,5 +1,5 @@
-import { generalApi } from '../../_helpers';
 import { formatList, formatListToParts } from '../../../src';
+import { generalApi } from '../../_helpers';
 
 const ZERO: string[] = [];
 const ONE = ['1'];

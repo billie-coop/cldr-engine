@@ -1,6 +1,6 @@
-import { MessageArg, formatMessage, messageFormatterToString } from '@phensley/messageformat';
-import { generalApi } from '../../_helpers';
+import { formatMessage, type MessageArg, messageFormatterToString } from '@phensley/messageformat';
 import { messageFormatter } from '../../../src';
+import { generalApi } from '../../_helpers';
 
 const formatters = {
   foo: (args: MessageArg[], options: string[]): string =>

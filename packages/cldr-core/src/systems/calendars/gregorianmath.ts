@@ -102,7 +102,8 @@ export const computeJulianFields = (f: number[]): void => {
 /**
  * Returns the number of days in the given month for the given year. The month must be 0-based.
  */
-export const daysInMonth = (y: number, m: number): number => MONTH_COUNT[m][leapGregorian(y) ? 1 : 0];
+export const daysInMonth = (y: number, m: number): number =>
+  MONTH_COUNT[m][leapGregorian(y) ? 1 : 0];
 
 export const monthStart = (eyear: number, month: number, _useMonth: boolean): number => {
   let isLeap = (eyear | 0) % 4 === 0;
@@ -160,7 +161,8 @@ export const ymdToJD = (y: number, m: number, d: number, monthCount: number): nu
     y < CalendarConstants.JD_GREGORIAN_CUTOVER_YEAR ||
     (y === CalendarConstants.JD_GREGORIAN_CUTOVER_YEAR &&
       (m < CalendarConstants.JD_GREGORIAN_CUTOVER_MONTH ||
-        (m === CalendarConstants.JD_GREGORIAN_CUTOVER_MONTH && d < CalendarConstants.JD_GREGORIAN_CUTOVER_DAY)))
+        (m === CalendarConstants.JD_GREGORIAN_CUTOVER_MONTH &&
+          d < CalendarConstants.JD_GREGORIAN_CUTOVER_DAY)))
   ) {
     if (m < 3) {
       m += 12;
@@ -172,5 +174,13 @@ export const ymdToJD = (y: number, m: number, d: number, monthCount: number): nu
   const a = ((14 - m) / 12) | 0;
   y = y + 4800 - a;
   m = m + 12 * a - 3;
-  return d + (((153 * m + 2) / 5) | 0) + 365 * y + ((y / 4) | 0) - ((y / 100) | 0) + ((y / 400) | 0) - 32045;
+  return (
+    d +
+    (((153 * m + 2) / 5) | 0) +
+    365 * y +
+    ((y / 4) | 0) -
+    ((y / 100) | 0) +
+    ((y / 400) | 0) -
+    32045
+  );
 };

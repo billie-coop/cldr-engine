@@ -1,4 +1,4 @@
-import { Decimal, decimal, decimalToString } from '@phensley/decimal';
+import { type Decimal, decimal, decimalToString } from '@phensley/decimal';
 import { getPluralRules } from '@phensley/plurals';
 import {
   algorithmicFormat,
@@ -8,7 +8,7 @@ import {
 } from '../src/algorithmic';
 import { rbnfRulesets } from '../src/autogen.rbnf';
 import { createRBNFDebug } from '../src/debug';
-import { RBNFDecimalFormatter, createRBNF, rbnfGet, rbnfSetFormat } from '../src/rbnf';
+import { createRBNF, type RBNFDecimalFormatter, rbnfGet, rbnfSetFormat } from '../src/rbnf';
 
 // Expected values recorded from the 1.x class-based engine.
 
@@ -54,8 +54,12 @@ test('rbnf sets', () => {
   expect(fmt('ja-Jpan', 'spellout-cardinal', '-23.57')).toEqual('マイナス二十三・五七');
   expect(fmt('ja-Jpan', 'spellout-cardinal', '0.5')).toEqual('〇・五');
   expect(fmt('zh-Hans', 'spellout-cardinal-financial', '-23.57')).toEqual('负贰拾叁点伍柒');
-  expect(rbnfSetFormat(rbnfGet(rbnf, 'ja-Jpan')!, 'spellout-cardinal', SYMBOLS, decimal(NaN), FALLBACK)).toEqual('NaN');
-  expect(rbnfSetFormat(rbnfGet(rbnf, 'root')!, 'roman-upper', SYMBOLS, decimal(Infinity), FALLBACK)).toEqual('∞');
+  expect(
+    rbnfSetFormat(rbnfGet(rbnf, 'ja-Jpan')!, 'spellout-cardinal', SYMBOLS, decimal(NaN), FALLBACK),
+  ).toEqual('NaN');
+  expect(
+    rbnfSetFormat(rbnfGet(rbnf, 'root')!, 'roman-upper', SYMBOLS, decimal(Infinity), FALLBACK),
+  ).toEqual('∞');
   // unknown and private rule names produce nothing
   expect(fmt('root', 'no-such-rule', '1')).toEqual('');
 });

@@ -1,22 +1,22 @@
 import {
-  Decimal,
-  rationalCompare,
-  rationalToDecimal,
-  rationalToString,
+  type Decimal,
   decimal,
   decimalAbs,
   decimalCompare,
   decimalSubtract,
   decimalToString,
+  rationalCompare,
+  rationalToDecimal,
+  rationalToString,
 } from '@phensley/decimal';
 import {
-  FactorDef,
-  TEMPERATURE,
-  unitFactors,
-  unitFactorsGet,
   convertUnits,
   createUnitConverter,
+  type FactorDef,
+  TEMPERATURE,
   unitConverterAdd,
+  unitFactors,
+  unitFactorsGet,
 } from '../src';
 
 const temp = unitFactors(TEMPERATURE);
@@ -44,7 +44,8 @@ test('temperature conversions', () => {
   let u = createUnitConverter();
   u = unitConverterAdd(u, 'temperature', temp);
 
-  const f = (n: number, src: string, dst: string) => convertUnits(u, 'temperature', decimal(n), src, dst)!;
+  const f = (n: number, src: string, dst: string) =>
+    convertUnits(u, 'temperature', decimal(n), src, dst)!;
 
   const eq = (d: Decimal, v: number | string) => expect(decimalCompare(d, v)).toEqual(0);
 
@@ -81,7 +82,9 @@ test('temperature round-trips', () => {
       // Repeating decimals (5/9) are only rendered at finite precision,
       // so allow a 1e-18 absolute tolerance; the exact-pair check below
       // pins celsius/kelvin to zero error.
-      expect(decimalCompare(decimalAbs(decimalSubtract(back, decimal(n))), '1e-18')).toBeLessThan(0);
+      expect(decimalCompare(decimalAbs(decimalSubtract(back, decimal(n))), '1e-18')).toBeLessThan(
+        0,
+      );
       if (a === 'celsius' && b === 'kelvin') {
         expect(decimalCompare(back, decimal(n))).toEqual(0);
       }
@@ -107,5 +110,7 @@ test('offset inverts exactly', () => {
 test('affine factor definition type', () => {
   const def: FactorDef = ['celsius', '1', 'kelvin', '273.15'];
   const map = unitFactors([def]);
-  expect(decimalToString(rationalToDecimal(unitFactorsGet(map, 'celsius', 'kelvin')!.offset!))).toEqual('273.15');
+  expect(
+    decimalToString(rationalToDecimal(unitFactorsGet(map, 'celsius', 'kelvin')!.offset!)),
+  ).toEqual('273.15');
 });

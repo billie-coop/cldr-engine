@@ -3,7 +3,7 @@ import { dateFromFields, dateFromUnixEpoch, isCalendarDate } from './core';
 import { DayOfWeek } from './fields';
 import { gregorianDaysInYear, gregorianResolveFields } from './gregorian';
 import { daysInMonth, initGregorianFields, monthStart } from './gregorianmath';
-import { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
+import type { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
 
 /**
  * A date in the ISO-8601 calendar.
@@ -64,4 +64,5 @@ export const iso8601DateFromUnixEpoch = (
  *
  * @public
  */
-export const isISO8601Date = (x: any): x is ISO8601Date => isCalendarDate(x) && x.calendar.type === 'iso8601';
+export const isISO8601Date = (x: any): x is ISO8601Date =>
+  isCalendarDate(x) && x.calendar.type === 'iso8601';

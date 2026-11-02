@@ -1,6 +1,6 @@
-import { LanguageTag, tagLanguage, tagRegion, tagScript } from '@phensley/language-tag';
+import { type LanguageTag, tagLanguage, tagRegion, tagScript } from '@phensley/language-tag';
+import { type DistanceMap, type DistanceNode, distanceMap } from './autogen.distance';
 import { getRegionPartition } from './partition';
-import { distanceMap, DistanceMap, DistanceNode } from './autogen.distance';
 
 /**
  * Default distance threshold.
@@ -31,13 +31,18 @@ const getany = (map: DistanceMap): DistanceNode => {
   throw new Error('Severe error: wildcard levels missing in distance map.');
 };
 
-const _distance = (node: DistanceNode | number): number => (typeof node === 'number' ? node : node[0]);
+const _distance = (node: DistanceNode | number): number =>
+  typeof node === 'number' ? node : node[0];
 
 /**
  * Return the distance between the desired and supported locale, stopping once
  * the given threshold is exceeded.
  */
-export const getDistance = (desired: LanguageTag, supported: LanguageTag, threshold?: number): number => {
+export const getDistance = (
+  desired: LanguageTag,
+  supported: LanguageTag,
+  threshold?: number,
+): number => {
   if (typeof threshold !== 'number') {
     threshold = DEFAULT_THRESHOLD;
   }
@@ -147,7 +152,7 @@ const scanRegion = (
   have: string,
   havePartitions: string[],
 ): number | undefined => {
-  let node = undefined;
+  let node: ReturnType<typeof get>;
 
   for (const v of wantPartitions) {
     node = get(map, v, have);

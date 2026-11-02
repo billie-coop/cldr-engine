@@ -1,11 +1,14 @@
 import { bench, describe } from 'vitest';
-import { formatQuantity, formatQuantitySequence, Quantity } from '../src';
+import { formatQuantity, formatQuantitySequence, type Quantity } from '../src';
 import { counter, locale, N } from './_locale';
 
 const EN = locale('en');
 const DE = locale('de');
 
-const KM: Quantity[] = Array.from({ length: N }, (_, i) => ({ value: `${i}.5`, unit: 'kilometer' }));
+const KM: Quantity[] = Array.from({ length: N }, (_, i) => ({
+  value: `${i}.5`,
+  unit: 'kilometer',
+}));
 const FEET_INCHES: Quantity[][] = Array.from({ length: N }, (_, i) => [
   { value: i % 7, unit: 'foot' },
   { value: i % 12, unit: 'inch' },

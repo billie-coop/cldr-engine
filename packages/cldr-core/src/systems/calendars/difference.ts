@@ -1,19 +1,27 @@
 import { tzFromWall } from '@phensley/timezone';
 import { addYMD } from './add';
-import { dateCompare, DateDiffOptions, dateStartOf, dateUnixEpoch } from './calendar';
+import { type DateDiffOptions, dateCompare, dateStartOf, dateUnixEpoch } from './calendar';
 import { CalendarConstants } from './constants';
 import { DateField } from './fields';
 import { daysInMonth, ymdToJD } from './gregorianmath';
 import {
   TIME_PERIOD_FIELDS,
-  timePeriod,
-  TimePeriod,
-  TimePeriodField,
+  type TimePeriod,
+  type TimePeriodField,
   TimePeriodFieldFlag,
+  timePeriod,
   timePeriodFieldFlags,
 } from './interval';
-import { adjustYM, clampYMD, negatePeriod, toYMD, unixEpochFromJD, YearMonth, YearMonthDay } from './math';
-import { CalendarDate } from './types';
+import {
+  adjustYM,
+  clampYMD,
+  negatePeriod,
+  toYMD,
+  unixEpochFromJD,
+  type YearMonth,
+  type YearMonthDay,
+} from './math';
+import type { CalendarDate } from './types';
 
 /**
  * This file implements Temporal-compatible date difference, underpinning
@@ -131,12 +139,14 @@ export const differenceState = (
 /**
  * Return true if the flag is set.
  */
-const has = (state: DifferenceState, flag: TimePeriodFieldFlag): boolean => (flag & state.flags) !== 0;
+const has = (state: DifferenceState, flag: TimePeriodFieldFlag): boolean =>
+  (flag & state.flags) !== 0;
 
 /**
  * Return true if a flag is the smallest field in the set.
  */
-const smallest = (state: DifferenceState, flag: TimePeriodFieldFlag): boolean => flag === state.smallestFlag;
+const smallest = (state: DifferenceState, flag: TimePeriodFieldFlag): boolean =>
+  flag === state.smallestFlag;
 
 /**
  * Calculate the difference between two dates in years, months, days, etc.
@@ -148,8 +158,12 @@ const smallest = (state: DifferenceState, flag: TimePeriodFieldFlag): boolean =>
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/since
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/until
  */
-export const difference = (date1: CalendarDate, date2: CalendarDate, options: DateDiffOptions): TimePeriod => {
-  let result: TimePeriod = timePeriod();
+export const difference = (
+  date1: CalendarDate,
+  date2: CalendarDate,
+  options: DateDiffOptions,
+): TimePeriod => {
+  const result: TimePeriod = timePeriod();
 
   // Track state across date and time sections
   const state = differenceState(date1, date2, options);
@@ -281,7 +295,7 @@ const differenceOfDates = (state: DifferenceState, result: TimePeriod) => {
 
   // Finalize values for years and months by clamping them to a valid range.
   seek = adjustYM(one.year + result.year, one.month + result.month);
-  let clamped = clampYMD(seek.year, seek.month, one.day);
+  const clamped = clampYMD(seek.year, seek.month, one.day);
 
   // Compute final number of days. If the years and months were't set in the
   // result above, the days will span the whole range.
@@ -291,7 +305,10 @@ const differenceOfDates = (state: DifferenceState, result: TimePeriod) => {
 
   // Optionally translate weeks to days
   let week = 0;
-  if ((options.includeWeeks && (!flags || flags === DEFAULT_FLAGS)) || has(state, TimePeriodFieldFlag.WEEK)) {
+  if (
+    (options.includeWeeks && (!flags || flags === DEFAULT_FLAGS)) ||
+    has(state, TimePeriodFieldFlag.WEEK)
+  ) {
     week = Math.trunc(day / 7);
     day %= 7;
   }
@@ -314,7 +331,7 @@ const timeDifference = (state: DifferenceState): [YearMonthDay, number] => {
   let dayshift = 0;
 
   // Maximum day shift
-  let maxshift = incr === 1 ? 2 : 1;
+  const maxshift = incr === 1 ? 2 : 1;
 
   // Check if the end time is lower than the start time.
   let delta = ms2 - ms1;
@@ -429,7 +446,13 @@ export const adjustDays = (year: number, month: number, day: number) => {
 /**
  * Return true if (y1, m1, d1) is greater than date2.
  */
-const greaterThanYMD = (sign: number, y1: number, m1: number, d1: number, date2: YearMonthDay): boolean => {
+const greaterThanYMD = (
+  sign: number,
+  y1: number,
+  m1: number,
+  d1: number,
+  date2: YearMonthDay,
+): boolean => {
   if (y1 !== date2.year) {
     if (sign * (y1 - date2.year) > 0) {
       return true;
@@ -504,7 +527,9 @@ const rollTimeFractions = (state: DifferenceState, result: TimePeriod) => {
     result.minute = result.second = 0;
   }
   if (smallest(state, TimePeriodFieldFlag.MINUTE)) {
-    result.minute = (result.second * CalendarConstants.ONE_MINUTE_MS + result.millis) / CalendarConstants.ONE_MINUTE_MS;
+    result.minute =
+      (result.second * CalendarConstants.ONE_MINUTE_MS + result.millis) /
+      CalendarConstants.ONE_MINUTE_MS;
     result.second = 0;
   }
   if (smallest(state, TimePeriodFieldFlag.SECOND)) {
@@ -573,8 +598,11 @@ export const dateRelativeTime = (
  *
  * @public
  */
-export const dateSince = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod =>
-  negatePeriod(difference(d, other, options || {}));
+export const dateSince = (
+  d: CalendarDate,
+  other: CalendarDate,
+  options?: DateDiffOptions,
+): TimePeriod => negatePeriod(difference(d, other, options || {}));
 
 /**
  * Calculate the period of time (years, months, days, ..) until the given date.
@@ -592,8 +620,11 @@ export const dateSince = (d: CalendarDate, other: CalendarDate, options?: DateDi
  *
  * @public
  */
-export const dateUntil = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod =>
-  difference(d, other, options || {});
+export const dateUntil = (
+  d: CalendarDate,
+  other: CalendarDate,
+  options?: DateDiffOptions,
+): TimePeriod => difference(d, other, options || {});
 
 /**
  * Calculate the time period between two dates. Note this returns the
@@ -601,7 +632,11 @@ export const dateUntil = (d: CalendarDate, other: CalendarDate, options?: DateDi
  *
  * @public
  */
-export const dateDifference = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod => {
+export const dateDifference = (
+  d: CalendarDate,
+  other: CalendarDate,
+  options?: DateDiffOptions,
+): TimePeriod => {
   const result = difference(d, other, options || {});
   return dateCompare(d, other) === 1 ? negatePeriod(result) : result;
 };
@@ -612,5 +647,8 @@ export const dateDifference = (d: CalendarDate, other: CalendarDate, options?: D
  *
  * @public
  */
-export const dateDifferenceSigned = (d: CalendarDate, other: CalendarDate, options?: DateDiffOptions): TimePeriod =>
-  dateUntil(d, other, options);
+export const dateDifferenceSigned = (
+  d: CalendarDate,
+  other: CalendarDate,
+  options?: DateDiffOptions,
+): TimePeriod => dateUntil(d, other, options);

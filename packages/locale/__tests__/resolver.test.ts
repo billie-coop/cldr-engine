@@ -1,5 +1,10 @@
 import { parseLanguageTag } from '@phensley/language-tag';
-import { addLikelySubtags, removeLikelySubtags, resolveLanguageTag, substituteAliases } from '../src';
+import {
+  addLikelySubtags,
+  removeLikelySubtags,
+  resolveLanguageTag,
+  substituteAliases,
+} from '../src';
 
 const resolve = resolveLanguageTag;
 

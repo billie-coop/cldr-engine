@@ -1,4 +1,4 @@
-import { parseLanguageTag, languageTag, tagExpanded } from '@phensley/language-tag';
+import { languageTag, parseLanguageTag, tagExpanded } from '@phensley/language-tag';
 import { fastTag, returnTag } from '../src/resolver';
 
 test('fast tag merging', () => {

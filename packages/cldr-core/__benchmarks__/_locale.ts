@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 import { config } from '../../cldr/src/config';
-import { createFramework, loadLocale, LocaleData } from '../src';
+import { createFramework, type LocaleData, loadLocale } from '../src';
 
 // Locale data loaded from the resource packs, as an app would load it.
 const loader = (id: string): string =>

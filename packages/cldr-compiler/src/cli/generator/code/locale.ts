@@ -1,6 +1,7 @@
 import {
+  type LanguageTag,
   parseLanguageTag,
-  LanguageTag,
+  resolveLanguageTag,
   tagHasLanguage,
   tagHasRegion,
   tagHasScript,
@@ -8,10 +9,9 @@ import {
   tagRegion,
   tagScript,
   tagVariant,
-  resolveLanguageTag,
 } from '@phensley/cldr-core';
-import { Code, HEADER, NOLINT_MAXLINE } from './util';
 import { availableLocales } from '../../../cldr';
+import { Code, HEADER, NOLINT_MAXLINE } from './util';
 
 const enum Flags {
   LANG = 1,

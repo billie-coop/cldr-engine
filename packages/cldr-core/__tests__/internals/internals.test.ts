@@ -1,4 +1,4 @@
-import { createFramework, CalendarType, SchemaConfig } from '../../src';
+import { type CalendarType, createFramework, type SchemaConfig } from '../../src';
 import { getCalendarFormatter, selectCalendar } from '../../src/internals/calendars/internal';
 import { languageBundle } from '../_helpers';
 

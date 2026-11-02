@@ -1,5 +1,5 @@
-import { calendarsApi } from '../../_helpers';
 import { formatDate, formatRelativeTimeField } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 test('context transforms', () => {
   const date = { date: 123456666666, zoneId: 'America/New_York' };

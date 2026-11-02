@@ -1,5 +1,10 @@
+import {
+  type CurrencyFormatOptions,
+  type DecimalFormatOptions,
+  formatCurrency,
+  formatDecimal,
+} from '../../../src';
 import { numbersApi } from '../../_helpers';
-import { CurrencyFormatOptions, DecimalFormatOptions, formatCurrency, formatDecimal } from '../../../src';
 
 test('divisor magnitudes', () => {
   const api = numbersApi('en');

@@ -1,20 +1,20 @@
 import {
-  CalendarType,
-  DateRawFormatOptions,
-  FormatWidthType,
-  GregorianDate,
-  ZonedDateTime,
+  type CalendarType,
+  type DateRawFormatOptions,
   dateDayOfWeek,
   dateJulianDay,
   dateModifiedJulianDay,
   dateOrdinalDayOfWeek,
+  type FormatWidthType,
   formatDate,
   formatDateInterval,
   formatDateIntervalToParts,
   formatDateRaw,
   formatDateRawToParts,
   formatDateToParts,
+  type GregorianDate,
   toGregorianDate,
+  type ZonedDateTime,
 } from '../../../src';
 import { CalendarConstants } from '../../../src/systems/calendars/constants';
 import { calendarsApi } from '../../_helpers';
@@ -721,9 +721,14 @@ test('intervals bare date', () => {
   let s = formatDateInterval(api, new Date(Date.UTC(2018, 1, 20)), new Date(Date.UTC(2018, 5, 13)));
   expect(s).toEqual('Feb 20\u2009–\u2009Jun 13, 2018');
 
-  s = formatDateInterval(api, new Date(Date.UTC(2018, 1, 20, 0, 10)), new Date(Date.UTC(2018, 1, 20, 17)), {
-    skeleton: 'hms',
-  });
+  s = formatDateInterval(
+    api,
+    new Date(Date.UTC(2018, 1, 20, 0, 10)),
+    new Date(Date.UTC(2018, 1, 20, 17)),
+    {
+      skeleton: 'hms',
+    },
+  );
   expect(s).toEqual('12:10\u202fAM\u2009–\u20095:00\u202fPM');
 });
 
@@ -778,7 +783,9 @@ test('day periods', () => {
   expect(formatDateRaw(api, d, { pattern: 'bbbb' })).toEqual('noon');
   expect(formatDateRaw(api, d, { pattern: 'bbbbb' })).toEqual('n');
 
-  expect(formatDateRawToParts(api, d, { pattern: 'b' })).toEqual([{ type: 'dayperiod', value: 'noon' }]);
+  expect(formatDateRawToParts(api, d, { pattern: 'b' })).toEqual([
+    { type: 'dayperiod', value: 'noon' },
+  ]);
 
   expect(formatDateRawToParts(api, d)).toEqual([]);
 });

@@ -1,5 +1,5 @@
-import { ContextTransformInfo } from '../../common/private';
-import { LocaleData } from '../../locale-data';
+import type { ContextTransformInfo } from '../../common/private';
+import type { LocaleData } from '../../locale-data';
 import { vectorMapping } from '../../schema/schema/arrows';
 
 const CONTEXT_TRANSFORMS = /*#__PURE__*/ new WeakMap<LocaleData, ContextTransformInfo>();

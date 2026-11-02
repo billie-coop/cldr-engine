@@ -1,4 +1,4 @@
-import { KeyIndex } from '@phensley/cldr-types';
+import type { KeyIndex } from '@phensley/cldr-types';
 
 /**
  * Build the inverse mapping of keys to their index in the array.

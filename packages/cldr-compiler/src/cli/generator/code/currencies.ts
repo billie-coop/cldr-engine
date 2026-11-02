@@ -1,4 +1,4 @@
-import { lineWrap, Code, HEADER, NOLINT_MAXLINE } from './util';
+import { Code, HEADER, lineWrap, NOLINT_MAXLINE } from './util';
 
 const DEFAULT_DIGITS = '2';
 const DEFAULT_ROUNDING = '0';

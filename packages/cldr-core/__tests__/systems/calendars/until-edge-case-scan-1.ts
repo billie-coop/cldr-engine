@@ -36,7 +36,8 @@ const scan = (epoch: number, zone: string, days: number, minutes: number) => {
   for (let i = 0; i < limit * 2; i++) {
     for (let j = 0; j < days; j++) {
       for (let k = 0; k < limit; k++) {
-        const start = epoch - CalendarConstants.ONE_DAY_MS + i * minutes * CalendarConstants.ONE_MINUTE_MS;
+        const start =
+          epoch - CalendarConstants.ONE_DAY_MS + i * minutes * CalendarConstants.ONE_MINUTE_MS;
         const end = start + j * CalendarConstants.ONE_DAY_MS + k * CalendarConstants.ONE_MINUTE_MS;
         for (const n of [start, end]) {
           if (seek.has(n)) {
@@ -52,7 +53,7 @@ const scan = (epoch: number, zone: string, days: number, minutes: number) => {
   console.log(`epochs ${epochs.length}`);
 
   let iters = 0;
-  let skips = 0;
+  const skips = 0;
   for (let i = 0; i < epochs.length; i++) {
     const start = epochs[i];
 

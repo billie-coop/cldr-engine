@@ -1,4 +1,4 @@
-import { sortSet, Code, HEADER, NOLINT_MAXLINE } from './util';
+import { Code, HEADER, NOLINT_MAXLINE, sortSet } from './util';
 
 const identifiers = (symbols: string[]): string[] => {
   const temp = symbols.map((s: string) => s.split('-')[0]);
@@ -6,11 +6,13 @@ const identifiers = (symbols: string[]): string[] => {
 };
 
 const unitNames = (symbols: string[]) => {
-  return symbols.map(s => {
-    const i = s.indexOf('-');
-    const name = s.substring(i + 1);
-    return name === 'generic' ? 'temperature' : name;
-  }).sort();
+  return symbols
+    .map((s) => {
+      const i = s.indexOf('-');
+      const name = s.substring(i + 1);
+      return name === 'generic' ? 'temperature' : name;
+    })
+    .sort();
 };
 
 const indent = (d: number) => ' '.repeat(d * 2);
@@ -19,11 +21,9 @@ const objectToCode = (o: any, depth: number = 1): string => {
   let r = '';
   if (typeof o === 'string') {
     r += `'${o}'`;
-
   } else if (Array.isArray(o)) {
-    const vals = o.map(v => objectToCode(v, depth + 1)).join(`, `);
+    const vals = o.map((v) => objectToCode(v, depth + 1)).join(`, `);
     r += `[\n${vals ? indent(depth) : ''}${vals}\n${indent(depth - 1)}]`;
-
   } else {
     const x = indent(depth);
     r += `{\n`;
@@ -58,7 +58,7 @@ const NUMBER_SYSTEM_NAME = [
   'mymr',
   'tamldec',
   'telu',
-  'thai'
+  'thai',
 ];
 
 export const getConfig = (data: any): Code[] => {
@@ -69,7 +69,7 @@ export const getConfig = (data: any): Code[] => {
   const { currencies, timeZoneIds } = data;
 
   const obj = {
-    'calendars': ['gregory', 'buddhist', 'japanese', 'persian'],
+    calendars: ['gregory', 'buddhist', 'japanese', 'persian'],
     'language-id': languages,
     'script-id': scripts,
     'region-id': regions,
@@ -93,7 +93,7 @@ export const getConfig = (data: any): Code[] => {
 
     'number-system-name': NUMBER_SYSTEM_NAME,
     'unit-id': units,
-    'timezone-id': timeZoneIds
+    'timezone-id': timeZoneIds,
   };
 
   let code = HEADER + NOLINT_MAXLINE;
@@ -103,6 +103,6 @@ export const getConfig = (data: any): Code[] => {
   const json = JSON.stringify(obj);
   return [
     Code.top(['packages', 'cldr', 'src', 'config.ts'], code),
-    Code.top(['packages', 'cldr-compiler', 'src', 'cli', 'compiler', 'config.json'], json)
+    Code.top(['packages', 'cldr-compiler', 'src', 'cli', 'compiler', 'config.json'], json),
   ];
 };

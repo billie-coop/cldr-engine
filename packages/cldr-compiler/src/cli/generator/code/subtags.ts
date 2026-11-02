@@ -1,10 +1,15 @@
+import {
+  type LanguageTag,
+  parseLanguageTag,
+  tagHasLanguage,
+  tagLanguage,
+} from '@phensley/cldr-core';
 import * as fs from 'fs';
 import { join } from 'path';
+import { inspect } from 'util';
 import * as zlib from 'zlib';
 import { availableLocales, getSupplemental } from '../../../cldr';
-import { objectToString, Code, HEADER, NOLINT_MAXLINE } from './util';
-import { parseLanguageTag, LanguageTag, tagHasLanguage, tagLanguage } from '@phensley/cldr-core';
-import { inspect } from 'util';
+import { Code, HEADER, NOLINT_MAXLINE, objectToString } from './util';
 
 const enum Tag {
   LANGUAGE = 0,
@@ -109,7 +114,10 @@ const buildSubtags = (likely: any, languages: Set<string>) => {
       val[Tag.SCRIPT] = scriptid;
       const _val = val
         .map((t, i) =>
-          (i === Tag.LANGUAGE && t === key[Tag.LANGUAGE]) || (i === Tag.REGION && t === key[Tag.REGION]) ? '' : t,
+          (i === Tag.LANGUAGE && t === key[Tag.LANGUAGE]) ||
+          (i === Tag.REGION && t === key[Tag.REGION])
+            ? ''
+            : t,
         )
         .join('-');
       map[key[Tag.REGION]] = _val;
@@ -151,7 +159,6 @@ const encode = (o: any): string => {
   } else {
     throw new Error(`invalid type ${typeof o}: ${inspect(o)}`);
   }
-  return '';
 };
 
 export const getSubtags = (data: any): Code[] => {

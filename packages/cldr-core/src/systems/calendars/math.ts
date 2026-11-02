@@ -1,9 +1,9 @@
 import { CalendarConstants } from './constants';
 import { DateField, DayOfWeek } from './fields';
 import { daysInMonth } from './gregorianmath';
-import { TIME_PERIOD_FIELDS, TimePeriod } from './interval';
-import { substituteZoneAlias, DateZoneInfo, zoneInfoFromUTC } from './timezone';
-import { CalendarDate, CalendarDateFields } from './types';
+import { TIME_PERIOD_FIELDS, type TimePeriod } from './interval';
+import { type DateZoneInfo, substituteZoneAlias, zoneInfoFromUTC } from './timezone';
+import type { CalendarDate, CalendarDateFields } from './types';
 
 const { floor } = Math;
 
@@ -52,7 +52,8 @@ export const unixEpochFromJD = (jd: number, msDay: number): number => {
 /**
  * Ensure n falls between min and max.
  */
-export const clamp = (n: number, min: number, max: number): number => Math.min(max, Math.max(min, n));
+export const clamp = (n: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, n));
 
 /**
  * Ensure that the year, month, and day represent a valid date, clamping the
@@ -115,7 +116,7 @@ export const wallTimeToMillis = (f: Partial<CalendarDateFields>): number =>
  * Keep the integral part of each field and replace undefined with zero.
  */
 export const truncateFields = (fields: Partial<TimePeriod>): TimePeriod => {
-  let result: Partial<TimePeriod> = {};
+  const result: Partial<TimePeriod> = {};
   for (const key of TIME_PERIOD_FIELDS) {
     result[key] = Math.trunc(fields[key] || 0);
   }

@@ -1,8 +1,11 @@
-import { KeyIndex } from '@phensley/cldr-types';
-import { field, scope, vector, Scope } from '../instructions';
+import type { KeyIndex } from '@phensley/cldr-types';
+import { field, type Scope, scope, vector } from '../instructions';
 import { ContextTransformFieldIndex, ListPatternPositionIndex } from '../schema/general';
 
-export const LAYOUT: Scope = scope('Layout', 'Layout', [field('characterOrder'), field('lineOrder')]);
+export const LAYOUT: Scope = scope('Layout', 'Layout', [
+  field('characterOrder'),
+  field('lineOrder'),
+]);
 
 const listPattern = (name: string) => vector(name, ['list-pattern-position']);
 

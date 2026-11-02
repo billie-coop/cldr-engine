@@ -1,6 +1,12 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { hrtime } from 'process';
-import { TimePeriod, dateAdd, dateSince, dateUntil, gregorianDateFromUnixEpoch } from '../../../src';
+import {
+  dateAdd,
+  dateSince,
+  dateUntil,
+  gregorianDateFromUnixEpoch,
+  type TimePeriod,
+} from '../../../src';
 import { CalendarConstants } from '../../../src/systems/calendars/constants';
 import { heaps, periodToDurationLike, TIMEPERIOD_TO_DURATION_KEYS, zipList } from './_utils';
 
@@ -40,7 +46,8 @@ const benchmarkDifference = (epoch: number, zone: string, days: number, minutes:
   for (let i = 0; i < limit * 2; i++) {
     for (let j = 0; j < days; j++) {
       for (let k = 0; k < limit; k++) {
-        const start = epoch - CalendarConstants.ONE_DAY_MS + i * minutes * CalendarConstants.ONE_MINUTE_MS;
+        const start =
+          epoch - CalendarConstants.ONE_DAY_MS + i * minutes * CalendarConstants.ONE_MINUTE_MS;
         const end = start + j * CalendarConstants.ONE_DAY_MS + k * CalendarConstants.ONE_MINUTE_MS;
         for (const n of [start, end]) {
           if (seek.has(n)) {
@@ -96,7 +103,7 @@ export const timePeriodPermutations = (numbers: number[]): [Permutation[], Permu
 
   // Produce every permutation of the time period units and numbers.
   const generate = heaps(TIMEPERIOD_TO_DURATION_KEYS.map((k) => k[0]));
-  let curr;
+  let curr: ReturnType<typeof generate.next>;
   while (((curr = generate.next()), !curr.done)) {
     const pos: Partial<TimePeriod> = {};
     const neg: Partial<TimePeriod> = {};
@@ -110,7 +117,12 @@ export const timePeriodPermutations = (numbers: number[]): [Permutation[], Permu
   return [positive, negative];
 };
 
-const benchmarkAddition = (epoch: number, zone: string, positive: Permutation[], negative: Permutation[]) => {
+const benchmarkAddition = (
+  epoch: number,
+  zone: string,
+  positive: Permutation[],
+  negative: Permutation[],
+) => {
   console.log('ADDITION');
   const limit = 86400 / 60;
   const iterlimit = 400000;

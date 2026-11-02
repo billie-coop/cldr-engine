@@ -1,9 +1,18 @@
-import { GregorianDate, TimePeriodField } from '../../../src/systems/calendars';
 import { dateAdd, dateSubtract, dateUnixEpoch, gregorianDateFromUnixEpoch } from '../../../src';
+import type { GregorianDate, TimePeriodField } from '../../../src/systems/calendars';
 
 const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
-const FIELDS: TimePeriodField[] = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millis'];
+const FIELDS: TimePeriodField[] = [
+  'year',
+  'month',
+  'week',
+  'day',
+  'hour',
+  'minute',
+  'second',
+  'millis',
+];
 
 test('date field integers', () => {
   const date: GregorianDate = gregorian(0, 'UTC');

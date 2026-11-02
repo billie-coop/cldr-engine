@@ -47,7 +47,7 @@ const parseSpec = (s: string, specs: Spec[]): [number, string] => {
     if (!s || !/\d/.test(s[0])) {
       break;
     }
-    let tmp = s.substring(0, width);
+    const tmp = s.substring(0, width);
     value += parseInt(tmp, 10) / factor;
     s = s.substring(width);
   }

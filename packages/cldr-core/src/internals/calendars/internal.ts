@@ -1,15 +1,21 @@
-import { CalendarSchema } from '@phensley/cldr-types';
-import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
-
-import { DateTimeNode, intervalPatternBoundary, parseDatePattern as parseDatePatternRaw } from '../../parsing/date';
-import { LocaleData } from '../../locale-data';
-import { CalendarDate, CalendarType } from '../../systems/calendars/types';
-import { AbstractValue } from '../../utils/render';
+import type { CalendarSchema } from '@phensley/cldr-types';
+import { type Cache, cacheGet, createCache } from '@phensley/cldr-utils';
+import type { LocaleData } from '../../locale-data';
+import {
+  type DateTimeNode,
+  intervalPatternBoundary,
+  parseDatePattern as parseDatePatternRaw,
+} from '../../parsing/date';
+import type { CalendarDate, CalendarType } from '../../systems/calendars/types';
+import type { AbstractValue } from '../../utils/render';
+import { PATTERN_CACHE_SIZE, parseWrapper } from '../general/internal';
 import { calendarIds, calendarPrefData } from './autogen.calprefs';
-import { weekFirstDay as weekFirstDayData, weekMinDays as weekMinDaysData } from './autogen.weekdata';
-import { CalendarContext, CalendarFormatter } from './formatter';
+import {
+  weekFirstDay as weekFirstDayData,
+  weekMinDays as weekMinDaysData,
+} from './autogen.weekdata';
+import type { CalendarContext, CalendarFormatter } from './formatter';
 import { calendarFormat } from './formatterimpl';
-import { parseWrapper, PATTERN_CACHE_SIZE } from '../general/internal';
 
 export { flexDayPeriod } from './rules';
 
@@ -22,7 +28,10 @@ let hourPatternCache: Cache<[readonly DateTimeNode[], readonly DateTimeNode[]]> 
  * @internal
  */
 export const parseDatePattern = (raw: string): readonly DateTimeNode[] =>
-  cacheGet(patternCache || (patternCache = createCache(parseDatePatternRaw, PATTERN_CACHE_SIZE)), raw);
+  cacheGet(
+    patternCache || (patternCache = createCache(parseDatePatternRaw, PATTERN_CACHE_SIZE)),
+    raw,
+  );
 
 const parseHourPattern = (raw: string): [readonly DateTimeNode[], readonly DateTimeNode[]] => {
   const parts = raw.split(';');
@@ -47,14 +56,16 @@ export const getHourPattern = (raw: string, negative: boolean): readonly DateTim
  *
  * @internal
  */
-export const weekFirstDay = (region: string): number => weekFirstDayData[region] || weekFirstDayData['001'];
+export const weekFirstDay = (region: string): number =>
+  weekFirstDayData[region] || weekFirstDayData['001'];
 
 /**
  * Minimum days in the first week of the year for a region.
  *
  * @internal
  */
-export const weekMinDays = (region: string): number => weekMinDaysData[region] || weekMinDaysData['001'];
+export const weekMinDays = (region: string): number =>
+  weekMinDaysData[region] || weekMinDaysData['001'];
 
 /**
  * Schema parts used to format dates in the given calendar. Calendars not enabled in the schema
@@ -62,7 +73,10 @@ export const weekMinDays = (region: string): number => weekMinDaysData[region] |
  *
  * @internal
  */
-export const getCalendarFormatter = (data: LocaleData, calendar: CalendarType): CalendarFormatter => {
+export const getCalendarFormatter = (
+  data: LocaleData,
+  calendar: CalendarType,
+): CalendarFormatter => {
   const schema = data.schema;
   let s: CalendarSchema | undefined;
   if (calendarAvailable(data, calendar)) {
@@ -164,7 +178,8 @@ export const selectCalendar = (data: LocaleData, ca?: CalendarType): CalendarTyp
   return calendar;
 };
 
-const calendarAvailable = (data: LocaleData, c: string): boolean => (data.config.calendars || []).indexOf(c) !== -1;
+const calendarAvailable = (data: LocaleData, c: string): boolean =>
+  (data.config.calendars || []).indexOf(c) !== -1;
 
 /**
  * Translates a string into a supported calendar type, or undefined if none match.

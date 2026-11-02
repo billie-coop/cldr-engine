@@ -1,4 +1,4 @@
-import { buildMessageMatcher, MessageMatcher, MessageState } from '../src';
+import { buildMessageMatcher, type MessageMatcher, type MessageState } from '../src';
 
 const build =
   (type: string, formatters: string[]) =>

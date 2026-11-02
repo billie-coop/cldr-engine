@@ -1,13 +1,13 @@
 import { Temporal } from '@js-temporal/polyfill';
 import {
-  CalendarDate,
-  TimePeriod,
-  TimePeriodField,
+  type CalendarDate,
   dateAdd,
   dateToDateString,
   dateToDateTimeString,
   dateUntil,
   gregorianDateFromUnixEpoch,
+  type TimePeriod,
+  type TimePeriodField,
 } from '../../../src';
 import {
   FEB_28_2024,
@@ -142,7 +142,15 @@ test('api comment examples', () => {
 });
 
 test('edge case 1', () => {
-  edgeCaseAdd(MAR_09_2025, 'America/New_York', { year: 1, second: 2, minute: 3, day: 4, millis: 5, month: 6, week: 7 });
+  edgeCaseAdd(MAR_09_2025, 'America/New_York', {
+    year: 1,
+    second: 2,
+    minute: 3,
+    day: 4,
+    millis: 5,
+    month: 6,
+    week: 7,
+  });
 });
 
 test('edge case 2', () => {
@@ -367,7 +375,10 @@ test('date-only utc', () => {
     const date = dateAdd(base, added);
     expect(dateToDateString(date), `case ${index} add ${added} days`).toEqual(expDate);
     const until = dateUntil(base, date, { fields });
-    expect(cldrfmt.periodString(until), `case ${index}: ${dateToDateString(base)} days ${day}`).toEqual(expDiff);
+    expect(
+      cldrfmt.periodString(until),
+      `case ${index}: ${dateToDateString(base)} days ${day}`,
+    ).toEqual(expDiff);
   }
 });
 
@@ -440,9 +451,10 @@ test('date time utc', () => {
     const cldr2 = dateAdd(cldr1, added);
     const cuntil = dateUntil(cldr1, cldr2);
     expect(cldrutil.dateTimeString(cldr2), msg).toEqual(expDate);
-    expect(cldrutil.periodString(cuntil), `case ${index}: ${dateToDateTimeString(cldr1)} add ${_added}`).toEqual(
-      expDiff,
-    );
+    expect(
+      cldrutil.periodString(cuntil),
+      `case ${index}: ${dateToDateTimeString(cldr1)} add ${_added}`,
+    ).toEqual(expDiff);
   }
 });
 
@@ -578,9 +590,10 @@ test('rolldown combinations', () => {
     for (const [sub, [fields, duration]] of enumerate(subs)) {
       const cuntil = dateUntil(cldr1, cldr2, { fields });
       expect(cldrutil.dateTimeString(cldr2), msg).toEqual(expDate);
-      expect(cldrutil.periodString(cuntil), msg + ` test ${sub} ${JSON.stringify(fields)} ${duration}:`).toEqual(
-        duration,
-      );
+      expect(
+        cldrutil.periodString(cuntil),
+        msg + ` test ${sub} ${JSON.stringify(fields)} ${duration}:`,
+      ).toEqual(duration);
     }
   }
 });
@@ -640,11 +653,41 @@ test('rollup fractions', () => {
     [JAN_30_2024, { year: 1, month: 3 }, ['month'], '2025-04-30 13:30:00', '15m'],
     [JAN_30_2024, { year: 1, month: 3, day: 91 }, ['month'], '2025-07-30 13:30:00', '18m'],
     [JAN_30_2024, { year: 1, month: 3, day: 91 }, ['year'], '2025-07-30 13:30:00', '1.5y'],
-    [JAN_30_2024, { year: 1, month: 3, day: 98 }, ['month', 'week'], '2025-08-06 13:30:00', '18m 1w'],
-    [JAN_30_2024, { year: 1, month: 3, day: 99 }, ['month', 'week', 'day'], '2025-08-07 13:30:00', '18m 1w 1d'],
-    [JAN_30_2024, { year: 1, month: 3, day: 99 }, ['month', 'day'], '2025-08-07 13:30:00', '18m 8d'],
-    [JAN_30_2024, { year: 1, month: 3, day: 99 }, ['month', 'hour'], '2025-08-07 13:30:00', '18m 192H'],
-    [JAN_30_2024, { year: 1, month: 3, day: 99 }, ['month', 'week'], '2025-08-07 13:30:00', '18m 1.143w'],
+    [
+      JAN_30_2024,
+      { year: 1, month: 3, day: 98 },
+      ['month', 'week'],
+      '2025-08-06 13:30:00',
+      '18m 1w',
+    ],
+    [
+      JAN_30_2024,
+      { year: 1, month: 3, day: 99 },
+      ['month', 'week', 'day'],
+      '2025-08-07 13:30:00',
+      '18m 1w 1d',
+    ],
+    [
+      JAN_30_2024,
+      { year: 1, month: 3, day: 99 },
+      ['month', 'day'],
+      '2025-08-07 13:30:00',
+      '18m 8d',
+    ],
+    [
+      JAN_30_2024,
+      { year: 1, month: 3, day: 99 },
+      ['month', 'hour'],
+      '2025-08-07 13:30:00',
+      '18m 192H',
+    ],
+    [
+      JAN_30_2024,
+      { year: 1, month: 3, day: 99 },
+      ['month', 'week'],
+      '2025-08-07 13:30:00',
+      '18m 1.143w',
+    ],
 
     [JAN_30_2024, { month: 1, hour: 15 }, ['day'], '2024-03-01 04:30:00', '30.625d'],
     [JAN_30_2024, { month: 3 }, ['year'], '2024-04-30 13:30:00', '0.25y'],

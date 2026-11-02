@@ -1,6 +1,6 @@
-import { loadPack } from '../_helpers';
 import { languageTag } from '@phensley/language-tag';
-import { loadPack as parsePack, packGet } from '../../src';
+import { packGet, loadPack as parsePack } from '../../src';
+import { loadPack } from '../_helpers';
 
 test('error bad format', () => {
   expect(() => parsePack({})).toThrowError('Severe error');

@@ -1,5 +1,6 @@
 import {
   isLanguageTag,
+  type LanguageTag,
   languageTag,
   parseLanguageTag,
   tagCompact,
@@ -12,12 +13,10 @@ import {
   tagRegion,
   tagScript,
   tagVariant,
-  LanguageTag,
 } from '@phensley/language-tag';
-import { resolveLanguageTag, substituteAliases, Locale } from '@phensley/locale';
-
-import { getDistance, DEFAULT_THRESHOLD, MAX_DISTANCE } from './distance';
+import { type Locale, resolveLanguageTag, substituteAliases } from '@phensley/locale';
 import { paradigmLocales } from './autogen.distance';
+import { DEFAULT_THRESHOLD, getDistance, MAX_DISTANCE } from './distance';
 
 // Space and comma-separated bundle ids.
 const TAG_SEP = /[,\s]+/g;
@@ -35,7 +34,11 @@ export interface LocaleMatcherEntry extends Locale {
   readonly compact: string;
 }
 
-const entry = (id: string, tag: LanguageTag): LocaleMatcherEntry => ({ id, tag, compact: tagCompact(tag) });
+const entry = (id: string, tag: LanguageTag): LocaleMatcherEntry => ({
+  id,
+  tag,
+  compact: tagCompact(tag),
+});
 
 type LangTag = Locale | LanguageTag | string;
 
@@ -250,7 +253,7 @@ export const matchLocale = (
   const desireds = parse(desiredLocales);
   const len = desireds.length;
   let bestDistance = MAX_DISTANCE;
-  let bestMatch: LocaleMatcherEntry | undefined = undefined;
+  let bestMatch: LocaleMatcherEntry | undefined;
   let bestDesired = len === 0 ? defaultEntry : desireds[0];
   for (let i = 0; i < len; i++) {
     const desired = desireds[i];
@@ -278,7 +281,14 @@ export const matchLocale = (
   const extensions = tagExtensions(bestDesired.tag);
   const privateUse = tagPrivateUse(bestDesired.tag);
   const { id, tag } = bestMatch === U ? defaultEntry : bestMatch;
-  const result = languageTag(tagLanguage(tag), tagScript(tag), tagRegion(tag), tagVariant(tag), extensions, privateUse);
+  const result = languageTag(
+    tagLanguage(tag),
+    tagScript(tag),
+    tagRegion(tag),
+    tagVariant(tag),
+    extensions,
+    privateUse,
+  );
   return {
     locale: { id, tag: result },
     distance: bestMatch === U ? MAX_DISTANCE : bestDistance,

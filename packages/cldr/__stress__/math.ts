@@ -1,8 +1,6 @@
 import {
-  Decimal,
+  type Decimal,
   DecimalConstants,
-  MathContext,
-  RoundingModeType,
   decimal,
   decimalAdd,
   decimalDivide,
@@ -10,6 +8,8 @@ import {
   decimalNegate,
   decimalSubtract,
   decimalToString,
+  type MathContext,
+  type RoundingModeType,
 } from '../src';
 import { Timer } from './timer';
 
@@ -41,7 +41,15 @@ RAW_NUMBERS.split(/\n/)
   .map((s) => s.split(/\s+/))
   .forEach((r) => r.filter((s) => s.length).forEach((s) => NUMBERS.push(decimal(s))));
 
-const ROUNDING: RoundingModeType[] = ['ceiling', 'up', 'down', 'floor', 'half-down', 'half-up', 'half-even'];
+const ROUNDING: RoundingModeType[] = [
+  'ceiling',
+  'up',
+  'down',
+  'floor',
+  'half-down',
+  'half-up',
+  'half-even',
+];
 
 const CONTEXTS: MathContext[] = [{}];
 for (const round of ROUNDING) {

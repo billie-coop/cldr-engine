@@ -1,13 +1,13 @@
 import {
-  Decimal,
-  MathContext,
+  type Decimal,
+  decimalAdd,
+  decimalMultiply,
+  type MathContext,
   RationalConstants,
   rationalMultiply,
   rationalToDecimal,
-  decimalAdd,
-  decimalMultiply,
 } from '@phensley/decimal';
-import { UnitConversion, UnitFactors, unitFactorsGet } from './factormap';
+import { type UnitConversion, type UnitFactors, unitFactorsGet } from './factormap';
 
 /**
  * Converts between units. Holds a set of unit factors per category name.
@@ -23,7 +23,9 @@ export interface UnitConverter {
  *
  * @public
  */
-export const createUnitConverter = (categories?: { readonly [category: string]: UnitFactors }): UnitConverter => {
+export const createUnitConverter = (categories?: {
+  readonly [category: string]: UnitFactors;
+}): UnitConverter => {
   let c: UnitConverter = { storage: {} };
   if (categories) {
     for (const category of Object.keys(categories)) {
@@ -38,7 +40,8 @@ export const createUnitConverter = (categories?: { readonly [category: string]: 
  *
  * @public
  */
-export const unitConverterHas = (converter: UnitConverter, category: string): boolean => !!converter.storage[category];
+export const unitConverterHas = (converter: UnitConverter, category: string): boolean =>
+  !!converter.storage[category];
 
 /**
  * Return a new converter with the set of conversion factors added under the
@@ -46,7 +49,11 @@ export const unitConverterHas = (converter: UnitConverter, category: string): bo
  *
  * @public
  */
-export const unitConverterAdd = (converter: UnitConverter, category: string, map: UnitFactors): UnitConverter => {
+export const unitConverterAdd = (
+  converter: UnitConverter,
+  category: string,
+  map: UnitFactors,
+): UnitConverter => {
   if (converter.storage[category]) {
     throw new Error(`this converter has registered factors for category ${category}`);
   }
@@ -58,15 +65,18 @@ export const unitConverterAdd = (converter: UnitConverter, category: string, map
  *
  * @public
  */
-export const unitConverterFactors = (converter: UnitConverter, category: string): UnitFactors | undefined =>
-  converter.storage[category];
+export const unitConverterFactors = (
+  converter: UnitConverter,
+  category: string,
+): UnitFactors | undefined => converter.storage[category];
 
 /**
  * Return an array of the categories added to this converter.
  *
  * @public
  */
-export const unitConverterCategories = (converter: UnitConverter): string[] => Object.keys(converter.storage).sort();
+export const unitConverterCategories = (converter: UnitConverter): string[] =>
+  Object.keys(converter.storage).sort();
 
 /**
  * Get the unit conversion factor that converts `src` to `dst` for the given category.

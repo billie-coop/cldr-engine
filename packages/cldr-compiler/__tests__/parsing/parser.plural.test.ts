@@ -1,4 +1,4 @@
-import { parsePluralRule, AndCondition, Expr, OrCondition, Range, Rule } from '../../src/parsing';
+import { AndCondition, Expr, OrCondition, parsePluralRule, Range, Rule } from '../../src/parsing';
 
 test('rule parse', () => {
   const rule = 'v = 0 and i % 10 = 1 or v % 10 = 2,3..6 @integer 1, 21, 31';

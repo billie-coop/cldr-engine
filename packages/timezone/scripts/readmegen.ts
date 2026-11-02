@@ -10,7 +10,7 @@ import { tzFromUTC, tzFromWall, tzResolveId } from '../src';
     'America/New_York',
     'Pacific/Pago_Pago',
     'Asia/Tokyo',
-    'Europe/Paris'
+    'Europe/Paris',
   ];
 
   const now = new Date(2020, 2, 18, 12, 30, 0).getTime();

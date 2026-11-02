@@ -16,6 +16,7 @@ test('date zone info is readonly', () => {
     // @ts-expect-error -- readonly
     d.zoneInfo.zoneid = 'Europe/Paris';
     // @ts-expect-error -- readonly
+    // biome-ignore lint/correctness/noSelfAssign: checks the field is readonly
     d.zoneInfo = d.zoneInfo;
     // @ts-expect-error -- readonly
     d.fields[0] = 1;

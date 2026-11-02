@@ -1,9 +1,9 @@
-import { DateTimePatternFieldType } from '@phensley/cldr-types';
+import type { DateTimePatternFieldType } from '@phensley/cldr-types';
 import { dateAdd, dateSubtract, newGregorianDate } from '../../../src';
 import { getCalendarPatterns, maskedFOVD } from '../../../src/internals/calendars/manager';
 import { patternsParseSkeleton } from '../../../src/internals/calendars/patterns';
+import type { DateSkeleton } from '../../../src/internals/calendars/skeleton';
 import { languageBundle } from '../../_helpers';
-import { DateSkeleton } from '../../../src/internals/calendars/skeleton';
 
 test('masked fovd', () => {
   const bundle = languageBundle('en');
@@ -13,7 +13,14 @@ test('masked fovd', () => {
   let skeleton: DateSkeleton;
   let fovd: DateTimePatternFieldType;
 
-  const date = newGregorianDate(api, { year: 2024, month: 3, day: 10, hour: 10, minute: 20, second: 30 });
+  const date = newGregorianDate(api, {
+    year: 2024,
+    month: 3,
+    day: 10,
+    hour: 10,
+    minute: 20,
+    second: 30,
+  });
   skeleton = patternsParseSkeleton(patterns, 'yMMMd');
 
   fovd = maskedFOVD(manager, date, dateAdd(date, { hour: 3 }), skeleton);

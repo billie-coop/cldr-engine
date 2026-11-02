@@ -1,5 +1,5 @@
+import type { ContextTransformInfo } from '../../../src/common/private';
 import { contextTransform, formatWrapper } from '../../../src/internals/general/internal';
-import { ContextTransformInfo } from '../../../src/common/private';
 
 test('wrapper args', () => {
   let s = formatWrapper('{0} {1}', ['a', 'b']);

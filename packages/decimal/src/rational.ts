@@ -1,4 +1,7 @@
 import {
+  type Decimal,
+  type DecimalArg,
+  DecimalConstants,
   decimal,
   decimalAdd,
   decimalCompare,
@@ -8,11 +11,8 @@ import {
   decimalSubtract,
   decimalToString,
   isDecimal,
-  Decimal,
-  DecimalArg,
-  DecimalConstants,
 } from './decimal';
-import { MathContext } from './types';
+import type { MathContext } from './types';
 
 /**
  * Arbitrary precision rational value: plain, immutable data. Use the `rational*` functions to
@@ -69,9 +69,15 @@ export const rational = (numerator: DecimalArg, denominator?: DecimalArg): Ratio
     const i = numerator.indexOf('/');
     return i === -1
       ? make(fromString(numerator), DecimalConstants.ONE)
-      : make(fromString(numerator.substring(0, i).trim()), fromString(numerator.substring(i + 1).trim()));
+      : make(
+          fromString(numerator.substring(0, i).trim()),
+          fromString(numerator.substring(i + 1).trim()),
+        );
   }
-  return make(coerce(numerator), coerce(denominator === undefined ? DecimalConstants.ONE : denominator));
+  return make(
+    coerce(numerator),
+    coerce(denominator === undefined ? DecimalConstants.ONE : denominator),
+  );
 };
 
 /**
@@ -95,7 +101,11 @@ export const coerceRational = (n: RationalArg): Rational => {
  *
  * @public
  */
-export const rationalCompare = (un: RationalArg, vn: RationalArg, context?: MathContext): number => {
+export const rationalCompare = (
+  un: RationalArg,
+  vn: RationalArg,
+  context?: MathContext,
+): number => {
   const u = coerceRational(un);
   const v = coerceRational(vn);
   const a = decimalMultiply(u.numerator, v.denominator, context);
@@ -125,7 +135,11 @@ export const rationalAdd = (un: RationalArg, vn: RationalArg, context?: MathCont
  *
  * @public
  */
-export const rationalSubtract = (un: RationalArg, vn: RationalArg, context?: MathContext): Rational => {
+export const rationalSubtract = (
+  un: RationalArg,
+  vn: RationalArg,
+  context?: MathContext,
+): Rational => {
   const u = coerceRational(un);
   const n = coerceRational(vn);
   return rational(
@@ -152,7 +166,11 @@ export const rationalNegate = (un: RationalArg): Rational => {
  *
  * @public
  */
-export const rationalDivide = (un: RationalArg, vn: RationalArg, context?: MathContext): Rational => {
+export const rationalDivide = (
+  un: RationalArg,
+  vn: RationalArg,
+  context?: MathContext,
+): Rational => {
   const u = coerceRational(un);
   const n = coerceRational(vn);
   return rational(
@@ -166,7 +184,11 @@ export const rationalDivide = (un: RationalArg, vn: RationalArg, context?: MathC
  *
  * @public
  */
-export const rationalMultiply = (un: RationalArg, vn: RationalArg, context?: MathContext): Rational => {
+export const rationalMultiply = (
+  un: RationalArg,
+  vn: RationalArg,
+  context?: MathContext,
+): Rational => {
   const u = coerceRational(un);
   const n = coerceRational(vn);
   return rational(

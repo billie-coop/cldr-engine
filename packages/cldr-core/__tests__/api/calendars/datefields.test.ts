@@ -1,8 +1,7 @@
-import { DateFieldWidthType, RelativeTimeFieldType } from '@phensley/cldr-types';
+import type { DateFieldWidthType, RelativeTimeFieldType } from '@phensley/cldr-types';
 import { decimal } from '@phensley/decimal';
-
-import { calendarsApi } from '../../_helpers';
 import { dateField, formatRelativeTimeField } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 test('display name', () => {
   let api = calendarsApi('en');

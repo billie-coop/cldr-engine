@@ -1,11 +1,10 @@
-import { MetaZoneType } from '@phensley/cldr-types';
+import type { MetaZoneType } from '@phensley/cldr-types';
+import { defaultTimeZoneData, tzFromUTC, tzResolveId, tzUtcZone } from '@phensley/timezone';
 import { keyIndexGet } from '../../schema/instructions';
 import { TimeZoneStableIdIndex } from '../../schema/schema/timezones';
-import { defaultTimeZoneData, tzFromUTC, tzResolveId, tzUtcZone } from '@phensley/timezone';
-
+import { numarray, stringToObject } from '../../utils/string';
 import { zoneAliasRaw } from './autogen.aliases';
 import { metazoneData } from './autogen.zonedata';
-import { numarray, stringToObject } from '../../utils/string';
 
 /**
  * Time zone information carried by a calendar date. Dates are immutable; use `dateWithZone` or
@@ -132,7 +131,12 @@ const buildMetazones = (raw: any): Metazones => {
   // cases should ensure they're in sync, but warn of a discrepancy
   /* istanbul ignore if -- @preserve */
   if (zoneids.length !== zoneindex.length) {
-    console.log(`Error: time zone ids and zone index are not in sync!`, zoneids.length, '!=', zoneindex.length);
+    console.log(
+      `Error: time zone ids and zone index are not in sync!`,
+      zoneids.length,
+      '!=',
+      zoneindex.length,
+    );
   }
 
   for (let i = 0; i < zoneindex.length; i++) {
@@ -187,7 +191,8 @@ const getMetazone = (m: Metazones, zoneid: string, utc: number): string | undefi
   return undefined;
 };
 
-const getStableId = (m: Metazones, zoneid: string): string => byZone(m, m.stableids, zoneid) || zoneid;
+const getStableId = (m: Metazones, zoneid: string): string =>
+  byZone(m, m.stableids, zoneid) || zoneid;
 
 // Built lazily on first use.
 let _metazones: Metazones | undefined;

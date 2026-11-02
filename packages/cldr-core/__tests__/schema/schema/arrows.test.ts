@@ -1,13 +1,13 @@
-import { PluralType, PrimitiveBundle } from '@phensley/cldr-types';
+import type { PluralType, PrimitiveBundle } from '@phensley/cldr-types';
 import {
-  PluralIndex,
-  fieldArrow,
-  fieldGet,
   digitsArrow,
   digitsGet,
+  fieldArrow,
+  fieldGet,
+  keyIndex,
+  PluralIndex,
   scopeArrow,
   scopeGet,
-  keyIndex,
   vectorArrow,
   vectorExists,
   vectorGet,

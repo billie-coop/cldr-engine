@@ -1,7 +1,7 @@
-import { languageBundle } from '../../_helpers';
-import { NumberParams } from '../../../src/common/private';
+import { type LocaleData, type NumberSystemType, vectorMapping } from '../../../src';
 import { getNumberParams } from '../../../src/api/private';
-import { LocaleData, NumberSystemType, vectorMapping } from '../../../src';
+import type { NumberParams } from '../../../src/common/private';
+import { languageBundle } from '../../_helpers';
 
 const LATN_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 

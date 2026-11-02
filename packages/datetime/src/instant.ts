@@ -1,6 +1,6 @@
 import { dayFromEpochDay, dayToEpochDay, dayToString, isDay } from './day';
 import { isTimeOfDay, timeOfDayFromMillis, timeOfDayToMillis } from './time-of-day';
-import { Instant } from './types';
+import type { Instant } from './types';
 import { checkInstant, MAX_INSTANT, timeZoneId, timeZoneOffset, wallToInstant } from './zone';
 
 const MS_PER_DAY = 86400000;

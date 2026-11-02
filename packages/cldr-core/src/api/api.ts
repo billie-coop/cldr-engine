@@ -1,4 +1,4 @@
-import {
+import type {
   CharacterOrderType,
   CurrencyType,
   DateFieldType,
@@ -7,11 +7,12 @@ import {
   RelativeTimeFieldType,
   UnitType,
 } from '@phensley/cldr-types';
-
-import { MessageFormatter, MessageFormatterOptions } from '@phensley/messageformat';
-import { Decimal, DecimalArg, Part } from '@phensley/decimal';
-import { ZoneInfo } from '@phensley/timezone';
-import {
+import type { Decimal, DecimalArg, Part } from '@phensley/decimal';
+import type { LanguageTag } from '@phensley/language-tag';
+import type { Locale } from '@phensley/locale';
+import type { MessageFormatter, MessageFormatterOptions } from '@phensley/messageformat';
+import type { ZoneInfo } from '@phensley/timezone';
+import type {
   CalendarFieldsOptions,
   DateFieldFormatOptions,
   DateFormatOptions,
@@ -25,31 +26,29 @@ import {
   TimeZoneInfo,
   ZonedDateTime,
 } from '../common/calendars';
-import {
+import type {
   CurrencyDisplayNameOptions,
   DisplayNameOptions,
   ListPatternType,
   MeasurementCategory,
   MeasurementSystem,
 } from '../common/general';
-import {
+import type {
   CurrencyFormatOptions,
   CurrencyFractions,
   CurrencySymbolWidthType,
   DecimalAdjustOptions,
   DecimalFormatOptions,
 } from '../common/numbers';
-import { Quantity, UnitFormatOptions, UnitLength } from '../common/units';
-import { Bundle } from '../resource/bundle';
-import { LanguageTag } from '@phensley/language-tag';
-import { Locale } from '@phensley/locale';
-import { BuddhistDate } from '../systems/calendars/buddhist';
-import { CalendarDate, CalendarDateFields } from '../systems/calendars/types';
-import { GregorianDate } from '../systems/calendars/gregorian';
-import { ISO8601Date } from '../systems/calendars/iso8601';
-import { JapaneseDate } from '../systems/calendars/japanese';
-import { PersianDate } from '../systems/calendars/persian';
-import { TimePeriod } from '../systems/calendars/interval';
+import type { Quantity, UnitFormatOptions, UnitLength } from '../common/units';
+import type { Bundle } from '../resource/bundle';
+import type { BuddhistDate } from '../systems/calendars/buddhist';
+import type { GregorianDate } from '../systems/calendars/gregorian';
+import type { TimePeriod } from '../systems/calendars/interval';
+import type { ISO8601Date } from '../systems/calendars/iso8601';
+import type { JapaneseDate } from '../systems/calendars/japanese';
+import type { PersianDate } from '../systems/calendars/persian';
+import type { CalendarDate, CalendarDateFields } from '../systems/calendars/types';
 
 /**
  * Calendar, date and time functions.
@@ -219,7 +218,10 @@ export interface Calendars {
    *
    * Warning: You should not use this for general formatting.
    */
-  formatDateRawToParts(date: CalendarDate | ZonedDateTime | Date, options?: DateRawFormatOptions): Part[];
+  formatDateRawToParts(
+    date: CalendarDate | ZonedDateTime | Date,
+    options?: DateRawFormatOptions,
+  ): Part[];
 
   /**
    * Formats a date and time string together using a wrapper format of the given width. This can be
@@ -419,7 +421,11 @@ export interface Numbers {
   /**
    * Formats a currency value to an array of parts.
    */
-  formatCurrencyToParts(num: DecimalArg, code: CurrencyType, options?: CurrencyFormatOptions): Part[];
+  formatCurrencyToParts(
+    num: DecimalArg,
+    code: CurrencyType,
+    options?: CurrencyFormatOptions,
+  ): Part[];
 
   /**
    * Formats a decimal number using a rule-based number format.
@@ -439,7 +445,11 @@ export interface Numbers {
   /**
    * Returns the pluralized display name of the currency.
    */
-  getCurrencyPluralName(num: DecimalArg, code: CurrencyType, options?: CurrencyDisplayNameOptions): string;
+  getCurrencyPluralName(
+    num: DecimalArg,
+    code: CurrencyType,
+    options?: CurrencyDisplayNameOptions,
+  ): string;
 
   /**
    * Return the currency fraction info for a given currency code.

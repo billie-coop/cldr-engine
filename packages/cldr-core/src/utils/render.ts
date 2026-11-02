@@ -1,5 +1,5 @@
-import { Part } from '@phensley/decimal';
-import { WrapperNode } from '../parsing/wrapper';
+import type { Part } from '@phensley/decimal';
+import type { WrapperNode } from '../parsing/wrapper';
 
 /**
  * Accumulates a formatted value as a string or as parts.

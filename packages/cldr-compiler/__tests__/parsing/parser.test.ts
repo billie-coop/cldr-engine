@@ -1,6 +1,4 @@
-import { matcher } from '../../src/parsing';
-import { just, nothing } from '../../src/parsing';
-import { pair } from '../../src/parsing';
+import { just, matcher, nothing, pair } from '../../src/parsing';
 
 test('basic 1', () => {
   const parser = matcher(/^\d/).zeroOrMore();

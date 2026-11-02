@@ -1,4 +1,4 @@
-import { DateZoneInfo } from './timezone';
+import type { DateZoneInfo } from './timezone';
 
 /**
  * The internal type name for Gregorian calendar is "gregory" so that it can fit
@@ -73,7 +73,11 @@ export interface CalendarSystem {
    * Resolve a complete set of wall-clock fields to a UTC epoch and the zone id of the resulting
    * date. `zoneId` and `offset` are those of the date the fields are being set on.
    */
-  readonly resolveFields: (f: Partial<CalendarDateFields>, zoneId: string, offset: number) => [number, string];
+  readonly resolveFields: (
+    f: Partial<CalendarDateFields>,
+    zoneId: string,
+    offset: number,
+  ) => [number, string];
 }
 
 /**

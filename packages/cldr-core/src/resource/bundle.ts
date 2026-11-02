@@ -1,6 +1,12 @@
-import { PrimitiveBundle } from '@phensley/cldr-types';
-import { PluralRules, getPluralRules } from '@phensley/plurals';
-import { LanguageTag, tagExtensionSubtags, tagLanguage, tagRegion, tagScript } from '@phensley/language-tag';
+import type { PrimitiveBundle } from '@phensley/cldr-types';
+import {
+  type LanguageTag,
+  tagExtensionSubtags,
+  tagLanguage,
+  tagRegion,
+  tagScript,
+} from '@phensley/language-tag';
+import { getPluralRules, type PluralRules } from '@phensley/plurals';
 
 /**
  * Maps a string table offset to an index in the exceptions table.

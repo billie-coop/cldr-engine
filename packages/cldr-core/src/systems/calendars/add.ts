@@ -1,22 +1,22 @@
 import { tzFromWall } from '@phensley/timezone';
 import { dateSet } from './calendar';
-import { negatePeriod } from './math';
 import { CalendarConstants } from './constants';
 import { newDateFromJD } from './core';
 import { DateField } from './fields';
-import { timePeriod, TimePeriod } from './interval';
+import { type TimePeriod, timePeriod } from './interval';
 import {
   adjustTime,
   adjustYM,
   clampYMD,
   jdFromUnixEpoch,
+  negatePeriod,
   timeToMillis,
   toYMD,
   truncateFields,
   unixEpochFromJD,
-  YearMonthDay,
+  type YearMonthDay,
 } from './math';
-import { CalendarDate } from './types';
+import type { CalendarDate } from './types';
 
 /**
  * Add the fields to this date, returning a new date.
@@ -62,8 +62,8 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
 
   // Get Julian day and milliseconds in UTC
   let jd = orig.fields[DateField.JULIAN_DAY];
-  let millis = orig.fields[DateField.MILLIS_IN_DAY];
-  let offset = orig.zoneInfo.offset;
+  const millis = orig.fields[DateField.MILLIS_IN_DAY];
+  const offset = orig.zoneInfo.offset;
 
   // If nothing is being added, return the original date.
   if (!hasDate && !hasTime) {
@@ -76,7 +76,7 @@ export const add = (orig: CalendarDate, added: Partial<TimePeriod>): [number, nu
   // If only time is being added, skip the year/month logic
   // and add directly to the timestamp.
   if (!hasDate) {
-    let [timeDays, ms] = adjustTime(millis - offset, truncated);
+    const [timeDays, ms] = adjustTime(millis - offset, truncated);
     jd += timeDays;
     return [jd, ms];
   }
@@ -135,7 +135,7 @@ export const addYMD = (
 };
 
 export const millisToTimePeriod = (millis: number) => {
-  let r: TimePeriod = timePeriod();
+  const r: TimePeriod = timePeriod();
 
   r.millis = millis;
   r.hour = (r.millis / CalendarConstants.ONE_HOUR_MS) | 0;

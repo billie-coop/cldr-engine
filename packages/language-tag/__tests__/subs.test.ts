@@ -1,5 +1,5 @@
 import { substituteRegionAliases, LanguageTagField as Tag } from '../src';
-import { FastTag } from '../src/util';
+import type { FastTag } from '../src/util';
 
 test('region alias substitution', () => {
   const t: FastTag = [Tag.LANGUAGE, Tag.SCRIPT, Tag.REGION];

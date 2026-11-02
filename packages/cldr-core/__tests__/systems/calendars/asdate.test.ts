@@ -1,4 +1,4 @@
-import { CalendarDate, dateAsJSDate, dateSet, gregorianDateFromFields } from '../../../src';
+import { type CalendarDate, dateAsJSDate, dateSet, gregorianDateFromFields } from '../../../src';
 
 test('as javascript date', () => {
   let d: CalendarDate;

@@ -1,5 +1,5 @@
-import { buildConfig, numbersApi } from '../_helpers';
 import { formatCurrency } from '../../src';
+import { buildConfig, numbersApi } from '../_helpers';
 
 test('custom currencies', () => {
   const cfg = buildConfig({ 'number-system-name': [], 'currency-id': ['USD', 'JPY'] });

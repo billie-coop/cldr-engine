@@ -1,4 +1,4 @@
-import { ZoneInfo } from '../../../lib';
+import type { ZoneInfo } from '../../../lib';
 import { timeZoneFromUTC, timeZoneFromWall } from '../../../src';
 
 const MINUTE = 60000;

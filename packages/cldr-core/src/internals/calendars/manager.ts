@@ -1,37 +1,10 @@
+import { DateTimePatternField, type DateTimePatternFieldType } from '@phensley/cldr-types';
 import { decimal } from '@phensley/decimal';
-import { DateTimePatternField, DateTimePatternFieldType } from '@phensley/cldr-types';
-import { DateFormatOptions, DateIntervalFormatOptions } from '../../common/calendars';
-import { NumberParams } from '../../common/private';
-import { DateTimeNode } from '../../parsing/date';
-import { LocaleData } from '../../locale-data';
-import { CalendarDate } from '../../systems/calendars/types';
-import { Field } from './fields';
-import {
-  calendarPatterns,
-  CalendarPatterns,
-  patternsAdjust,
-  patternsAvailablePattern,
-  patternsDatePattern,
-  patternsGetCachedRequest,
-  patternsIntervalFallback,
-  patternsMatchAvailable,
-  patternsMatchInterval,
-  patternsParseSkeleton,
-  patternsSetCachedRequest,
-  patternsTimePattern,
-  patternsWrapperPattern,
-} from './patterns';
-import {
-  DateSkeleton,
-  SkeletonField,
-  skeletonCompound,
-  skeletonHas,
-  skeletonMonthWidth,
-  skeletonSplit,
-} from './skeleton';
-import { DateFormatRequest, DateIntervalFormatRequest } from './types';
 import { pluralCardinal } from '@phensley/plurals';
-import { flexDayPeriod, parseDatePattern, selectCalendar } from './internal';
+import type { DateFormatOptions, DateIntervalFormatOptions } from '../../common/calendars';
+import type { NumberParams } from '../../common/private';
+import type { LocaleData } from '../../locale-data';
+import type { DateTimeNode } from '../../parsing/date';
 import {
   dateDayOfMonth,
   dateEra,
@@ -45,6 +18,33 @@ import {
   dateWeekOfYear,
   dateYear,
 } from '../../systems/calendars/calendar';
+import type { CalendarDate } from '../../systems/calendars/types';
+import { Field } from './fields';
+import { flexDayPeriod, parseDatePattern, selectCalendar } from './internal';
+import {
+  type CalendarPatterns,
+  calendarPatterns,
+  patternsAdjust,
+  patternsAvailablePattern,
+  patternsDatePattern,
+  patternsGetCachedRequest,
+  patternsIntervalFallback,
+  patternsMatchAvailable,
+  patternsMatchInterval,
+  patternsParseSkeleton,
+  patternsSetCachedRequest,
+  patternsTimePattern,
+  patternsWrapperPattern,
+} from './patterns';
+import {
+  type DateSkeleton,
+  type SkeletonField,
+  skeletonCompound,
+  skeletonHas,
+  skeletonMonthWidth,
+  skeletonSplit,
+} from './skeleton';
+import type { DateFormatRequest, DateIntervalFormatRequest } from './types';
 
 const maskedFOVDFields: Field[] = [
   Field.ERA,
@@ -438,7 +438,7 @@ export const getDateIntervalFormatRequest = (
 
       // Use fovd to select final pattern. Since it was masked by the matched
       // skeleton, the fovd should completely cover the set of patterns in the data.
-      let pattern = match.data.patterns[fovd];
+      const pattern = match.data.patterns[fovd];
 
       const parsedPattern = parseDatePattern(pattern || '');
       /* istanbul ignore else -- @preserve */

@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
 import {
-  Day,
+  type Day,
   dayAdd,
   dayAtTime,
   dayFromEpochDay,

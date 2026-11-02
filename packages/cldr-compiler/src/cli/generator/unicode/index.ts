@@ -1,9 +1,8 @@
-import * as fs from 'fs';
-import * as filepath from 'path';
-import * as yargs from 'yargs';
-
-import fetch, { Response } from 'node-fetch';
 import chalk from 'chalk';
+import * as fs from 'fs';
+import fetch, { type Response } from 'node-fetch';
+import * as filepath from 'path';
+import type * as yargs from 'yargs';
 
 const DATAROOT = filepath.resolve(filepath.join(__dirname, '../../../../.cldr'));
 const UNICODE_DATA_URL = 'https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt';
@@ -18,7 +17,9 @@ export const unicodeOptions = (argv: yargs.Argv) =>
     'unicode',
     'Generate unicode patterns',
     (y: yargs.Argv) =>
-      y.option('w', { alias: 'which', type: 'array', description: 'Which patterns to generate' }).choices('w', WHICH),
+      y
+        .option('w', { alias: 'which', type: 'array', description: 'Which patterns to generate' })
+        .choices('w', WHICH),
     run,
   );
 
@@ -67,7 +68,7 @@ type Range = [number, number];
 
 const selectCategory = (data: UnicodeDataEntry[], category: string) =>
   data
-    .filter((d) => d.category == category)
+    .filter((d) => d.category === category)
     .map((d) => parseInt(d.code, 16))
     .filter((code) => code <= 0xffff);
 
@@ -77,13 +78,13 @@ const generateRanges = (codes: number[]): Range[] => {
     if (code > 0xffff) {
       continue;
     }
-    let len = ranges.length;
+    const len = ranges.length;
     if (!len) {
       ranges.push([code, code]);
       continue;
     }
     const curr = ranges[len - 1];
-    if (curr[1] == code - 1) {
+    if (curr[1] === code - 1) {
       curr[1] = code;
       continue;
     }
@@ -98,7 +99,7 @@ const regex = (ranges: Range[]): string => {
   let s = '/';
   for (const [start, end] of ranges) {
     s += esc(start);
-    if (start != end) {
+    if (start !== end) {
       s += '-' + esc(end);
     }
   }
@@ -152,7 +153,7 @@ const download = (): Promise<boolean> => {
     makedirs(DATAROOT, name);
     info(`${chalk.yellow('fetching')} UnicodeData.txt`);
     fetch(UNICODE_DATA_URL).then((r: Response) => {
-      if (r.status != 200) {
+      if (r.status !== 200) {
         reject(`failure downloading: ${r.statusText}`);
         return;
       }

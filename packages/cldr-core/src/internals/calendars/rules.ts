@@ -1,11 +1,10 @@
-import { DayPeriodType } from '@phensley/cldr-types';
-import { binarySearch, Cache, cacheGet, createCache } from '@phensley/cldr-utils';
+import type { DayPeriodType } from '@phensley/cldr-types';
+import { binarySearch, type Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 
-import { Bundle } from '../../resource/bundle';
+import type { Bundle } from '../../resource/bundle';
 import { numarray } from '../../utils/string';
-
-import { dayPeriodKeys, dayPeriodRules } from './autogen.dayperiods';
 import { PATTERN_CACHE_SIZE } from '../general/internal';
+import { dayPeriodKeys, dayPeriodRules } from './autogen.dayperiods';
 
 interface Rule {
   minutes: number[];

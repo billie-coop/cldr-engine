@@ -1,25 +1,24 @@
-import { ContextType, FormatWidthType } from '@phensley/cldr-types';
-import { Part } from '@phensley/decimal';
+import type { ContextType, FormatWidthType } from '@phensley/cldr-types';
 import {
-  Day,
+  type Day,
   dayFromInstant,
   dayToEpochDay,
   dayUntil,
-  Instant,
-  TimeOfDay,
+  type Instant,
+  type TimeOfDay,
   timeOfDayToMillis,
   timeZoneId,
 } from '@phensley/datetime';
-
-import { LocaleData } from '../locale-data';
-import {
+import type { Part } from '@phensley/decimal';
+import type {
   DateFormatAltOptions,
   DateFormatOptions,
   RelativeTimeFieldFormatOptions,
   RelativeTimeFormatOptions,
 } from '../common/calendars';
-import { NumberSystemType } from '../common/numbers';
-import { CalendarType } from '../systems/calendars/types';
+import type { NumberSystemType } from '../common/numbers';
+import type { LocaleData } from '../locale-data';
+import type { CalendarType } from '../systems/calendars/types';
 import {
   formatDate,
   formatDateInterval,
@@ -125,7 +124,9 @@ const checkSkeleton = (skeleton: string | undefined, allowed: string, what: stri
   if (skeleton) {
     for (let i = 0; i < skeleton.length; i++) {
       if (allowed.indexOf(skeleton[i]) === -1) {
-        throw new RangeError(`Skeleton field '${skeleton[i]}' doesn't apply to a ${what}: ${skeleton}`);
+        throw new RangeError(
+          `Skeleton field '${skeleton[i]}' doesn't apply to a ${what}: ${skeleton}`,
+        );
       }
     }
   }
@@ -136,7 +137,9 @@ const checkSkeleton = (skeleton: string | undefined, allowed: string, what: stri
 const fromDay = (data: LocaleData, d: Day, t?: TimeOfDay) => {
   const n = dayToEpochDay(d);
   if (n < FIRST_DAY || n > LAST_DAY) {
-    throw new RangeError(`Days before 1582-10-15 or after 8652-12-31 can't be formatted yet: ${d.year}`);
+    throw new RangeError(
+      `Days before 1582-10-15 or after 8652-12-31 can't be formatted yet: ${d.year}`,
+    );
   }
   if (t) {
     timeOfDayToMillis(t);
@@ -160,7 +163,9 @@ const zoned = (instant: Instant, zone: string) => {
   const zoneId = timeZoneId(zone);
   const n = dayToEpochDay(dayFromInstant(instant, zoneId));
   if (n < FIRST_DAY || n > LAST_DAY) {
-    throw new RangeError(`Instants before 1582-10-15 or after 8652-12-31 can't be formatted yet: ${instant}`);
+    throw new RangeError(
+      `Instants before 1582-10-15 or after 8652-12-31 can't be formatted yet: ${instant}`,
+    );
   }
   return { date: instant, zoneId };
 };
@@ -216,7 +221,12 @@ export const formatDayToParts = (data: LocaleData, d: Day, options?: DayFormatOp
  *
  * @public
  */
-export const formatDayInterval = (data: LocaleData, start: Day, end: Day, options?: DayIntervalFormatOptions): string =>
+export const formatDayInterval = (
+  data: LocaleData,
+  start: Day,
+  end: Day,
+  options?: DayIntervalFormatOptions,
+): string =>
   formatDateInterval(data, fromDay(data, start), fromDay(data, end), intervalOptions(options));
 
 /**
@@ -229,23 +239,35 @@ export const formatDayIntervalToParts = (
   start: Day,
   end: Day,
   options?: DayIntervalFormatOptions,
-): Part[] => formatDateIntervalToParts(data, fromDay(data, start), fromDay(data, end), intervalOptions(options));
+): Part[] =>
+  formatDateIntervalToParts(
+    data,
+    fromDay(data, start),
+    fromDay(data, end),
+    intervalOptions(options),
+  );
 
 /**
  * Format a time of day, e.g. "6:30 AM" / "06:30". See {@link TimeOfDayFormatOptions}.
  *
  * @public
  */
-export const formatTimeOfDay = (data: LocaleData, t: TimeOfDay, options?: TimeOfDayFormatOptions): string =>
-  formatDate(data, fromDay(data, EPOCH_DAY, t), timeOptions(options));
+export const formatTimeOfDay = (
+  data: LocaleData,
+  t: TimeOfDay,
+  options?: TimeOfDayFormatOptions,
+): string => formatDate(data, fromDay(data, EPOCH_DAY, t), timeOptions(options));
 
 /**
  * Format a time of day to an array of parts.
  *
  * @public
  */
-export const formatTimeOfDayToParts = (data: LocaleData, t: TimeOfDay, options?: TimeOfDayFormatOptions): Part[] =>
-  formatDateToParts(data, fromDay(data, EPOCH_DAY, t), timeOptions(options));
+export const formatTimeOfDayToParts = (
+  data: LocaleData,
+  t: TimeOfDay,
+  options?: TimeOfDayFormatOptions,
+): Part[] => formatDateToParts(data, fromDay(data, EPOCH_DAY, t), timeOptions(options));
 
 /**
  * Describe a day relative to another in words: "today", "tomorrow", "yesterday", "in 3 days",
@@ -269,8 +291,12 @@ export const formatDayRelative = (
  *
  * @public
  */
-export const formatInstant = (data: LocaleData, instant: Instant, zone: string, options?: DateFormatOptions): string =>
-  formatDate(data, zoned(instant, zone), options);
+export const formatInstant = (
+  data: LocaleData,
+  instant: Instant,
+  zone: string,
+  options?: DateFormatOptions,
+): string => formatDate(data, zoned(instant, zone), options);
 
 /**
  * Format an instant to an array of parts. See {@link formatInstant}.

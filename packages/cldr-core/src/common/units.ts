@@ -1,7 +1,7 @@
-import { UnitType } from '@phensley/cldr-types';
-import { Decimal, MathContext } from '@phensley/decimal';
+import type { UnitType } from '@phensley/cldr-types';
+import type { Decimal, MathContext } from '@phensley/decimal';
 
-import { NumberFormatOptions, NumberFormatStyleType } from './numbers';
+import type { NumberFormatOptions, NumberFormatStyleType } from './numbers';
 
 /**
  * @public

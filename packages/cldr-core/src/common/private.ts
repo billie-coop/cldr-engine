@@ -1,4 +1,4 @@
-import {
+import type {
   ContextTransformFieldType,
   CurrencySpacingPattern,
   CurrencySpacingPos,
@@ -6,7 +6,7 @@ import {
   NumberSystemName,
 } from '@phensley/cldr-types';
 
-import { DateTimeNode } from '../parsing/date';
+import type { DateTimeNode } from '../parsing/date';
 
 // TODO: move these
 

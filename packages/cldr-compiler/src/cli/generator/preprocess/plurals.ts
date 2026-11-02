@@ -1,5 +1,5 @@
 import { getSupplemental } from '../../../cldr';
-import { parsePluralRule, CompactOrCondition } from '../../../parsing/parser.plural';
+import { type CompactOrCondition, parsePluralRule } from '../../../parsing/parser.plural';
 
 // Single-character ids for the plural categories.
 const categories: any = {

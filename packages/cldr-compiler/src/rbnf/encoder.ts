@@ -1,8 +1,8 @@
 import { Opcode, RuleType } from '@phensley/cldr-ext-rbnf/lib/rbnftypes';
 
-import { parseRBNF, RBNFNode } from '../parsing/parser.rbnf';
-import { JSONRoot, JSONRulesetInner, ROOT_KEYS } from './json';
-import { FrequencySet } from '../utils';
+import { parseRBNF, type RBNFNode } from '../parsing/parser.rbnf';
+import type { FrequencySet } from '../utils';
+import { type JSONRoot, type JSONRulesetInner, ROOT_KEYS } from './json';
 
 const IGNORED = new Set(['lenient-parse']);
 

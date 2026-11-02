@@ -1,6 +1,6 @@
 import { rawdata } from './autogen.zonedata';
-import { createTzDatabase, tzdbLookup, TzDatabase, tzdbZoneMeta } from './database';
-import { RawData, ZoneInfo, ZoneMeta } from './types';
+import { createTzDatabase, type TzDatabase, tzdbLookup, tzdbZoneMeta } from './database';
+import type { RawData, ZoneInfo, ZoneMeta } from './types';
 
 /**
  * The time zone data bundled with this package, generated from the tz database.

@@ -1,5 +1,5 @@
 import { languageTag } from '@phensley/language-tag';
-import { Locale } from '@phensley/locale';
+import type { Locale } from '@phensley/locale';
 import { rawLocales } from './autogen.locales';
 
 const enum Flags {

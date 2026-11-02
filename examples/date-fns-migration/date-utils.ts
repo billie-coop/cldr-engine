@@ -29,8 +29,8 @@ import {
   dayFromInstant,
   dayParse,
   dayStartOfWeek,
-  dayToString,
   dayToday,
+  dayToString,
   dayUntil,
   instantParse,
   systemTimeZone,
@@ -104,7 +104,14 @@ const addTo = (dateString: string, amount: number, unit: 'days' | 'months'): str
   return dayToString(dayAdd(d, { [unit]: whole }));
 };
 
-export type DateGroup = 'overdue' | 'today' | 'tomorrow' | 'thisWeek' | 'nextWeek' | 'thisMonth' | 'later';
+export type DateGroup =
+  | 'overdue'
+  | 'today'
+  | 'tomorrow'
+  | 'thisWeek'
+  | 'nextWeek'
+  | 'thisMonth'
+  | 'later';
 
 /**
  * Centralized date utilities. Date strings are YYYY-MM-DD; "today" is in the device's zone.

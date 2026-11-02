@@ -1,4 +1,4 @@
-import { scope, vector, Scope } from '../instructions';
+import { type Scope, scope, vector } from '../instructions';
 
 export const NAMES: Scope = scope('Names', 'Names', [
   scope('languages', 'languages', [vector('displayName', ['alt-key', 'language-id'])]),

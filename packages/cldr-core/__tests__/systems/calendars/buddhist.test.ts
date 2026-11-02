@@ -1,5 +1,5 @@
 import {
-  BuddhistDate,
+  type BuddhistDate,
   buddhistDateFromUnixEpoch,
   dateDayOfMonth,
   dateEra,

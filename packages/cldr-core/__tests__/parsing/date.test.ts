@@ -43,7 +43,16 @@ test('quoted apostrophe escapes', () => {
   // letters are parsed as pattern fields. Behavior is intentionally lenient
   // (ICU4J rejects this pattern with IllegalArgumentException; we keep
   // parsing and pin the existing output).
-  expect(parseDatePattern("yyyy 'o'clock'")).toEqual([['y', 4], ' o', ['c', 1], ['l', 1], 'o', ['c', 1], ['k', 1], '']);
+  expect(parseDatePattern("yyyy 'o'clock'")).toEqual([
+    ['y', 4],
+    ' o',
+    ['c', 1],
+    ['l', 1],
+    'o',
+    ['c', 1],
+    ['k', 1],
+    '',
+  ]);
 
   // A pattern ending in a dangling single quote keeps the existing lenient
   // behavior: the quote opens a run that runs to end of input.

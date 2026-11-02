@@ -37,7 +37,9 @@ test('minIntDigits < 1 is clamped to 1', () => {
   const [c1, e1] = decimalScientific(decimal('1234.5678'), 1);
   expect([decimalToString(c0), e0]).toEqual([decimalToString(c1), e1]);
 
-  expect(decimalToScientificParts(decimal('1234.5678'), 0)).toEqual(decimalToScientificParts(decimal('1234.5678'), 1));
+  expect(decimalToScientificParts(decimal('1234.5678'), 0)).toEqual(
+    decimalToScientificParts(decimal('1234.5678'), 1),
+  );
 });
 
 test('negative zero', () => {

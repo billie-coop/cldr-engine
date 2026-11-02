@@ -1,4 +1,3 @@
-import { BuddhistDate, GregorianDate, PersianDate } from '../../../src/systems/calendars';
 import {
   buddhistDateFromUnixEpoch,
   dateToISOString,
@@ -6,6 +5,7 @@ import {
   gregorianDateFromUnixEpoch,
   persianDateFromUnixEpoch,
 } from '../../../src';
+import type { BuddhistDate, GregorianDate, PersianDate } from '../../../src/systems/calendars';
 
 const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 const persian = (e: number, z: string) => persianDateFromUnixEpoch(e, z, 1, 1);

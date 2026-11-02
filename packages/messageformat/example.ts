@@ -5,14 +5,14 @@ import {
   defaultMessageArgConverter,
   evaluateMessage,
   formatMessage,
+  type MessageArg,
+  type MessageNamedArgs,
   parseMessagePattern,
-  MessageArg,
-  MessageNamedArgs
 } from './src';
 
 const FORMATTERS = {
   foo: (args: MessageArg[], options: string[]) =>
-    options[0] === 'upper' ? args[0].toUpperCase() : args[0].toLowerCase()
+    options[0] === 'upper' ? args[0].toUpperCase() : args[0].toLowerCase(),
 };
 
 const FORMATTER_NAMES = Object.keys(FORMATTERS);
@@ -23,14 +23,14 @@ const CONVERTER = defaultMessageArgConverter;
 
 const parse = (message: string) => parseMessagePattern(message, MATCHER);
 
-const dump = (message: string) =>
-  console.log(JSON.stringify(parse(message)));
+const dump = (message: string) => console.log(JSON.stringify(parse(message)));
 
-const plurals = (language: string, region?: string) =>
-  getPluralRules(language, region);
+const plurals = (language: string, region?: string) => getPluralRules(language, region);
 
 const format = (message: string, positional: MessageArg[], named: MessageNamedArgs = {}) => {
-  console.log(evaluateMessage(plurals('en'), CONVERTER, FORMATTERS, parse(message), positional, named));
+  console.log(
+    evaluateMessage(plurals('en'), CONVERTER, FORMATTERS, parse(message), positional, named),
+  );
 };
 
 let msg: string;
@@ -46,13 +46,18 @@ dump('{word} uppercase = {word foo upper} lowercase = {word foo lower}');
 // Example 2 - MessageFormatter
 
 const rules = plurals('en');
-const formatter = createMessageFormatter({ plurals: rules, formatters: FORMATTERS, cacheSize: 100 });
+const formatter = createMessageFormatter({
+  plurals: rules,
+  formatters: FORMATTERS,
+  cacheSize: 100,
+});
 msg = '{0 select, male {his} female {her} other {their}} {item}';
 console.log(formatMessage(formatter, msg, ['female'], { item: 'parka' }));
 
 // Example 3 - plural cardinals
 
-msg = '{count, plural, offset:1 =0 {Be the first to like this} =1 {You liked this} one {You and someone else liked this} other {You and # others liked this}}';
+msg =
+  '{count, plural, offset:1 =0 {Be the first to like this} =1 {You liked this} one {You and someone else liked this} other {You and # others liked this}}';
 
 format(msg, [], { count: 0 });
 format(msg, [], { count: 1 });
@@ -69,7 +74,8 @@ format(msg, ['male'], { item: 'parka' });
 
 // Example 5 - plural ordinals and select
 
-msg = '{name} {tied select true {tied for} other {came in}} {place selectordinal one {#st} two {#nd} few {#rd} other {#th}} place';
+msg =
+  '{name} {tied select true {tied for} other {came in}} {place selectordinal one {#st} two {#nd} few {#rd} other {#th}} place';
 
 const racers = [
   { name: 'Lisa', place: 1 },
@@ -77,7 +83,7 @@ const racers = [
   { name: 'Betty', place: 3 },
   { name: 'Frank', place: 4, tied: true },
   { name: 'George', place: 4, tied: true },
-  { name: 'Larry', place: 5 }
+  { name: 'Larry', place: 5 },
 ];
 
 for (const racer of racers) {
@@ -88,11 +94,7 @@ for (const racer of racers) {
 
 msg = '{word} uppercase = {word foo upper} lowercase = {word foo lower}';
 
-const WORDS = [
-  'Computer',
-  'Science',
-  'Mathematics'
-];
+const WORDS = ['Computer', 'Science', 'Mathematics'];
 
 for (const word of WORDS) {
   format(msg, [], { word });

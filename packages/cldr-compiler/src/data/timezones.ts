@@ -1,5 +1,5 @@
 import { getSupplemental } from '../cldr';
-import { applyMappings, Mapping, Mappings } from './utils';
+import { applyMappings, type Mapping, Mappings } from './utils';
 
 const mappings: Mapping[] = [
   Mappings.field('metaZones').keys().keys().keys().keys().remap(0, 2, 3, 1, 4),

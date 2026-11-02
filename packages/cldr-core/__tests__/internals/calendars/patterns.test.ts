@@ -1,4 +1,4 @@
-import { calendarsApi, languageBundle } from '../../_helpers';
+import { toGregorianDate } from '../../../src';
 
 import {
   calendarPatterns,
@@ -10,8 +10,8 @@ import {
   patternsTimePattern,
   patternsWrapperPattern,
 } from '../../../src/internals/calendars/patterns';
-import { DateSkeleton } from '../../../src/internals/calendars/skeleton';
-import { toGregorianDate } from '../../../src';
+import type { DateSkeleton } from '../../../src/internals/calendars/skeleton';
+import { calendarsApi, languageBundle } from '../../_helpers';
 
 // March 11, 2018 7:00:25 AM UTC
 const MARCH_11_2018_070025_UTC = 1520751625000;

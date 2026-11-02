@@ -1,6 +1,6 @@
 import { tzResolveId, tzZoneIds } from '@phensley/timezone';
-import { lineWrap, Code, HEADER, NOLINT_MAXLINE } from './util';
 import chalk from 'chalk';
+import { Code, HEADER, lineWrap, NOLINT_MAXLINE } from './util';
 
 class IdArray {
   readonly array: string[] = [];

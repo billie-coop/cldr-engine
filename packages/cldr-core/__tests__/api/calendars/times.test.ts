@@ -1,6 +1,5 @@
+import { formatDateRaw, type ZonedDateTime } from '../../../src';
 import { calendarsApi } from '../../_helpers';
-
-import { ZonedDateTime, formatDateRaw } from '../../../src';
 
 const unix = (date: number, zoneId: string): ZonedDateTime => ({ date, zoneId });
 
@@ -164,7 +163,8 @@ test('fractional', () => {
   // Feb 1 2018 midnight NY time
   const base = 1517461200000;
 
-  const fmt = (ms: number, ch: string): string => formatDateRaw(api, unix(base + ms, NEW_YORK), { pattern: ch });
+  const fmt = (ms: number, ch: string): string =>
+    formatDateRaw(api, unix(base + ms, NEW_YORK), { pattern: ch });
 
   expect(fmt(0, 'S')).toEqual('0');
   expect(fmt(0, 'SSSS')).toEqual('0000');

@@ -1,17 +1,23 @@
-import { ContextType, CurrencyType, PluralType } from '@phensley/cldr-types';
-import { decimal, decimalIsInfinity, decimalIsNaN, Decimal, DecimalArg, Part } from '@phensley/decimal';
-import { pluralCardinal, pluralOrdinal } from '@phensley/plurals';
-import { CurrencyDisplayNameOptions } from '../common/general';
+import type { ContextType, CurrencyType, PluralType } from '@phensley/cldr-types';
 import {
+  type Decimal,
+  type DecimalArg,
+  decimal,
+  decimalIsInfinity,
+  decimalIsNaN,
+  type Part,
+} from '@phensley/decimal';
+import { pluralCardinal, pluralOrdinal } from '@phensley/plurals';
+import type { CurrencyDisplayNameOptions } from '../common/general';
+import type {
   CurrencyFormatOptions,
   CurrencySymbolWidthType,
   DecimalAdjustOptions,
   DecimalFormatOptions,
 } from '../common/numbers';
-import { NumberParams } from '../common/private';
-import { LocaleData } from '../locale-data';
-import { NumberRenderer } from '../internals/internals';
+import type { NumberParams } from '../common/private';
 import { contextTransform } from '../internals/general/internal';
+import type { NumberRenderer } from '../internals/internals';
 import {
   adjustNumber,
   currencyDisplayName,
@@ -21,6 +27,7 @@ import {
   renderDecimal,
 } from '../internals/numbers/internal';
 import { partsRenderer, stringRenderer } from '../internals/numbers/render';
+import type { LocaleData } from '../locale-data';
 import { getContextTransformInfo } from './private/api';
 import { getNumberParams } from './private/numbers';
 
@@ -31,16 +38,22 @@ const DEFAULT_CURRENCY_OPTIONS: CurrencyDisplayNameOptions = { context: 'begin-s
  *
  * @public
  */
-export const adjustDecimal = (_data: LocaleData, n: DecimalArg, opts?: DecimalAdjustOptions): Decimal =>
-  adjustNumber(decimal(n), opts);
+export const adjustDecimal = (
+  _data: LocaleData,
+  n: DecimalArg,
+  opts?: DecimalAdjustOptions,
+): Decimal => adjustNumber(decimal(n), opts);
 
 /**
  * Get the currency symbol for the given code, e.g. '$' for 'USD' in 'en'.
  *
  * @public
  */
-export const getCurrencySymbol = (data: LocaleData, code: CurrencyType, width?: CurrencySymbolWidthType): string =>
-  currencySymbol(data, code, width === 'narrow' ? 'narrow' : 'none');
+export const getCurrencySymbol = (
+  data: LocaleData,
+  code: CurrencyType,
+  width?: CurrencySymbolWidthType,
+): string => currencySymbol(data, code, width === 'narrow' ? 'narrow' : 'none');
 
 /**
  * Get the display name of a currency.
@@ -77,7 +90,11 @@ export const getCurrencyPluralName = (
  *
  * @public
  */
-export const getPluralCardinal = (data: LocaleData, n: DecimalArg, options?: DecimalAdjustOptions): string => {
+export const getPluralCardinal = (
+  data: LocaleData,
+  n: DecimalArg,
+  options?: DecimalAdjustOptions,
+): string => {
   const d = options ? adjustDecimal(data, n, options) : decimal(n);
   return pluralCardinal(data.plurals, d);
 };
@@ -87,7 +104,11 @@ export const getPluralCardinal = (data: LocaleData, n: DecimalArg, options?: Dec
  *
  * @public
  */
-export const getPluralOrdinal = (data: LocaleData, n: DecimalArg, options?: DecimalAdjustOptions): string => {
+export const getPluralOrdinal = (
+  data: LocaleData,
+  n: DecimalArg,
+  options?: DecimalAdjustOptions,
+): string => {
   const d = options ? adjustDecimal(data, n, options) : decimal(n);
   return pluralOrdinal(data.plurals, d);
 };
@@ -97,7 +118,11 @@ export const getPluralOrdinal = (data: LocaleData, n: DecimalArg, options?: Deci
  *
  * @public
  */
-export const formatDecimal = (data: LocaleData, n: DecimalArg, options?: DecimalFormatOptions): string => {
+export const formatDecimal = (
+  data: LocaleData,
+  n: DecimalArg,
+  options?: DecimalFormatOptions,
+): string => {
   options = options || {};
   const params = getNumberParams(data, options.nu);
   return formatDecimalImpl(data, stringRenderer(params), params, n, options);
@@ -108,7 +133,11 @@ export const formatDecimal = (data: LocaleData, n: DecimalArg, options?: Decimal
  *
  * @public
  */
-export const formatDecimalToParts = (data: LocaleData, n: DecimalArg, options?: DecimalFormatOptions): Part[] => {
+export const formatDecimalToParts = (
+  data: LocaleData,
+  n: DecimalArg,
+  options?: DecimalFormatOptions,
+): Part[] => {
   options = options || {};
   const params = getNumberParams(data, options.nu);
   return formatDecimalImpl(data, partsRenderer(params), params, n, options);
@@ -212,7 +241,8 @@ const validate = <T>(
 };
 
 // Default an options context value
-const _ctx = (o: CurrencyDisplayNameOptions): ContextType => _def(o, 'context', 'begin-sentence' as ContextType);
+const _ctx = (o: CurrencyDisplayNameOptions): ContextType =>
+  _def(o, 'context', 'begin-sentence' as ContextType);
 
 // Default an option value
 const _def = <O, K extends keyof O, T>(o: O, k: K, t: T): T => (o[k] as unknown as T) || t;

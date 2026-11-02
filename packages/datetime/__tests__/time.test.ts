@@ -62,8 +62,12 @@ test('day and time at an instant', () => {
   expect(timeOfDayToString(timeOfDayFromInstant(t, NY))).toEqual('22:30');
   expect(dayToString(dayFromInstant(t, 'Asia/Tokyo'))).toEqual('2026-01-31');
   expect(timeOfDayToString(timeOfDayFromInstant(t, 'Asia/Tokyo'))).toEqual('12:30');
-  expect(dayToString(dayToday('Pacific/Kiritimati', Date.UTC(2026, 0, 31, 12)))).toEqual('2026-02-01');
-  expect(dayToString(dayToday('Pacific/Pago_Pago', Date.UTC(2026, 0, 31, 9)))).toEqual('2026-01-30');
+  expect(dayToString(dayToday('Pacific/Kiritimati', Date.UTC(2026, 0, 31, 12)))).toEqual(
+    '2026-02-01',
+  );
+  expect(dayToString(dayToday('Pacific/Pago_Pago', Date.UTC(2026, 0, 31, 9)))).toEqual(
+    '2026-01-30',
+  );
   // Before 1970.
   expect(dayToString(dayFromInstant(Date.UTC(1969, 11, 31, 23), 'UTC'))).toEqual('1969-12-31');
   expect(timeOfDayToString(timeOfDayFromInstant(-1, 'UTC'))).toEqual('23:59:59.999');
@@ -83,15 +87,23 @@ test('system time zone', () => {
 
 test('wall time to instant', () => {
   const iso = (d: number) => instantToString(d, NY);
-  expect(iso(dayAtTime(day(2026, 1, 31), timeOfDay(9, 0), NY))).toEqual('2026-01-31T09:00:00.000-05:00');
-  expect(iso(dayAtTime(day(2026, 7, 31), timeOfDay(9, 0), NY))).toEqual('2026-07-31T09:00:00.000-04:00');
+  expect(iso(dayAtTime(day(2026, 1, 31), timeOfDay(9, 0), NY))).toEqual(
+    '2026-01-31T09:00:00.000-05:00',
+  );
+  expect(iso(dayAtTime(day(2026, 7, 31), timeOfDay(9, 0), NY))).toEqual(
+    '2026-07-31T09:00:00.000-04:00',
+  );
 
   // Spring forward, 2025-03-09: 02:00-02:59 is skipped.
   const spring = day(2025, 3, 9);
   const skipped = timeOfDay(2, 30);
   expect(iso(dayAtTime(spring, skipped, NY))).toEqual('2025-03-09T03:30:00.000-04:00');
-  expect(iso(dayAtTime(spring, skipped, NY, { disambiguation: 'later' }))).toEqual('2025-03-09T03:30:00.000-04:00');
-  expect(iso(dayAtTime(spring, skipped, NY, { disambiguation: 'earlier' }))).toEqual('2025-03-09T01:30:00.000-05:00');
+  expect(iso(dayAtTime(spring, skipped, NY, { disambiguation: 'later' }))).toEqual(
+    '2025-03-09T03:30:00.000-04:00',
+  );
+  expect(iso(dayAtTime(spring, skipped, NY, { disambiguation: 'earlier' }))).toEqual(
+    '2025-03-09T01:30:00.000-05:00',
+  );
   expect(() => dayAtTime(spring, skipped, NY, { disambiguation: 'reject' })).toThrow(RangeError);
   expect(iso(dayAtTime(spring, timeOfDay(3, 0), NY, { disambiguation: 'reject' }))).toEqual(
     '2025-03-09T03:00:00.000-04:00',
@@ -101,8 +113,12 @@ test('wall time to instant', () => {
   const fall = day(2025, 11, 2);
   const repeated = timeOfDay(1, 30);
   expect(iso(dayAtTime(fall, repeated, NY))).toEqual('2025-11-02T01:30:00.000-04:00');
-  expect(iso(dayAtTime(fall, repeated, NY, { disambiguation: 'earlier' }))).toEqual('2025-11-02T01:30:00.000-04:00');
-  expect(iso(dayAtTime(fall, repeated, NY, { disambiguation: 'later' }))).toEqual('2025-11-02T01:30:00.000-05:00');
+  expect(iso(dayAtTime(fall, repeated, NY, { disambiguation: 'earlier' }))).toEqual(
+    '2025-11-02T01:30:00.000-04:00',
+  );
+  expect(iso(dayAtTime(fall, repeated, NY, { disambiguation: 'later' }))).toEqual(
+    '2025-11-02T01:30:00.000-05:00',
+  );
   expect(() => dayAtTime(fall, repeated, NY, { disambiguation: 'reject' })).toThrow(RangeError);
 
   // A daily 9:00 in New York is not every 24 hours.
@@ -112,10 +128,14 @@ test('wall time to instant', () => {
 });
 
 test('start of day', () => {
-  expect(instantToString(dayStartInstant(day(2026, 1, 31), NY))).toEqual('2026-01-31T05:00:00.000Z');
+  expect(instantToString(dayStartInstant(day(2026, 1, 31), NY))).toEqual(
+    '2026-01-31T05:00:00.000Z',
+  );
   // Santiago springs forward at midnight: 2025-09-07 starts at 01:00.
   const z = 'America/Santiago';
-  expect(instantToString(dayStartInstant(day(2025, 9, 7), z), z)).toEqual('2025-09-07T01:00:00.000-03:00');
+  expect(instantToString(dayStartInstant(day(2025, 9, 7), z), z)).toEqual(
+    '2025-09-07T01:00:00.000-03:00',
+  );
 });
 
 test('parse and format instants', () => {
@@ -128,7 +148,13 @@ test('parse and format instants', () => {
   expect(instantParse('2026-01-31T09:00', 'America/Vancouver')).toEqual(Date.UTC(2026, 0, 31, 17));
   // A date alone is a day, not an instant.
   expect(instantParse('2026-01-31')).toBeUndefined();
-  for (const bad of ['2026-02-30T00:00Z', '2026-01-31T24:00Z', '2026-01-31T09:00+24:00', 'yesterday', '']) {
+  for (const bad of [
+    '2026-02-30T00:00Z',
+    '2026-01-31T24:00Z',
+    '2026-01-31T09:00+24:00',
+    'yesterday',
+    '',
+  ]) {
     expect(instantParse(bad)).toBeUndefined();
   }
 

@@ -1,14 +1,14 @@
-import { DateTimeNode, DATE_PATTERN_CHARS } from '../../parsing/date';
+import { DATE_PATTERN_CHARS, type DateTimeNode } from '../../parsing/date';
 
 import {
-  getFieldType,
-  skeletonFields,
   EXTRA_FIELD,
-  Field,
-  FieldType,
   FIELD_INDEX,
   FIELD_TYPES,
+  Field,
+  type FieldType,
+  getFieldType,
   MISSING_FIELD,
+  skeletonFields,
 } from './fields';
 
 export interface SkeletonField {
@@ -114,13 +114,22 @@ export const dateSkeletonParser = (
   allowedFlex,
 });
 
-export const skeletonParse = (p: DateSkeletonParser, skeleton: string, isPattern: boolean = false): DateSkeleton => {
+export const skeletonParse = (
+  p: DateSkeletonParser,
+  skeleton: string,
+  isPattern: boolean = false,
+): DateSkeleton => {
   const s = dateSkeleton();
   parseInto(p, s, skeleton, isPattern);
   return s;
 };
 
-const parseInto = (p: DateSkeletonParser, s: DateSkeleton, raw: string, isPattern: boolean): void => {
+const parseInto = (
+  p: DateSkeletonParser,
+  s: DateSkeleton,
+  raw: string,
+  isPattern: boolean,
+): void => {
   const len = raw.length;
   let noDayPeriod = false;
   let field = '';
@@ -232,7 +241,13 @@ const clearField = (s: DateSkeleton, field: number): void => {
   s.info[field] = undefined;
 };
 
-const indexField = (s: DateSkeleton, input: string, field: string, width: number, ft: FieldType): void => {
+const indexField = (
+  s: DateSkeleton,
+  input: string,
+  field: string,
+  width: number,
+  ft: FieldType,
+): void => {
   const idx = ft[1];
   s.type[idx] = ft[2] + (ft[2] > 0 ? width : 0);
   s.info[idx] = { input, field, type: idx, width, repeat: ft[3] };
@@ -290,7 +305,10 @@ export const matcherSort = <T>(m: DatePatternMatcher<T>): void => {
 
 // TODO: future options to control the match
 
-export const matcherMatch = <T>(m: DatePatternMatcher<T>, input: DateSkeleton): DatePatternMatcherEntry<T> => {
+export const matcherMatch = <T>(
+  m: DatePatternMatcher<T>,
+  input: DateSkeleton,
+): DatePatternMatcherEntry<T> => {
   const match = m.exact[input.skeleton];
   if (match !== undefined) {
     return match;

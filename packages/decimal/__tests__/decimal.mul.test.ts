@@ -1,4 +1,4 @@
-import { DecimalConstants, MathContext, decimal, decimalMultiply } from '../src';
+import { DecimalConstants, decimal, decimalMultiply, type MathContext } from '../src';
 
 const parse = (s: string) => decimal(s);
 const mul = (u: string, v: string, c?: MathContext) => decimalMultiply(parse(u), parse(v), c);
@@ -31,7 +31,9 @@ test('multiply', () => {
   expect(mul('1.5', '-30.7')).toEqual(parse('-46.05'));
   expect(mul('-1.11111112', '7.35')).toEqual(parse('-8.1666667320'));
 
-  expect(mul('10203040506070809010', '-9.876543210')).toEqual(parse('-100770770431588612506.9223221'));
+  expect(mul('10203040506070809010', '-9.876543210')).toEqual(
+    parse('-100770770431588612506.9223221'),
+  );
 });
 
 test('multiply context', () => {

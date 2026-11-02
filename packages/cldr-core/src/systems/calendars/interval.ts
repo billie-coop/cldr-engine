@@ -1,7 +1,15 @@
 /**
  * @public
  */
-export type TimePeriodField = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millis';
+export type TimePeriodField =
+  | 'year'
+  | 'month'
+  | 'week'
+  | 'day'
+  | 'hour'
+  | 'minute'
+  | 'second'
+  | 'millis';
 
 /**
  * @internal
@@ -63,7 +71,10 @@ export const enum TimePeriodFieldFlag {
  * @internal
  */
 export const TIME_FLAGS =
-  TimePeriodFieldFlag.HOUR | TimePeriodFieldFlag.MINUTE | TimePeriodFieldFlag.SECOND | TimePeriodFieldFlag.MILLIS;
+  TimePeriodFieldFlag.HOUR |
+  TimePeriodFieldFlag.MINUTE |
+  TimePeriodFieldFlag.SECOND |
+  TimePeriodFieldFlag.MILLIS;
 
 const FIELDMAP: { [x: string]: number } = {
   year: TimePeriodFieldFlag.YEAR,

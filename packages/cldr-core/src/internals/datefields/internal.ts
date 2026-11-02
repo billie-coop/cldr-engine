@@ -1,21 +1,21 @@
-import { PluralType, RelativeTimeFields, RelativeTimeFieldType } from '@phensley/cldr-types';
+import type { PluralType, RelativeTimeFields, RelativeTimeFieldType } from '@phensley/cldr-types';
 
 import {
-  DecimalArg,
+  type DecimalArg,
   DecimalConstants,
   decimal,
   decimalCompare,
   decimalIsNegative,
   decimalNegate,
 } from '@phensley/decimal';
-import { RelativeTimeFieldFormatOptions } from '../../common/calendars';
-import { LocaleData } from '../../locale-data';
-import { ContextTransformInfo, NumberParams } from '../../common/private';
-import { vectorGet } from '../../schema/schema/arrows';
 import { pluralCardinal } from '@phensley/plurals';
-import { adjustNumber } from '../numbers/internal';
-import { contextTransform, formatWrapper } from '../general/internal';
+import type { RelativeTimeFieldFormatOptions } from '../../common/calendars';
+import type { ContextTransformInfo, NumberParams } from '../../common/private';
+import type { LocaleData } from '../../locale-data';
+import { vectorGet } from '../../schema/schema/arrows';
 import { numberingFormatString } from '../../systems/numbering/decimal';
+import { contextTransform, formatWrapper } from '../general/internal';
+import { adjustNumber } from '../numbers/internal';
 
 // TODO: expose a method to calculate field difference with different options, e.g.
 // include weekdays
@@ -60,13 +60,17 @@ export const renderRelativeTimeField = (
         break;
       default:
         if (decimalCompare(n, DecimalConstants.TWO) === 0) {
-          const p = negative ? vectorGet(format.previous2, data, field) : vectorGet(format.next2, data, field);
+          const p = negative
+            ? vectorGet(format.previous2, data, field)
+            : vectorGet(format.next2, data, field);
           if (p !== '') {
             res = p;
           }
           // Fall through
         } else if (decimalCompare(n, DecimalConstants.ONE) === 0) {
-          res = negative ? vectorGet(format.previous, data, field) : vectorGet(format.next, data, field);
+          res = negative
+            ? vectorGet(format.previous, data, field)
+            : vectorGet(format.next, data, field);
         }
         break;
     }

@@ -1,7 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
-
-import { getSupplemental } from '../cldr';
 import {
   availableLocales,
   parseLanguageTag,
@@ -11,11 +7,14 @@ import {
   tagRegion,
   tagScript,
 } from '@phensley/cldr-core';
-import { JSONRoot, JSONRootKey } from './json';
+import * as fs from 'fs';
+import * as path from 'path';
+import { getSupplemental } from '../cldr';
+import type { JSONRoot, JSONRootKey } from './json';
 
 // collect and organize rbnf rules
 
-const RE_FILE = /^[^\.].+\.json/;
+const RE_FILE = /^[^.].+\.json/;
 
 const KEYS: JSONRootKey[] = ['OrdinalRules', 'SpelloutRules'];
 
@@ -128,7 +127,8 @@ export class RBNFCollector {
       this.locales.set(id, res.get(id)!);
 
       this.locales.set(id, res.get(id)!);
-      const lang = id === 'root' || this.core.includes(id) ? 'root' : tagLanguage(parseLanguageTag(id));
+      const lang =
+        id === 'root' || this.core.includes(id) ? 'root' : tagLanguage(parseLanguageTag(id));
       const map = this.langs.get(lang) || [];
       map.push(id);
       this.langs.set(lang, map);

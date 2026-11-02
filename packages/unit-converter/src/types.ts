@@ -1,5 +1,5 @@
-import { Rational } from '@phensley/decimal';
-import { UnitType } from '@phensley/cldr-types';
+import type { UnitType } from '@phensley/cldr-types';
+import type { Rational } from '@phensley/decimal';
 
 /**
  * Definition of a single conversion factor. The factor converts a value in

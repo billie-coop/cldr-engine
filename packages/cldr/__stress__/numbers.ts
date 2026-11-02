@@ -1,20 +1,20 @@
+import { getCLDR } from '../__tests__/_helpers';
 import {
-  CurrencyFormatOptions,
-  CurrencyFormatStyleType,
-  CurrencyType,
   availableLocales,
-  Decimal,
+  type CurrencyFormatOptions,
+  type CurrencyFormatStyleType,
+  type CurrencyType,
+  type Decimal,
   DecimalConstants,
-  DecimalFormatOptions,
-  DecimalFormatStyleType,
-  UnitFormatOptions,
-  UnitFormatStyleType,
-  UnitLength,
-  UnitType,
+  type DecimalFormatOptions,
+  type DecimalFormatStyleType,
   decimal,
   decimalToString,
+  type UnitFormatOptions,
+  type UnitFormatStyleType,
+  type UnitLength,
+  type UnitType,
 } from '../src';
-import { getCLDR } from '../__tests__/_helpers';
 import { Timer } from './timer';
 
 const str = (n: string | Decimal): string => (typeof n === 'string' ? n : decimalToString(n));
@@ -52,7 +52,13 @@ const DECIMAL_STYLES: DecimalFormatStyleType[] = [
   'permille-scaled',
 ];
 
-const CURRENCY_STYLES: CurrencyFormatStyleType[] = ['symbol', 'accounting', 'name', 'code', 'short'];
+const CURRENCY_STYLES: CurrencyFormatStyleType[] = [
+  'symbol',
+  'accounting',
+  'name',
+  'code',
+  'short',
+];
 
 const CURRENCIES: CurrencyType[] = ['USD', 'JPY', 'EUR', 'GBP'];
 
@@ -178,7 +184,8 @@ export const numberStress = (): void => {
           if (!s) {
             if (VERBOSE) {
               console.log(
-                `[numbers] format currency empty ` + `${locale.id} ${str(n)} ${currency} ${JSON.stringify(o)}`,
+                `[numbers] format currency empty ` +
+                  `${locale.id} ${str(n)} ${currency} ${JSON.stringify(o)}`,
               );
             }
             empty++;
@@ -215,7 +222,9 @@ export const numberStress = (): void => {
           s = engine.Units.formatQuantity({ value: n, unit }, o);
           if (!s) {
             if (VERBOSE) {
-              console.log(`[numbers] format quantity empty ${locale.id} ${str(n)} ${unit} ${JSON.stringify(o)}`);
+              console.log(
+                `[numbers] format quantity empty ${locale.id} ${str(n)} ${unit} ${JSON.stringify(o)}`,
+              );
             }
             empty++;
           }

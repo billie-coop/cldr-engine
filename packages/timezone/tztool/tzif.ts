@@ -178,7 +178,10 @@ export class TZif {
   // Standard/wall indicators
   readonly stdinds: number[];
 
-  constructor(readonly id: string, path: string) {
+  constructor(
+    readonly id: string,
+    path: string,
+  ) {
     const stm = new Stream(fs.readFileSync(path));
     this.stm = stm;
 
@@ -224,7 +227,18 @@ export class TZif {
    * JSON string containing the properties of this tzif file.
    */
   json(space?: string): string {
-    const { id, magic, version, transtimes, transtypes, localtimetype, zoneabbrs, leapsecs, utinds, stdinds } = this;
+    const {
+      id,
+      magic,
+      version,
+      transtimes,
+      transtypes,
+      localtimetype,
+      zoneabbrs,
+      leapsecs,
+      utinds,
+      stdinds,
+    } = this;
     return JSON.stringify(
       {
         id,

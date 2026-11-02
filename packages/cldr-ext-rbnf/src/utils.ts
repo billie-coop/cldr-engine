@@ -4,7 +4,12 @@
  *
  * @public
  */
-export const binarySearch = <T>(elems: T[], lessThan: boolean, lo: number, f: (elem: T) => number): number => {
+export const binarySearch = <T>(
+  elems: T[],
+  lessThan: boolean,
+  lo: number,
+  f: (elem: T) => number,
+): number => {
   let hi = elems.length - 1;
   let mid = 0;
   while (lo <= hi) {

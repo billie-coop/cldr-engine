@@ -1,5 +1,10 @@
+import {
+  formatDateWrapper,
+  formatDateWrapperToParts,
+  type LocaleData,
+  type Part,
+} from '../../../src';
 import { calendarsApi } from '../../_helpers';
-import { LocaleData, Part, formatDateWrapper, formatDateWrapperToParts } from '../../../src';
 
 test('date wrapper string', () => {
   let api: LocaleData;
@@ -57,16 +62,25 @@ test('date wrapper parts', () => {
 
   api = calendarsApi('en');
 
-  p = formatDateWrapperToParts(api, [{ type: 'date', value: 'DATE' }], [{ type: 'time', value: 'TIME' }]);
+  p = formatDateWrapperToParts(
+    api,
+    [{ type: 'date', value: 'DATE' }],
+    [{ type: 'time', value: 'TIME' }],
+  );
   expect(p).toEqual([
     { type: 'date', value: 'DATE' },
     { type: 'literal', value: ', ' },
     { type: 'time', value: 'TIME' },
   ]);
 
-  p = formatDateWrapperToParts(api, [{ type: 'date', value: 'DATE' }], [{ type: 'time', value: 'TIME' }], {
-    width: 'full',
-  });
+  p = formatDateWrapperToParts(
+    api,
+    [{ type: 'date', value: 'DATE' }],
+    [{ type: 'time', value: 'TIME' }],
+    {
+      width: 'full',
+    },
+  );
   expect(p).toEqual([
     { type: 'date', value: 'DATE' },
     { type: 'literal', value: ' at ' },

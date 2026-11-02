@@ -1,5 +1,5 @@
+import { formatDate, type ZonedDateTime } from '../../../src';
 import { calendarsApi } from '../../_helpers';
-import { ZonedDateTime, formatDate } from '../../../src';
 
 const unix = (date: number, zoneId: string): ZonedDateTime => ({ date, zoneId });
 

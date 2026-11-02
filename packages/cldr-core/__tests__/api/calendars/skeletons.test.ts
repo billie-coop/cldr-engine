@@ -1,14 +1,14 @@
-import { DateSkeleton } from '../../../src/internals/calendars/skeleton';
 import {
-  dateSkeletonParser,
-  skeletonParse,
-  skeletonCanonical,
-  skeletonCompound,
-  skeletonSplit,
+  type DateSkeleton,
   datePatternMatcher,
+  dateSkeletonParser,
   matcherAdd,
   matcherMatch,
   matcherSort,
+  skeletonCanonical,
+  skeletonCompound,
+  skeletonParse,
+  skeletonSplit,
 } from '../../../src/internals/calendars/skeleton';
 
 const PARSER = dateSkeletonParser([['h', 1]], [['h', 1]]);

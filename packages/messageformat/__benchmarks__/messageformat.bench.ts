@@ -1,13 +1,13 @@
-import { bench, describe } from 'vitest';
 import { getPluralRules } from '@phensley/plurals';
+import { bench, describe } from 'vitest';
 import {
   buildMessageMatcher,
   createMessageFormatter,
   defaultMessageArgConverter,
   evaluateMessage,
   formatMessage,
+  type MessageArg,
   parseMessagePattern,
-  MessageArg,
 } from '../src';
 
 const FORMATTERS = {
@@ -37,6 +37,11 @@ describe('messageformat', () => {
     formatMessage(FORMATTER, MESSAGE, [i++ & 15, 'hello'], {});
   });
   bench('formatMessage nested select/plural', () => {
-    formatMessage(FORMATTER, NESTED, [], { host: 'Ana', count: i++ & 3, when: 'Tuesday', msg: 'hi' });
+    formatMessage(FORMATTER, NESTED, [], {
+      host: 'Ana',
+      count: i++ & 3,
+      when: 'Tuesday',
+      msg: 'hi',
+    });
   });
 });

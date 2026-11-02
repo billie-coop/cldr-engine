@@ -1,5 +1,5 @@
-import { DecimalArg, stringDecimalFormatter, decimal, decimalFormat } from '@phensley/decimal';
-import { NumberingSystem, NumberSymbols } from '../../common/private';
+import { type DecimalArg, decimal, decimalFormat, stringDecimalFormatter } from '@phensley/decimal';
+import type { NumberingSystem, NumberSymbols } from '../../common/private';
 
 const isInteger = (n: any): boolean => typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
 
@@ -20,7 +20,14 @@ export const decimalNumberingSystem = (
   minimumGroupingDigits: number,
   primaryGroupingSize: number,
   secondaryGroupingSize: number,
-): NumberingSystem => ({ name, digits, symbols, minimumGroupingDigits, primaryGroupingSize, secondaryGroupingSize });
+): NumberingSystem => ({
+  name,
+  digits,
+  symbols,
+  minimumGroupingDigits,
+  primaryGroupingSize,
+  secondaryGroupingSize,
+});
 
 /**
  * Format a number directly to a string. This is used for things like low-level field

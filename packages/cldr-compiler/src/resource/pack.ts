@@ -1,6 +1,6 @@
 import {
-  LanguageTag,
-  Locale,
+  type LanguageTag,
+  type Locale,
   removeLikelySubtags,
   resolveLocaleId,
   tagCompact,
@@ -13,8 +13,8 @@ import {
   tagVariant,
 } from '@phensley/cldr-core';
 import { getOther } from '../cldr';
+import type { RBNFCollector } from '../rbnf';
 import { RBNFPacker } from './rbnf';
-import { RBNFCollector } from '../rbnf';
 
 // Index default content for each language and language+script combination.
 const defaultContent = new Set();

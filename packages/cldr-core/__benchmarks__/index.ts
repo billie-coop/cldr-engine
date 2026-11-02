@@ -1,8 +1,11 @@
 import { formatDateSuite, gregorianSuite } from './calendars';
-
-import { numberEngineSuite, numberFormatBaselineSuite, numberFormatSuite, numberParseSuite } from './numbers';
-
 import { messageSuite } from './messages';
+import {
+  numberEngineSuite,
+  numberFormatBaselineSuite,
+  numberFormatSuite,
+  numberParseSuite,
+} from './numbers';
 
 const options = { async: false, delay: 0.5 };
 

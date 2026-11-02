@@ -1,5 +1,5 @@
-import { calendarsApi } from '../../_helpers';
 import { formatDate } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 test('best-fit cache is keyed by plural category', () => {
   const api = calendarsApi('fil');

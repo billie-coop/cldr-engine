@@ -1,5 +1,5 @@
 import { decimal } from '@phensley/decimal';
-import { getPluralRules, PluralRules, pluralCardinal, pluralOperands } from '../src';
+import { getPluralRules, type PluralRules, pluralCardinal, pluralOperands } from '../src';
 
 test('basic', () => {
   const lang = 'en';

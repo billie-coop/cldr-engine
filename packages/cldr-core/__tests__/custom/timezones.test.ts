@@ -1,5 +1,5 @@
-import { buildConfig, calendarsApi } from '../_helpers';
 import { formatDateRaw } from '../../src';
+import { buildConfig, calendarsApi } from '../_helpers';
 
 test('custom calendars', () => {
   const cfg = buildConfig({ 'timezone-id': ['America/New_York'] });

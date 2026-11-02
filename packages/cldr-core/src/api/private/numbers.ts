@@ -1,11 +1,17 @@
-import { NumberSystemInfo, NumberSystemName } from '@phensley/cldr-types';
-import { NumberSystemType } from '../../common/numbers';
-import { NumberingSystem, NumberParams } from '../../common/private';
+import type { NumberSystemInfo, NumberSystemName } from '@phensley/cldr-types';
+import type { NumberSystemType } from '../../common/numbers';
+import type { NumberingSystem, NumberParams } from '../../common/private';
+import { getNumberPattern } from '../../internals/numbers/internal';
+import type { LocaleData } from '../../locale-data';
+import {
+  fieldGet,
+  scopeGet,
+  vectorExists,
+  vectorGet,
+  vectorMapping,
+} from '../../schema/schema/arrows';
 import { decimalNumberingDigits } from '../../systems/numbering/autogen.names';
 import { decimalNumberingSystem } from '../../systems/numbering/decimal';
-import { LocaleData } from '../../locale-data';
-import { scopeGet, vectorExists, vectorGet, vectorMapping, fieldGet } from '../../schema/schema/arrows';
-import { getNumberPattern } from '../../internals/numbers/internal';
 
 // Per-locale state for number params: the latn system (the fallback for every other system) and
 // the params built so far, keyed by real number system name.
@@ -127,7 +133,8 @@ const buildNumberSystem = (
     : vectorMapping(latnSystemInfo.symbols, data);
 
   const standardRaw =
-    fieldGet(info.decimalFormats.standard, data) || fieldGet(latnSystemInfo.decimalFormats.standard, data);
+    fieldGet(info.decimalFormats.standard, data) ||
+    fieldGet(latnSystemInfo.decimalFormats.standard, data);
 
   // Fetch standard pattern to determine grouping digits
   const standard = getNumberPattern(standardRaw, false);

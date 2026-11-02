@@ -1,4 +1,12 @@
-import { defaultTimeZoneData, RawData, setTimeZoneData, tzFromUTC, tzResolveId, tzZoneIds, tzZoneMeta } from '../src';
+import {
+  defaultTimeZoneData,
+  type RawData,
+  setTimeZoneData,
+  tzFromUTC,
+  tzResolveId,
+  tzZoneIds,
+  tzZoneMeta,
+} from '../src';
 
 // Minimal data set: two zones with no transitions, one alias.
 const CUSTOM: RawData = {
@@ -18,8 +26,19 @@ test('replace active data', () => {
   expect(tzZoneIds()).toEqual(['Etc/UTC', 'Foo/Bar']);
   expect(tzFromUTC('America/New_York', 0)).toEqual(undefined);
   expect(tzResolveId('foo/baz')).toEqual('Foo/Bar');
-  expect(tzFromUTC('Foo/Baz', 0)).toEqual({ zoneid: 'Foo/Bar', abbr: 'FOO', dst: 0, offset: 3600000 });
-  expect(tzZoneMeta('Zulu')).toEqual({ zoneid: 'Etc/UTC', stdoffset: 0, latitude: 0, longitude: 0, countries: [] });
+  expect(tzFromUTC('Foo/Baz', 0)).toEqual({
+    zoneid: 'Foo/Bar',
+    abbr: 'FOO',
+    dst: 0,
+    offset: 3600000,
+  });
+  expect(tzZoneMeta('Zulu')).toEqual({
+    zoneid: 'Etc/UTC',
+    stdoffset: 0,
+    latitude: 0,
+    longitude: 0,
+    countries: [],
+  });
 
   // Restoring the default decodes it again; the raw data must be intact.
   setTimeZoneData(defaultTimeZoneData);

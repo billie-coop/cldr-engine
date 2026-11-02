@@ -1,5 +1,5 @@
-import { calendarsApi } from '../../_helpers';
 import { formatDate } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 // Spec-derived expectations (TR35 "Matching Skeletons" + CLDR 48.2 data),
 // NOT Intl comparisons: Intl cannot express 2-digit numeric requests or
@@ -32,5 +32,7 @@ test('standards are keyed by CLDR dateSkeletons (no shadowing of available entri
   expect(formatDate(calendarsApi('ja'), d15, { skeleton: 'yMEd' })).toEqual('2024/7/15(月)');
   expect(formatDate(calendarsApi('zh'), d15, { skeleton: 'yMEd' })).toEqual('2024/7/15周一');
   // es available yMMMMEd ("EEE, d 'de' MMMM 'de' y") is distance-0 for yMMMMdE.
-  expect(formatDate(calendarsApi('es'), d15, { skeleton: 'yMMMMdE' })).toEqual('lun, 15 de julio de 2024');
+  expect(formatDate(calendarsApi('es'), d15, { skeleton: 'yMMMMdE' })).toEqual(
+    'lun, 15 de julio de 2024',
+  );
 });

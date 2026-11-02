@@ -5,13 +5,14 @@
 //
 // The @phensley/* packages are resolved to `<root>/packages/<name>`, using each package's
 // `module` (ES module) build and honouring its `sideEffects` flag, as a bundler resolving them
-// from node_modules would. Build the packages first (`pnpm build`).
+// from node_modules would. Build the packages first (`yarn build`).
+
+import { execFileSync } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs';
 import { createRequire } from 'module';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { gzipSync } from 'zlib';
-import { execFileSync } from 'child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..', '..');
@@ -45,7 +46,9 @@ const phensley = (root) => {
         return m[2] ? join(dir, m[2]) + '.js' : join(dir, json.module);
       }
       if (source === 'tslib') {
-        return require.resolve('tslib/tslib.es6.js', { paths: [join(root, 'packages', 'cldr-core')] });
+        return require.resolve('tslib/tslib.es6.js', {
+          paths: [join(root, 'packages', 'cldr-core')],
+        });
       }
       if (importer && (source.startsWith('./') || source.startsWith('../'))) {
         const p = resolve(dirname(importer), source);
@@ -95,11 +98,13 @@ const measure = async (entry, root, label) => {
 // Run a bundle with a pack loader that reads the packs of the given checkout.
 const run = (file, root) => {
   const packs = join(root, 'packages', 'cldr', 'packs');
-  const prelude =
-    `globalThis.loadPack = (l) => require('fs').readFileSync(${JSON.stringify(packs)} + '/' + l + '.json', 'utf8');`;
+  const prelude = `globalThis.loadPack = (l) => require('fs').readFileSync(${JSON.stringify(packs)} + '/' + l + '.json', 'utf8');`;
   const runner = join(here, 'dist', 'run.cjs');
   const code = readFileSync(file, 'utf8');
-  writeFileSync(runner, prelude + '\n(async () => {\n' + code.replace(/^import .*$/gm, '') + '\n})();');
+  writeFileSync(
+    runner,
+    prelude + '\n(async () => {\n' + code.replace(/^import .*$/gm, '') + '\n})();',
+  );
   return execFileSync(process.execPath, [runner], { encoding: 'utf8' }).trim();
 };
 

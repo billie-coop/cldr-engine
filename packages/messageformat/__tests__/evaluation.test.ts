@@ -1,14 +1,14 @@
-import {
-  parseMessagePattern,
-  stickyRegexp,
-  MessageArg,
-  MessageCode,
-  evaluateMessage,
-  MessageNamedArgs,
-  defaultMessageArgConverter,
-  stickyMatcher,
-} from '../src';
 import { getPluralRules } from '@phensley/plurals';
+import {
+  defaultMessageArgConverter,
+  evaluateMessage,
+  type MessageArg,
+  type MessageCode,
+  type MessageNamedArgs,
+  parseMessagePattern,
+  stickyMatcher,
+  stickyRegexp,
+} from '../src';
 
 const CUSTOM = {
   foo: (args: MessageArg[], _options: string[]) => `foo args ${JSON.stringify(args)}`,
@@ -23,7 +23,12 @@ const matcher = () => stickyMatcher(CUSTOM_NAMES, stickyRegexp);
 
 const parse = (s: string) => parseMessagePattern(s, matcher());
 
-const evaluate = (lang: string, code: MessageCode, positional: MessageArg[], named?: MessageNamedArgs) => {
+const evaluate = (
+  lang: string,
+  code: MessageCode,
+  positional: MessageArg[],
+  named?: MessageNamedArgs,
+) => {
   const plurals = getPluralRules(lang);
   return evaluateMessage(plurals, CONVERTER, CUSTOM, code, positional, named);
 };
@@ -37,7 +42,9 @@ test('basic message evaluation', () => {
   expect(evaluate('en', c, [2])).toEqual('is OTHER');
   expect(evaluate('en', c, [5])).toEqual('is OTHER');
 
-  c = parse('{gender, select, female {her bar} male {his foo} they {their baz} other {unknown quux}}');
+  c = parse(
+    '{gender, select, female {her bar} male {his foo} they {their baz} other {unknown quux}}',
+  );
   expect(evaluate('en', c, [], { gender: 'male' })).toEqual('his foo');
   expect(evaluate('en', c, [], { gender: 'female' })).toEqual('her bar');
   expect(evaluate('en', c, [], { gender: 'they' })).toEqual('their baz');

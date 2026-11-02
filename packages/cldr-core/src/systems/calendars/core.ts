@@ -1,7 +1,7 @@
 import { emptyFields } from './fields';
 import { initBaseFromUnixEpoch, unixEpochFromJD } from './math';
 import { zoneInfoFromUTC } from './timezone';
-import { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
+import type { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
 
 /**
  * Construct a date in the given calendar from a UTC epoch and time zone. Every date is

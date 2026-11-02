@@ -1,6 +1,6 @@
+import { type Decimal, decimal, decimalShiftleft } from '@phensley/decimal';
 import * as fs from 'fs';
 import * as filepath from 'path';
-import { Decimal, decimal, decimalShiftleft } from '@phensley/decimal';
 import { getPluralRules, pluralCardinal, pluralOrdinal } from '../src';
 
 const PATH = filepath.join(__dirname, 'samples.txt');
@@ -36,7 +36,7 @@ expect.extend({
 
     // Split off compact exponent syntax
     const parts = sample.split('c');
-    if (parts.length == 1) {
+    if (parts.length === 1) {
       n = decimal(sample);
     } else {
       n = decimal(parts[0]);
@@ -71,7 +71,7 @@ Object.keys(TESTCASES)
   .forEach((key) => {
     test(key, () => {
       for (const c of TESTCASES[key]) {
-        for (let sample of c.samples) {
+        for (const sample of c.samples) {
           expect(sample).toHaveCategory(c.typ, c.lang, c.category);
         }
       }

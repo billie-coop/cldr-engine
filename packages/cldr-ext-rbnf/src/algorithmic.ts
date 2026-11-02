@@ -1,8 +1,16 @@
-import { Decimal } from '@phensley/decimal';
-import { getPluralRules, PluralRules } from '@phensley/plurals';
+import type { Decimal } from '@phensley/decimal';
+import { getPluralRules, type PluralRules } from '@phensley/plurals';
 import { algorithmicNumbering } from './autogen.names';
 import { rbnfRulesets } from './autogen.rbnf';
-import { RBNF, RBNFDecimalFormatter, RBNFSet, RBNFSymbols, createRBNF, rbnfGet, rbnfSetFormat } from './rbnf';
+import {
+  createRBNF,
+  type RBNF,
+  type RBNFDecimalFormatter,
+  type RBNFSet,
+  type RBNFSymbols,
+  rbnfGet,
+  rbnfSetFormat,
+} from './rbnf';
 
 const U = undefined;
 

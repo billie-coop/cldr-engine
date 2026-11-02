@@ -1,11 +1,11 @@
 export * from './exports';
 
 import {
+  type CLDRFramework,
+  type CLDROptions,
   cldrFramework as coreCLDRFramework,
   createFramework as coreCreateFramework,
-  CLDRFramework,
-  CLDROptions,
-  Framework,
+  type Framework,
 } from '@phensley/cldr-core';
 import { config } from './config';
 
@@ -18,7 +18,8 @@ import { config } from './config';
  *
  * @public
  */
-export const createFramework = (options: CLDROptions): Framework => coreCreateFramework(options, config);
+export const createFramework = (options: CLDROptions): Framework =>
+  coreCreateFramework(options, config);
 
 /**
  * Create the convenience loader (`framework.get('en').Numbers.formatDecimal(...)`). Uses this
@@ -26,6 +27,7 @@ export const createFramework = (options: CLDROptions): Framework => coreCreateFr
  *
  * @public
  */
-export const cldrFramework = (options: CLDROptions): CLDRFramework => coreCLDRFramework(options, config);
+export const cldrFramework = (options: CLDROptions): CLDRFramework =>
+  coreCLDRFramework(options, config);
 
 export { config };

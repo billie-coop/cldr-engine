@@ -3,7 +3,7 @@ import { dateFromFields, dateFromUnixEpoch, isCalendarDate } from './core';
 import { DateField } from './fields';
 import { gregorianDaysInYear, gregorianResolveFields } from './gregorian';
 import { daysInMonth, initGregorianFields, monthStart } from './gregorianmath';
-import { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
+import type { CalendarDate, CalendarDateFields, CalendarSystem } from './types';
 
 /**
  * A date in the Buddhist calendar.
@@ -66,4 +66,5 @@ export const buddhistDateFromUnixEpoch = (
  *
  * @public
  */
-export const isBuddhistDate = (x: any): x is BuddhistDate => isCalendarDate(x) && x.calendar.type === 'buddhist';
+export const isBuddhistDate = (x: any): x is BuddhistDate =>
+  isCalendarDate(x) && x.calendar.type === 'buddhist';

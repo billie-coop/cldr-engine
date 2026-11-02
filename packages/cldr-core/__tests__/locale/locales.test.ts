@@ -1,5 +1,5 @@
-import { availableLocales, LanguageTag, Locale } from '../../src';
 import { resolveLanguageTag } from '@phensley/locale';
+import { availableLocales, type LanguageTag, type Locale } from '../../src';
 
 test('available locales', () => {
   let locales = availableLocales();

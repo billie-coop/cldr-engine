@@ -1,6 +1,5 @@
-import { calendarsApi } from '../../_helpers';
 import {
-  CalendarDate,
+  type CalendarDate,
   dateToISOString,
   dateToString,
   newBuddhistDate,
@@ -9,6 +8,7 @@ import {
   newJapaneseDate,
   newPersianDate,
 } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 test('gregorian defaults', () => {
   let d: CalendarDate;
@@ -116,39 +116,88 @@ test('gregorian from fields dst', () => {
 
   // Sun Mar 8 2020 spring forward 1 hour
 
-  d = newGregorianDate(api, { year: 2020, month: 3, day: 8, hour: 1, minute: 59, zoneId: 'America/New_York' });
+  d = newGregorianDate(api, {
+    year: 2020,
+    month: 3,
+    day: 8,
+    hour: 1,
+    minute: 59,
+    zoneId: 'America/New_York',
+  });
   expect(dateToString(d)).toEqual('Gregorian 2020-03-08 01:59:00.000 America/New_York');
 
   d = newGregorianDate(api, { year: 2020, month: 3, day: 8, hour: 2, zoneId: 'America/New_York' });
   expect(dateToString(d)).toEqual('Gregorian 2020-03-08 03:00:00.000 America/New_York');
 
-  d = newGregorianDate(api, { year: 2020, month: 3, day: 8, hour: 2, minute: 30, zoneId: 'America/New_York' });
+  d = newGregorianDate(api, {
+    year: 2020,
+    month: 3,
+    day: 8,
+    hour: 2,
+    minute: 30,
+    zoneId: 'America/New_York',
+  });
   expect(dateToString(d)).toEqual('Gregorian 2020-03-08 03:30:00.000 America/New_York');
 
-  d = newGregorianDate(api, { year: 2020, month: 3, day: 8, hour: 2, minute: 59, zoneId: 'America/New_York' });
+  d = newGregorianDate(api, {
+    year: 2020,
+    month: 3,
+    day: 8,
+    hour: 2,
+    minute: 59,
+    zoneId: 'America/New_York',
+  });
   expect(dateToString(d)).toEqual('Gregorian 2020-03-08 03:59:00.000 America/New_York');
 
   d = newGregorianDate(api, { year: 2020, month: 3, day: 8, hour: 3, zoneId: 'America/New_York' });
   expect(dateToString(d)).toEqual('Gregorian 2020-03-08 03:00:00.000 America/New_York');
 
-  d = newGregorianDate(api, { year: 2020, month: 3, day: 8, hour: 3, minute: 1, zoneId: 'America/New_York' });
+  d = newGregorianDate(api, {
+    year: 2020,
+    month: 3,
+    day: 8,
+    hour: 3,
+    minute: 1,
+    zoneId: 'America/New_York',
+  });
   expect(dateToString(d)).toEqual('Gregorian 2020-03-08 03:01:00.000 America/New_York');
 
   // Sun Nov 1 2020 fall back 1 hour
 
-  d = newGregorianDate(api, { year: 2020, month: 11, day: 1, hour: 1, minute: 59, zoneId: 'America/New_York' });
+  d = newGregorianDate(api, {
+    year: 2020,
+    month: 11,
+    day: 1,
+    hour: 1,
+    minute: 59,
+    zoneId: 'America/New_York',
+  });
   expect(dateToString(d)).toEqual('Gregorian 2020-11-01 01:59:00.000 America/New_York');
 
   d = newGregorianDate(api, { year: 2020, month: 11, day: 1, hour: 2, zoneId: 'America/New_York' });
   expect(dateToString(d)).toEqual('Gregorian 2020-11-01 02:00:00.000 America/New_York');
 
-  d = newGregorianDate(api, { year: 2020, month: 11, day: 1, hour: 2, minute: 59, zoneId: 'America/New_York' });
+  d = newGregorianDate(api, {
+    year: 2020,
+    month: 11,
+    day: 1,
+    hour: 2,
+    minute: 59,
+    zoneId: 'America/New_York',
+  });
   expect(dateToString(d)).toEqual('Gregorian 2020-11-01 02:59:00.000 America/New_York');
 
   d = newGregorianDate(api, { year: 2020, month: 11, day: 1, hour: 3, zoneId: 'America/New_York' });
   expect(dateToString(d)).toEqual('Gregorian 2020-11-01 03:00:00.000 America/New_York');
 
-  d = newGregorianDate(api, { year: 2020, month: 11, day: 1, hour: 3, minute: 1, zoneId: 'America/New_York' });
+  d = newGregorianDate(api, {
+    year: 2020,
+    month: 11,
+    day: 1,
+    hour: 3,
+    minute: 1,
+    zoneId: 'America/New_York',
+  });
   expect(dateToString(d)).toEqual('Gregorian 2020-11-01 03:01:00.000 America/New_York');
 });
 

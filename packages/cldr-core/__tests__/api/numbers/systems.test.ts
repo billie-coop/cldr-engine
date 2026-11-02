@@ -1,6 +1,5 @@
+import { formatDecimal, type NumberSystemType } from '../../../src';
 import { numbersApi } from '../../_helpers';
-
-import { NumberSystemType, formatDecimal } from '../../../src';
 
 test('numbering systems', () => {
   let api = numbersApi('th');

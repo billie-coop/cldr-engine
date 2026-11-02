@@ -1,5 +1,6 @@
 import { bench, describe } from 'vitest';
 import {
+  type Decimal,
   decimal,
   decimalAdd,
   decimalCompare,
@@ -9,13 +10,15 @@ import {
   decimalSubtract,
   decimalToParts,
   decimalToString,
-  Decimal,
 } from '../src';
 
 // Inputs vary per call so results can't be cached or constant-folded.
 const N = 1024;
 const STRINGS = Array.from({ length: N }, (_, i) => `${i * 7919}.${(i * 31) % 1000}`);
-const LONG = Array.from({ length: N }, (_, i) => `${i}1234567890123456789012345.123456789${i % 10}`);
+const LONG = Array.from(
+  { length: N },
+  (_, i) => `${i}1234567890123456789012345.123456789${i % 10}`,
+);
 const NUMBERS = Array.from({ length: N }, (_, i) => i * 3.25 + 0.01);
 const A: Decimal[] = STRINGS.map((s) => decimal(s));
 const B: Decimal[] = NUMBERS.map((n) => decimal(n));

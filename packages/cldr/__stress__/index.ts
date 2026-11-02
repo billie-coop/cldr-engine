@@ -1,6 +1,6 @@
 import { calendarStress, intervalStress } from './calendars';
-import { numberStress } from './numbers';
 import { mathStress } from './math';
+import { numberStress } from './numbers';
 
 calendarStress();
 intervalStress();

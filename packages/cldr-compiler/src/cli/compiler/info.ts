@@ -1,7 +1,8 @@
-import yargs from 'yargs';
 import { availableLocales } from '@phensley/cldr-core';
+import type yargs from 'yargs';
 import { getProjectInfo } from './util';
 
+// biome-ignore lint/suspicious/noEmptyInterface: the info command takes no arguments
 export interface InfoArgs {}
 
 export const runInfo = (_args: yargs.ArgumentsCamelCase<InfoArgs>) => {

@@ -1,4 +1,10 @@
-import { decimal, decimalFormat, decimalToString, partsDecimalFormatter, stringDecimalFormatter } from '../src';
+import {
+  decimal,
+  decimalFormat,
+  decimalToString,
+  partsDecimalFormatter,
+  stringDecimalFormatter,
+} from '../src';
 
 const parse = (s: string) => decimal(s);
 

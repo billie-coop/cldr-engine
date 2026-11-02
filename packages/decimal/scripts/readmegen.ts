@@ -1,4 +1,11 @@
-import { Decimal, DecimalConstants, MathContext, decimal, decimalMultiply, decimalToString } from '../src';
+import {
+  type Decimal,
+  DecimalConstants,
+  decimal,
+  decimalMultiply,
+  decimalToString,
+  type MathContext,
+} from '../src';
 
 const area = (radius: Decimal, ctx: MathContext) =>
   decimalMultiply(decimalMultiply(DecimalConstants.PI, radius, ctx), radius, ctx);
@@ -6,7 +13,9 @@ const area = (radius: Decimal, ctx: MathContext) =>
 const calc = (ctx: MathContext) => {
   for (const r of ['.002', '1', '1.5', '999.999']) {
     const radius = decimal(r);
-    console.log(`area of circle with radius ${r.padEnd(7)} is ${decimalToString(area(radius, ctx))}`);
+    console.log(
+      `area of circle with radius ${r.padEnd(7)} is ${decimalToString(area(radius, ctx))}`,
+    );
   }
   console.log();
 };

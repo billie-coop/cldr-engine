@@ -1,4 +1,9 @@
-import { MessageArg, createMessageFormatter, formatMessage, messageFormatterToString } from '../src';
+import {
+  createMessageFormatter,
+  formatMessage,
+  type MessageArg,
+  messageFormatterToString,
+} from '../src';
 
 const formatters = {
   foo: (args: MessageArg[], options: string[]): string =>
@@ -49,7 +54,9 @@ test('missing arguments pass through as literal argument reference text', () => 
   expect(formatMessage(f, '{name}', [], {})).toEqual('{name}');
   // plural / selectordinal / select are not evaluated for a missing argument
   expect(formatMessage(f, '{0, plural, other {#}}', [], {})).toEqual('{0}');
-  expect(formatMessage(f, '{count, plural, one {# item} other {# items}}', [], {})).toEqual('{count}');
+  expect(formatMessage(f, '{count, plural, one {# item} other {# items}}', [], {})).toEqual(
+    '{count}',
+  );
   expect(formatMessage(f, '{0, selectordinal, one {#st} other {#th}}', [], {})).toEqual('{0}');
   expect(formatMessage(f, '{name, select, female {her} other {their}}', [], {})).toEqual('{name}');
 });

@@ -1,12 +1,12 @@
+import { tagRegion } from '@phensley/cldr-core';
 import * as fs from 'fs';
 import { join } from 'path';
-import * as yargs from 'yargs';
-
+import type * as yargs from 'yargs';
 import { getMain, getSupplemental } from '../../../cldr';
 import { buildLocaleMap, checkLanguages, writeJSON } from '../../compiler/util';
-import { tagRegion } from '@phensley/cldr-core';
 
-const isObject = (o: any): boolean => (typeof o === 'object' ? o !== null && !Array.isArray(o) : false);
+const isObject = (o: any): boolean =>
+  typeof o === 'object' ? o !== null && !Array.isArray(o) : false;
 
 /**
  * Recurse into an object, replacing all nested leaf values with integer 1.

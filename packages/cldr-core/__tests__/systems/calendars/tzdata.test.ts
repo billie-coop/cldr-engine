@@ -1,4 +1,4 @@
-import { defaultTimeZoneData, RawData } from '@phensley/timezone';
+import { defaultTimeZoneData, type RawData } from '@phensley/timezone';
 
 // The metazone index is built on the first calendar operation and kept for the life of the
 // module, so each test loads a fresh copy of the calendar code to control whether it is built
@@ -136,7 +136,12 @@ test('bundled alias made canonical keeps its metazone', async () => {
   const tzc = await import('../../../src/systems/calendars/timezone');
   const show = () => {
     const d = c.gregorianDateFromUnixEpoch(JAN_2024, 'Asia/Calcutta');
-    return [c.dateTimeZoneId(d), c.dateMetaZoneId(d), c.dateTimeZoneStableId(d), c.dateTimeZoneOffset(d)];
+    return [
+      c.dateTimeZoneId(d),
+      c.dateMetaZoneId(d),
+      c.dateTimeZoneStableId(d),
+      c.dateTimeZoneOffset(d),
+    ];
   };
   const before = show();
   expect(before).toEqual(['Asia/Kolkata', 'India', 'Asia/Calcutta', 19800000]);

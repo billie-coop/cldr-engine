@@ -1,15 +1,30 @@
-import { PluralType } from '@phensley/cldr-types';
+import type { PluralType } from '@phensley/cldr-types';
 import { keyIndex } from '../instructions';
 
 /**
  * @public
  */
-export const PluralIndex = /*#__PURE__*/ keyIndex<PluralType>(['other', 'zero', 'one', 'two', 'few', 'many']);
+export const PluralIndex = /*#__PURE__*/ keyIndex<PluralType>([
+  'other',
+  'zero',
+  'one',
+  'two',
+  'few',
+  'many',
+]);
 
 /**
  * @public
  */
-export const AltIndex = /*#__PURE__*/ keyIndex(['none', 'short', 'narrow', 'variant', 'stand-alone', 'long', 'menu']);
+export const AltIndex = /*#__PURE__*/ keyIndex([
+  'none',
+  'short',
+  'narrow',
+  'variant',
+  'stand-alone',
+  'long',
+  'menu',
+]);
 
 /**
  * @public

@@ -1,6 +1,6 @@
-import { parseLanguageTag, Bundle, stringBundle, bundleGet } from '../../src';
-import { languageBundle } from '../_helpers';
 import { tagCompact } from '@phensley/language-tag';
+import { type Bundle, bundleGet, parseLanguageTag, stringBundle } from '../../src';
+import { languageBundle } from '../_helpers';
 
 test('bundle loading', () => {
   let b: Bundle;

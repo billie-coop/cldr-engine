@@ -1,9 +1,9 @@
 /// <reference path="./typings.d.ts" />
 
-import * as fs from 'fs';
-import { Event, Suite } from 'benchmark';
 import * as beautify from 'beautify-benchmark';
+import { type Event, Suite } from 'benchmark';
 import chalk from 'chalk';
+import * as fs from 'fs';
 
 /**
  * Constructs a benchmark suite, setting a few lifecycle handlers.

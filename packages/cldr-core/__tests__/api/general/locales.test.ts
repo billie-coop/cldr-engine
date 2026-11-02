@@ -1,6 +1,6 @@
-import { generalApi } from '../../_helpers';
-import { tagCompact, tagExpanded, parseLanguageTag } from '@phensley/language-tag';
+import { parseLanguageTag, tagCompact, tagExpanded } from '@phensley/language-tag';
 import { bindGeneral, resolveLocale } from '../../../src';
+import { generalApi } from '../../_helpers';
 
 // Exercises the convenience layer's bundle() / locale() accessors.
 const api = (tag: string) => bindGeneral(generalApi(tag));

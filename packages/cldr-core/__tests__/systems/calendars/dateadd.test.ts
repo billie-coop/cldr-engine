@@ -1,9 +1,5 @@
 import {
-  BuddhistDate,
-  GregorianDate,
-  ISO8601Date,
-  JapaneseDate,
-  PersianDate,
+  type BuddhistDate,
   buddhistDateFromUnixEpoch,
   dateAdd,
   dateDayOfWeek,
@@ -11,9 +7,13 @@ import {
   dateModifiedJulianDay,
   dateToString,
   dateWithZone,
+  type GregorianDate,
   gregorianDateFromUnixEpoch,
+  type ISO8601Date,
   iso8601DateFromUnixEpoch,
+  type JapaneseDate,
   japaneseDateFromUnixEpoch,
+  type PersianDate,
   persianDateFromUnixEpoch,
 } from '../../../src';
 import { DayOfWeek } from '../../../src/systems/calendars/fields';
@@ -432,7 +432,7 @@ test('years addition 2', () => {
 
 test('years addition 3', () => {
   // May 17, 2026 4:00:00 PM
-  let base = 1779033600000;
+  const base = 1779033600000;
   let date: GregorianDate;
   let q: GregorianDate;
 

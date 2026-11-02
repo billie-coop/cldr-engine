@@ -1,4 +1,4 @@
-import { just, nothing, Just, Nothing } from '../../src/parsing';
+import { Just, just, Nothing, nothing } from '../../src/parsing';
 
 test('just', () => {
   expect(just('hello')).toEqual(new Just('hello'));

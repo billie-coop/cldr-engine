@@ -1,9 +1,9 @@
 /* istanbul ignore file -- @preserve */
 
-import { Decimal, decimalToString } from '@phensley/decimal';
-import { PluralRules } from '@phensley/plurals';
-import { Opcode, RuleType, RBNFInst, RBNFRule } from './rbnftypes';
-import { RBNF, RBNFEngineHooks, RBNFSet, createRBNF, createRBNFSet } from './rbnf';
+import { type Decimal, decimalToString } from '@phensley/decimal';
+import type { PluralRules } from '@phensley/plurals';
+import { createRBNF, createRBNFSet, type RBNF, type RBNFEngineHooks, type RBNFSet } from './rbnf';
+import { Opcode, type RBNFInst, type RBNFRule, RuleType } from './rbnftypes';
 
 const REVPLURALS: { [x: number]: string } = {
   0: 'zero',
@@ -117,7 +117,11 @@ type tracefunc = (...s: any[]) => void;
  * Engine hooks for a single format call: trace depth and step ids restart
  * with each call, coverage accumulates on the set.
  */
-const debugHooks = (set: RBNFSet, settings: RBNFDebugSettings, coverage: Map<number, Set<number>>): RBNFEngineHooks => {
+const debugHooks = (
+  set: RBNFSet,
+  settings: RBNFDebugSettings,
+  coverage: Map<number, Set<number>>,
+): RBNFEngineHooks => {
   let depth = 0;
   let id = 0;
 
@@ -166,10 +170,11 @@ const rulerepr = (rbnf: RBNFSet, rule: RBNFRule): string => {
   let res = '';
   switch (rule[0]) {
     case RuleType.IMPROPER_FRACTION:
-    case RuleType.PROPER_FRACTION:
+    case RuleType.PROPER_FRACTION: {
       const sym = rule[2] === 1 ? ',' : '.';
       res += `"${rule[0] === RuleType.IMPROPER_FRACTION ? 'x' : '0'}${sym}x"`;
       break;
+    }
     case RuleType.MINUS:
       res += '"-x"';
       break;
@@ -219,10 +224,11 @@ const instrepr = (rbnf: RBNFSet, i: RBNFInst): string => {
     case Opcode.UNCHANGED_RULE:
       return `=%${rbnf.allnames[i[1]]}%=`;
     case Opcode.CARDINAL:
-    case Opcode.ORDINAL:
+    case Opcode.ORDINAL: {
       const r = i[0] === Opcode.CARDINAL ? 'cardinal' : 'ordinal';
       const subs = i[1].map((s) => `${REVPLURALS[s[0]]}{${rbnf.symbols[s[1]]}}`).join('');
       return `$(${r},${subs})$`;
+    }
     default:
       return OPCODES[i[0]];
   }

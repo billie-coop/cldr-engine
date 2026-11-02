@@ -1,6 +1,6 @@
-import { JSONRoot, RBNFCollector, RBNFEncoder, RBNFSymbolExtractor } from '../rbnf';
-import { FrequencySet } from '../utils';
 import { parseLanguageTag, tagLanguage } from '@phensley/cldr-core';
+import { type JSONRoot, type RBNFCollector, RBNFEncoder, RBNFSymbolExtractor } from '../rbnf';
+import { FrequencySet } from '../utils';
 
 /**
  * Collect and pack rules for the given locales.
@@ -74,7 +74,8 @@ export class RBNFPacker {
       const names: string[] = [];
 
       // Only show numbering systems at the root level
-      const keys: (keyof JSONRoot)[] = id === 'root' ? ['NumberingSystemRules'] : ['OrdinalRules', 'SpelloutRules'];
+      const keys: (keyof JSONRoot)[] =
+        id === 'root' ? ['NumberingSystemRules'] : ['OrdinalRules', 'SpelloutRules'];
 
       for (const key of keys) {
         const rules = raw[key];

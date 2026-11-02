@@ -12,7 +12,12 @@ const SEP = '-';
 
 const UNDEFINED_VALUES = ['und', 'Zzzz', 'ZZ', ''];
 
-const KEYS = [LanguageTagField.LANGUAGE, LanguageTagField.SCRIPT, LanguageTagField.REGION, LanguageTagField.VARIANT];
+const KEYS = [
+  LanguageTagField.LANGUAGE,
+  LanguageTagField.SCRIPT,
+  LanguageTagField.REGION,
+  LanguageTagField.VARIANT,
+];
 
 const TRANSFORMS: ((s: string) => string)[] = [
   (s) => s.toLowerCase(),
@@ -110,7 +115,8 @@ export const languageTag = (
 
 const optString = (s: unknown): boolean => s === undefined || typeof s === 'string';
 
-const isStringArray = (a: unknown): boolean => Array.isArray(a) && a.every((s) => typeof s === 'string');
+const isStringArray = (a: unknown): boolean =>
+  Array.isArray(a) && a.every((s) => typeof s === 'string');
 
 /**
  * Returns true if the argument has the shape of a language tag: optional string subtags, a
@@ -143,7 +149,8 @@ export const isLanguageTag = (x: unknown): x is LanguageTag => {
  *
  * @public
  */
-export const tagLanguage = (t: LanguageTag): string => t.language || UNDEFINED_VALUES[LanguageTagField.LANGUAGE];
+export const tagLanguage = (t: LanguageTag): string =>
+  t.language || UNDEFINED_VALUES[LanguageTagField.LANGUAGE];
 
 /**
  * Returns true if the language subtag is defined.
@@ -157,7 +164,8 @@ export const tagHasLanguage = (t: LanguageTag): boolean => t.language !== undefi
  *
  * @public
  */
-export const tagScript = (t: LanguageTag): string => t.script || UNDEFINED_VALUES[LanguageTagField.SCRIPT];
+export const tagScript = (t: LanguageTag): string =>
+  t.script || UNDEFINED_VALUES[LanguageTagField.SCRIPT];
 
 /**
  * Returns true if the script subtag is defined.
@@ -171,7 +179,8 @@ export const tagHasScript = (t: LanguageTag): boolean => t.script !== undefined;
  *
  * @public
  */
-export const tagRegion = (t: LanguageTag): string => t.region || UNDEFINED_VALUES[LanguageTagField.REGION];
+export const tagRegion = (t: LanguageTag): string =>
+  t.region || UNDEFINED_VALUES[LanguageTagField.REGION];
 
 /**
  * Returns true if the region subtag is defined.
@@ -185,7 +194,8 @@ export const tagHasRegion = (t: LanguageTag): boolean => t.region !== undefined;
  *
  * @public
  */
-export const tagVariant = (t: LanguageTag): string => t.variant || UNDEFINED_VALUES[LanguageTagField.VARIANT];
+export const tagVariant = (t: LanguageTag): string =>
+  t.variant || UNDEFINED_VALUES[LanguageTagField.VARIANT];
 
 /**
  * Return a copy of the language tag's extensions map.
@@ -275,7 +285,8 @@ const render = (t: LanguageTag, expanded: boolean): string => {
   const core = [t.language, t.script, t.region, t.variant];
   let buf: string = '';
   KEYS.forEach((key) => {
-    const force: boolean = key !== LanguageTagField.VARIANT && (key === LanguageTagField.LANGUAGE || expanded);
+    const force: boolean =
+      key !== LanguageTagField.VARIANT && (key === LanguageTagField.LANGUAGE || expanded);
     const val: string | undefined = core[key];
     if (val !== undefined || force) {
       if (buf.length > 0) {

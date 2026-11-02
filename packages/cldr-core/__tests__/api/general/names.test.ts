@@ -1,14 +1,14 @@
-import { AltType } from '@phensley/cldr-types';
-import { generalApi, languageBundle } from '../../_helpers';
+import type { AltType } from '@phensley/cldr-types';
 import {
-  parseLanguageTag,
-  DisplayNameOptions,
-  LanguageTag,
-  vectorGet,
+  type DisplayNameOptions,
   getLanguageDisplayName,
   getRegionDisplayName,
   getScriptDisplayName,
+  type LanguageTag,
+  parseLanguageTag,
+  vectorGet,
 } from '../../../src';
+import { generalApi, languageBundle } from '../../_helpers';
 
 test('languages', () => {
   let tag: LanguageTag;
@@ -24,9 +24,13 @@ test('languages', () => {
   expect(getLanguageDisplayName(api, 'en-GB')).toEqual('British English');
   expect(getLanguageDisplayName(api, 'en-GB', { type: 'short' })).toEqual('UK English');
   expect(getLanguageDisplayName(api, 'zh-Hans')).toEqual('Simplified Chinese');
-  expect(getLanguageDisplayName(api, 'zh-Hans', { type: 'long' })).toEqual('Simplified Mandarin Chinese');
+  expect(getLanguageDisplayName(api, 'zh-Hans', { type: 'long' })).toEqual(
+    'Simplified Mandarin Chinese',
+  );
   expect(getLanguageDisplayName(api, 'zh-Hant')).toEqual('Traditional Chinese');
-  expect(getLanguageDisplayName(api, 'zh-Hant', { type: 'long' })).toEqual('Traditional Mandarin Chinese');
+  expect(getLanguageDisplayName(api, 'zh-Hant', { type: 'long' })).toEqual(
+    'Traditional Mandarin Chinese',
+  );
   expect(getLanguageDisplayName(api, 'yue')).toEqual('Cantonese');
   expect(getLanguageDisplayName(api, 'yue', { type: 'menu' })).toEqual('Chinese, Cantonese');
   expect(getLanguageDisplayName(api, 'zh', { type: 'menu' })).toEqual('Chinese, Mandarin');

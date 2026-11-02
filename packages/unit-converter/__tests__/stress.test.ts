@@ -8,6 +8,7 @@ import {
   DURATION,
   ELECTRIC,
   ENERGY,
+  type FactorDef,
   FORCE,
   FREQUENCY,
   GRAPHICS_PER,
@@ -24,13 +25,11 @@ import {
   SUBSTANCE,
   TEMPERATURE,
   TORQUE,
-  VOLUME,
-  VOLUME_UK,
   unitFactors,
   unitFactorsGet,
+  VOLUME,
+  VOLUME_UK,
 } from '../src';
-
-import { FactorDef } from '../src';
 
 const FACTORS: FactorDef[][] = [
   ACCELERATION,

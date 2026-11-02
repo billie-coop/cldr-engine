@@ -1,4 +1,4 @@
-import { scope, vector, Scope } from '../instructions';
+import { type Scope, scope, vector } from '../instructions';
 
 export const CURRENCIES: Scope = scope('Currencies', 'Currencies', [
   vector('displayName', ['currency-id']),

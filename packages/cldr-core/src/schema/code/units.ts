@@ -1,4 +1,4 @@
-import { field, scope, vector, Scope } from '../instructions';
+import { field, type Scope, scope, vector } from '../instructions';
 
 const unitInfo = (width: string) =>
   scope(width, width, [
@@ -9,4 +9,8 @@ const unitInfo = (width: string) =>
     field('timesPattern'),
   ]);
 
-export const UNITS: Scope = scope('Units', 'Units', [unitInfo('long'), unitInfo('narrow'), unitInfo('short')]);
+export const UNITS: Scope = scope('Units', 'Units', [
+  unitInfo('long'),
+  unitInfo('narrow'),
+  unitInfo('short'),
+]);

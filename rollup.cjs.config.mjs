@@ -42,7 +42,10 @@ export default {
     // - AMBIGUOUS_EXTERNAL_NAMESPACES: rollup can't see which names each `export * from
     //   '@phensley/...'` provides. The generated code copies a name only if it isn't already
     //   exported, the same first-wins rule as tsc's __exportStar.
-    if (warning.code === 'CIRCULAR_DEPENDENCY' || warning.code === 'AMBIGUOUS_EXTERNAL_NAMESPACES') {
+    if (
+      warning.code === 'CIRCULAR_DEPENDENCY' ||
+      warning.code === 'AMBIGUOUS_EXTERNAL_NAMESPACES'
+    ) {
       return;
     }
     warn(warning);

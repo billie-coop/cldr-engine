@@ -1,4 +1,4 @@
-import {
+import type {
   CurrencySpacingPattern,
   CurrencySpacingPos,
   NumberMiscPatternType,
@@ -16,7 +16,10 @@ export const PluralDigitValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
 /**
  * @public
  */
-export const CurrencySpacingPosIndex = /*#__PURE__*/ keyIndex<CurrencySpacingPos>(['before', 'after']);
+export const CurrencySpacingPosIndex = /*#__PURE__*/ keyIndex<CurrencySpacingPos>([
+  'before',
+  'after',
+]);
 
 /**
  * @public
@@ -51,12 +54,22 @@ export const NumberSymbolValues: NumberSymbolType[] = [
 /**
  * @public
  */
-export const NumberSystemCategoryValues: NumberSystemCategory[] = ['default', 'native', 'finance', 'traditional'];
+export const NumberSystemCategoryValues: NumberSystemCategory[] = [
+  'default',
+  'native',
+  'finance',
+  'traditional',
+];
 
 /**
  * @public
  */
-export const NumberMiscPatternValues: NumberMiscPatternType[] = ['at-least', 'at-most', 'approx', 'range'];
+export const NumberMiscPatternValues: NumberMiscPatternType[] = [
+  'at-least',
+  'at-most',
+  'approx',
+  'range',
+];
 
 /**
  * @public

@@ -66,8 +66,8 @@ export class FieldEnumValue implements ValueType {
   }
 }
 
-const ID_ENUM_UNSAFE = /[^a-z\d\/_-]+/gi;
-const ID_DASH = /[\/-]+/g;
+const ID_ENUM_UNSAFE = /[^a-z\d/_-]+/gi;
+const ID_DASH = /[/-]+/g;
 
 /**
  * Generates enum definitions for identifiers.

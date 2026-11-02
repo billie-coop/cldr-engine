@@ -1,8 +1,18 @@
-import { Cache, cacheGet, cacheSize, createCache } from '@phensley/cldr-utils';
-import { PluralRules, getPluralRules } from '@phensley/plurals';
-import { buildMessageMatcher, parseMessagePattern, MessageCode, MessageMatcher } from './parser';
-import { evaluateMessage, MessageArg, MessageFormatFuncMap, MessageNamedArgs } from './evaluation';
-import { defaultMessageArgConverter, MessageArgConverter } from './evaluation/converter';
+import { type Cache, cacheGet, cacheSize, createCache } from '@phensley/cldr-utils';
+import { getPluralRules, type PluralRules } from '@phensley/plurals';
+import {
+  evaluateMessage,
+  type MessageArg,
+  type MessageFormatFuncMap,
+  type MessageNamedArgs,
+} from './evaluation';
+import { defaultMessageArgConverter, type MessageArgConverter } from './evaluation/converter';
+import {
+  buildMessageMatcher,
+  type MessageCode,
+  type MessageMatcher,
+  parseMessagePattern,
+} from './parser';
 
 const DEFAULT_CACHE_SIZE = 100;
 
@@ -75,7 +85,10 @@ export const createMessageFormatter = (options: MessageFormatterOptions = {}): M
   const plurals = options.plurals || getPluralRules(options.language || 'root', options.region);
   const size = options.cacheSize || DEFAULT_CACHE_SIZE;
   const matcher = buildMessageMatcher(Object.keys(formatters));
-  const cache = createCache<MessageCode>((s) => parseMessagePattern(s, matcher, options.disableEscapes), size);
+  const cache = createCache<MessageCode>(
+    (s) => parseMessagePattern(s, matcher, options.disableEscapes),
+    size,
+  );
   return { plurals, converter, formatters, matcher, cache };
 };
 

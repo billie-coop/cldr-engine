@@ -1,6 +1,7 @@
 import { decimal, decimalAdd, decimalMovePoint, decimalSubtract, decimalToString } from '../src';
 
-const time = (n: [number, number]) => decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));
+const time = (n: [number, number]) =>
+  decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));
 
 export class Timer {
   protected _start: [number, number] = process.hrtime();

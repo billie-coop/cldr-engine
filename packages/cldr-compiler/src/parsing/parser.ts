@@ -1,14 +1,12 @@
-import { just, nothing, Maybe } from './maybe';
-import { pair, Pair } from './pair';
+import { just, type Maybe, nothing } from './maybe';
+import { type Pair, pair } from './pair';
 
 const cons = <T>(x: T, xs: T[]): T[] => [x].concat(xs);
 
 /**
  * Function that matches on some input, driving the parser.
  */
-export interface ParseFunction<T> {
-  (s: string): Maybe<Pair<T, string>>;
-}
+export type ParseFunction<T> = (s: string) => Maybe<Pair<T, string>>;
 
 /**
  * Basic parser combinator.

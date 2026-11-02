@@ -2,7 +2,8 @@ import { decimal } from '@phensley/decimal';
 import { numberOperands, numberOperandsToString } from '../src';
 import { digitCount } from '../src/operands';
 
-const operands = (n: string, c: number = 0) => numberOperandsToString(numberOperands(decimal(n), c));
+const operands = (n: string, c: number = 0) =>
+  numberOperandsToString(numberOperands(decimal(n), c));
 
 test('foo', () => {
   let ops: string;
@@ -101,7 +102,9 @@ test('basics', () => {
   expect(ops).toEqual('n: 0, i: 0, v: 19, w: 19, f: 12345678901234, t: 12345678901234, c: 0');
 
   ops = operands('1234567890123456789.12345000');
-  expect(ops).toEqual('n: 17890123456789, i: 17890123456789, v: 8, w: 5, f: 12345000, t: 12345, c: 0');
+  expect(ops).toEqual(
+    'n: 17890123456789, i: 17890123456789, v: 8, w: 5, f: 12345000, t: 12345, c: 0',
+  );
 
   ops = operands('1234567e5');
   expect(ops).toEqual('n: 123456700000, i: 123456700000, v: 0, w: 0, f: 0, t: 0, c: 0');
@@ -176,5 +179,7 @@ test('overflow', () => {
   expect(ops).toEqual('n: 0, i: 0, v: 27, w: 27, f: 11122233344455, t: 11122233344455, c: 0');
 
   ops = operands('-99999999999999999999.99999999999999999999');
-  expect(ops).toEqual('n: 19999999999999, i: 19999999999999, v: 20, w: 20, f: 99999999999999, t: 99999999999999, c: 0');
+  expect(ops).toEqual(
+    'n: 19999999999999, i: 19999999999999, v: 20, w: 20, f: 99999999999999, t: 99999999999999, c: 0',
+  );
 });

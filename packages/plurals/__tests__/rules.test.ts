@@ -1,5 +1,5 @@
 import { decimal } from '@phensley/decimal';
-import { PluralRules, getPluralRules, pluralCardinal, pluralOrdinal } from '../src';
+import { getPluralRules, type PluralRules, pluralCardinal, pluralOrdinal } from '../src';
 
 test('missing rules', () => {
   const rules: PluralRules = getPluralRules('xyz');

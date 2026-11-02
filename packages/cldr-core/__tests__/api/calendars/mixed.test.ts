@@ -1,5 +1,5 @@
+import { formatDate, type ZonedDateTime } from '../../../src';
 import { calendarsApi } from '../../_helpers';
-import { ZonedDateTime, formatDate } from '../../../src';
 
 const unix = (date: number, zoneId: string): ZonedDateTime => ({ date, zoneId });
 
@@ -59,7 +59,9 @@ test('skeleton caching: mixed formats and field widths', () => {
   expect(formatDate(api, mar11, { date: 'short', skeleton: 'Hm' })).toEqual('3/10/18, 23:00');
 
   // bare compound skeleton, then mixed with a standard time format
-  expect(formatDate(api, mar11, { skeleton: 'yMMMMEEEEdHm' })).toEqual('Saturday, March 10, 2018 at 23:00');
+  expect(formatDate(api, mar11, { skeleton: 'yMMMMEEEEdHm' })).toEqual(
+    'Saturday, March 10, 2018 at 23:00',
+  );
   expect(formatDate(api, mar11, { time: 'short', skeleton: 'yMMMMEEEEdHm' })).toEqual(
     'Saturday, March 10, 2018 at 11:00 PM',
   );

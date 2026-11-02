@@ -1,5 +1,5 @@
-import { numbersApi } from '../../_helpers';
 import { formatCurrency, formatDecimal } from '../../../src';
+import { numbersApi } from '../../_helpers';
 
 test('trim zero fractions', () => {
   const api = numbersApi('en');

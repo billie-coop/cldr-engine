@@ -1,5 +1,5 @@
-import { calendarsApi } from '../_helpers';
 import { dateAdd, formatDate, formatDateInterval, toGregorianDate } from '../../src';
+import { calendarsApi } from '../_helpers';
 
 // June 10, 2019 12:34:56 PM EDT (UTC-4) == 16:34:56 UTC
 const JUNE_10_2019_123456_EDT = 1560184496000;

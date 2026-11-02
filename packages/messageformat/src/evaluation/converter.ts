@@ -1,5 +1,11 @@
-import { Decimal, DecimalConstants, decimal, decimalToString, isDecimal } from '@phensley/decimal';
-import { MessageArg } from './args';
+import {
+  type Decimal,
+  DecimalConstants,
+  decimal,
+  decimalToString,
+  isDecimal,
+} from '@phensley/decimal';
+import type { MessageArg } from './args';
 
 /**
  * Argument converter: a record of functions that map raw arguments to the
@@ -45,8 +51,7 @@ export const defaultMessageArgConverter: MessageArgConverter = {
       case 'string':
         try {
           return decimal(arg);
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
+        } catch {
           return DecimalConstants.NAN;
         }
       case 'number':

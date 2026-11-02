@@ -1,4 +1,4 @@
-import { CalendarDate, dateAdd, dateCompare, gregorianDateFromUnixEpoch } from '../../../src';
+import { type CalendarDate, dateAdd, dateCompare, gregorianDateFromUnixEpoch } from '../../../src';
 import { MAR_11_2000, NEW_YORK } from './_referencedates';
 
 const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);

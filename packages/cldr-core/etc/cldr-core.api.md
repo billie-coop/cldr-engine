@@ -2700,10 +2700,10 @@ export function vectorGet<T extends string, S extends string>(arrow: Vector2Arro
 // @public (undocumented)
 export function vectorGet<T extends string, S extends string, U extends string>(arrow: Vector3Arrow<T, S, U>, bundle: PrimitiveBundle, key1: T | T[], key2: S | S[], key3: U | U[]): string;
 
-// Warning: (ae-forgotten-export) The symbol "Key" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Key_2" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function vectorGet(arrow: VectorArrowBase, bundle: PrimitiveBundle, ...keys: Key[]): string;
+export function vectorGet(arrow: VectorArrowBase, bundle: PrimitiveBundle, ...keys: Key_2[]): string;
 
 // @public
 export function vectorMapping<T extends string>(arrow: Vector1Arrow<T>, bundle: PrimitiveBundle): {
@@ -2736,7 +2736,7 @@ export function vectorValid<T extends string>(arrow: Vector1Arrow<T>, key: T | T
 export function vectorValid<T extends string, S extends string>(arrow: Vector2Arrow<T, S>, key1: T | T[], key2: S | S[]): boolean;
 
 // @public (undocumented)
-export function vectorValid(arrow: VectorArrowBase, ...keys: Key[]): boolean;
+export function vectorValid(arrow: VectorArrowBase, ...keys: Key_2[]): boolean;
 
 // @public
 export const weekdays: (data: LocaleData, opt?: CalendarFieldsOptions) => any;

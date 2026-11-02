@@ -1,6 +1,3 @@
-import { DayOfWeek } from '../../../src/systems/calendars/fields';
-import { PersianDate } from '../../../src/systems/calendars/persian';
-import { NEW_YORK } from './_referencedates';
 import {
   dateDayOfMonth,
   dateDayOfWeek,
@@ -16,6 +13,9 @@ import {
   dateYear,
   persianDateFromUnixEpoch,
 } from '../../../src';
+import { DayOfWeek } from '../../../src/systems/calendars/fields';
+import type { PersianDate } from '../../../src/systems/calendars/persian';
+import { NEW_YORK } from './_referencedates';
 
 const make = (e: number, z: string) => persianDateFromUnixEpoch(e, z, DayOfWeek.SUNDAY, 1);
 

@@ -1,4 +1,4 @@
-import {
+import type {
   ContextTransformFieldType,
   ContextType,
   DateFieldType,
@@ -7,11 +7,16 @@ import {
   RelativeTimeFieldType,
 } from '@phensley/cldr-types';
 
-import { DecimalArg, Part } from '@phensley/decimal';
-import { ZoneInfo, tzFromUTC, tzFromWall, tzResolveId, tzZoneIds, tzZoneMeta } from '@phensley/timezone';
-
-import { LocaleData } from '../locale-data';
+import type { DecimalArg, Part } from '@phensley/decimal';
 import {
+  tzFromUTC,
+  tzFromWall,
+  tzResolveId,
+  tzZoneIds,
+  tzZoneMeta,
+  type ZoneInfo,
+} from '@phensley/timezone';
+import type {
   CalendarFieldsOptions,
   DateFieldFormatOptions,
   DateFormatAltOptions,
@@ -27,39 +32,9 @@ import {
   TimeZoneInfo,
   ZonedDateTime,
 } from '../common/calendars';
-import { Quantity } from '../common/units';
-import { BuddhistDate } from '../systems/calendars/buddhist';
-import { CalendarDate, CalendarDateFields, CalendarType } from '../systems/calendars/types';
-import { CalendarFromUnixEpoch } from '../systems/calendars/calendar';
-import { GregorianDate } from '../systems/calendars/gregorian';
-import { ISO8601Date } from '../systems/calendars/iso8601';
-import { JapaneseDate } from '../systems/calendars/japanese';
-import { PersianDate } from '../systems/calendars/persian';
-import { TIME_PERIOD_FIELDS, TimePeriod } from '../systems/calendars/interval';
-import {
-  getCalendarPatterns,
-  getDateFormatRequest,
-  getDateIntervalFormatRequest,
-} from '../internals/calendars/manager';
-import {
-  CalendarPatterns,
-  patternsDayPeriods,
-  patternsEras,
-  patternsMonths,
-  patternsQuarters,
-  patternsTimeData,
-  patternsWeekdays,
-  patternsWrapperPattern,
-} from '../internals/calendars/patterns';
-import { AbstractValue, partsValue, stringValue } from '../utils/render';
-
-import { NumberParams } from '../common/private';
-import { CalendarContext } from '../internals/calendars/formatter';
-import { TimeZoneTypeIndex } from '../schema/schema/timezones';
-import { currentMetazone, getStableTimeZoneId, substituteZoneAlias } from '../systems/calendars/timezone';
-import { getContextTransformInfo } from './private/api';
-import { getNumberParams } from './private/numbers';
-import { vectorGet, vectorMapping } from '../schema/schema/arrows';
+import type { NumberParams } from '../common/private';
+import type { Quantity } from '../common/units';
+import type { CalendarContext } from '../internals/calendars/formatter';
 import {
   parseDatePattern,
   renderDateInterval,
@@ -68,22 +43,71 @@ import {
   weekFirstDay,
   weekMinDays,
 } from '../internals/calendars/internal';
+import {
+  getCalendarPatterns,
+  getDateFormatRequest,
+  getDateIntervalFormatRequest,
+} from '../internals/calendars/manager';
+import {
+  type CalendarPatterns,
+  patternsDayPeriods,
+  patternsEras,
+  patternsMonths,
+  patternsQuarters,
+  patternsTimeData,
+  patternsWeekdays,
+  patternsWrapperPattern,
+} from '../internals/calendars/patterns';
 import { renderRelativeTimeField } from '../internals/datefields/internal';
 import { contextTransform, parseWrapper } from '../internals/general/internal';
-import { buddhistDateFromFields, buddhistDateFromUnixEpoch } from '../systems/calendars/buddhist';
+import type { LocaleData } from '../locale-data';
+import { vectorGet, vectorMapping } from '../schema/schema/arrows';
+import { TimeZoneTypeIndex } from '../schema/schema/timezones';
 import {
+  type BuddhistDate,
+  buddhistDateFromFields,
+  buddhistDateFromUnixEpoch,
+} from '../systems/calendars/buddhist';
+import {
+  type CalendarFromUnixEpoch,
   dateDayOfWeek,
   dateFieldOfVisualDifference,
   dateTimeZoneId,
   dateType,
   dateUnixEpoch,
 } from '../systems/calendars/calendar';
-import { dateRelativeTime } from '../systems/calendars/difference';
-import { gregorianDateFromFields, gregorianDateFromUnixEpoch } from '../systems/calendars/gregorian';
 import { isCalendarDate } from '../systems/calendars/core';
-import { iso8601DateFromFields, iso8601DateFromUnixEpoch } from '../systems/calendars/iso8601';
-import { japaneseDateFromFields, japaneseDateFromUnixEpoch } from '../systems/calendars/japanese';
-import { persianDateFromFields, persianDateFromUnixEpoch } from '../systems/calendars/persian';
+import { dateRelativeTime } from '../systems/calendars/difference';
+import {
+  type GregorianDate,
+  gregorianDateFromFields,
+  gregorianDateFromUnixEpoch,
+} from '../systems/calendars/gregorian';
+import { TIME_PERIOD_FIELDS, type TimePeriod } from '../systems/calendars/interval';
+import {
+  type ISO8601Date,
+  iso8601DateFromFields,
+  iso8601DateFromUnixEpoch,
+} from '../systems/calendars/iso8601';
+import {
+  type JapaneseDate,
+  japaneseDateFromFields,
+  japaneseDateFromUnixEpoch,
+} from '../systems/calendars/japanese';
+import {
+  type PersianDate,
+  persianDateFromFields,
+  persianDateFromUnixEpoch,
+} from '../systems/calendars/persian';
+import {
+  currentMetazone,
+  getStableTimeZoneId,
+  substituteZoneAlias,
+} from '../systems/calendars/timezone';
+import type { CalendarDate, CalendarDateFields, CalendarType } from '../systems/calendars/types';
+import { type AbstractValue, partsValue, stringValue } from '../utils/render';
+import { getContextTransformInfo } from './private/api';
+import { getNumberParams } from './private/numbers';
 
 const DOW_FIELDS: RelativeTimeFieldType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -113,7 +137,11 @@ export const minDaysInFirstWeek = (data: LocaleData): number => {
  *
  * @public
  */
-export const dateField = (data: LocaleData, type: DateFieldType, opt?: DateFieldFormatOptions): string => {
+export const dateField = (
+  data: LocaleData,
+  type: DateFieldType,
+  opt?: DateFieldFormatOptions,
+): string => {
   opt = opt || {};
   const field = vectorGet(data.schema.DateFields.displayName, data, type, opt.width || 'wide');
   return _transformField(data, field, 'calendar-field', opt.context);
@@ -194,7 +222,10 @@ export const now = (data: LocaleData, zoneId?: string): GregorianDate => {
  *
  * @public
  */
-export const toBuddhistDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): BuddhistDate => {
+export const toBuddhistDate = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+): BuddhistDate => {
   return convertDate(data, buddhistDateFromUnixEpoch, date);
 };
 
@@ -203,7 +234,10 @@ export const toBuddhistDate = (data: LocaleData, date: CalendarDate | ZonedDateT
  *
  * @public
  */
-export const newBuddhistDate = (data: LocaleData, fields: Partial<CalendarDateFields>): BuddhistDate => {
+export const newBuddhistDate = (
+  data: LocaleData,
+  fields: Partial<CalendarDateFields>,
+): BuddhistDate => {
   return buddhistDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
 };
 
@@ -214,7 +248,7 @@ export const newBuddhistDate = (data: LocaleData, fields: Partial<CalendarDateFi
  */
 export const nowBuddhist = (data: LocaleData, zoneId?: string): BuddhistDate => {
   return buddhistDateFromUnixEpoch(
-    new Date().getTime(),
+    Date.now(),
     zoneId || '',
     weekFirstDay(data.region),
     weekMinDays(data.region),
@@ -226,7 +260,10 @@ export const nowBuddhist = (data: LocaleData, zoneId?: string): BuddhistDate => 
  *
  * @public
  */
-export const toGregorianDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): GregorianDate => {
+export const toGregorianDate = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+): GregorianDate => {
   return convertDate(data, gregorianDateFromUnixEpoch, date);
 };
 
@@ -235,7 +272,10 @@ export const toGregorianDate = (data: LocaleData, date: CalendarDate | ZonedDate
  *
  * @public
  */
-export const newGregorianDate = (data: LocaleData, fields: Partial<CalendarDateFields>): GregorianDate => {
+export const newGregorianDate = (
+  data: LocaleData,
+  fields: Partial<CalendarDateFields>,
+): GregorianDate => {
   return gregorianDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
 };
 
@@ -246,7 +286,7 @@ export const newGregorianDate = (data: LocaleData, fields: Partial<CalendarDateF
  */
 export const nowGregorian = (data: LocaleData, zoneId?: string): GregorianDate => {
   return gregorianDateFromUnixEpoch(
-    new Date().getTime(),
+    Date.now(),
     zoneId || '',
     weekFirstDay(data.region),
     weekMinDays(data.region),
@@ -258,7 +298,10 @@ export const nowGregorian = (data: LocaleData, zoneId?: string): GregorianDate =
  *
  * @public
  */
-export const toISO8601Date = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): ISO8601Date => {
+export const toISO8601Date = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+): ISO8601Date => {
   return convertDate(data, iso8601DateFromUnixEpoch, date);
 };
 
@@ -267,7 +310,10 @@ export const toISO8601Date = (data: LocaleData, date: CalendarDate | ZonedDateTi
  *
  * @public
  */
-export const newISO8601Date = (data: LocaleData, fields: Partial<CalendarDateFields>): ISO8601Date => {
+export const newISO8601Date = (
+  data: LocaleData,
+  fields: Partial<CalendarDateFields>,
+): ISO8601Date => {
   return iso8601DateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
 };
 
@@ -278,7 +324,7 @@ export const newISO8601Date = (data: LocaleData, fields: Partial<CalendarDateFie
  */
 export const nowISO8601 = (data: LocaleData, zoneId?: string): ISO8601Date => {
   return iso8601DateFromUnixEpoch(
-    new Date().getTime(),
+    Date.now(),
     zoneId || '',
     weekFirstDay(data.region),
     weekMinDays(data.region),
@@ -290,7 +336,10 @@ export const nowISO8601 = (data: LocaleData, zoneId?: string): ISO8601Date => {
  *
  * @public
  */
-export const toJapaneseDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): JapaneseDate => {
+export const toJapaneseDate = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+): JapaneseDate => {
   return convertDate(data, japaneseDateFromUnixEpoch, date);
 };
 
@@ -299,7 +348,10 @@ export const toJapaneseDate = (data: LocaleData, date: CalendarDate | ZonedDateT
  *
  * @public
  */
-export const newJapaneseDate = (data: LocaleData, fields: Partial<CalendarDateFields>): JapaneseDate => {
+export const newJapaneseDate = (
+  data: LocaleData,
+  fields: Partial<CalendarDateFields>,
+): JapaneseDate => {
   return japaneseDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
 };
 
@@ -310,7 +362,7 @@ export const newJapaneseDate = (data: LocaleData, fields: Partial<CalendarDateFi
  */
 export const nowJapanese = (data: LocaleData, zoneId?: string): JapaneseDate => {
   return japaneseDateFromUnixEpoch(
-    new Date().getTime(),
+    Date.now(),
     zoneId || '',
     weekFirstDay(data.region),
     weekMinDays(data.region),
@@ -322,7 +374,10 @@ export const nowJapanese = (data: LocaleData, zoneId?: string): JapaneseDate => 
  *
  * @public
  */
-export const toPersianDate = (data: LocaleData, date: CalendarDate | ZonedDateTime | Date): PersianDate => {
+export const toPersianDate = (
+  data: LocaleData,
+  date: CalendarDate | ZonedDateTime | Date,
+): PersianDate => {
   return convertDate(data, persianDateFromUnixEpoch, date);
 };
 
@@ -331,7 +386,10 @@ export const toPersianDate = (data: LocaleData, date: CalendarDate | ZonedDateTi
  *
  * @public
  */
-export const newPersianDate = (data: LocaleData, fields: Partial<CalendarDateFields>): PersianDate => {
+export const newPersianDate = (
+  data: LocaleData,
+  fields: Partial<CalendarDateFields>,
+): PersianDate => {
   return persianDateFromFields(fields, weekFirstDay(data.region), weekMinDays(data.region));
 };
 
@@ -342,7 +400,7 @@ export const newPersianDate = (data: LocaleData, fields: Partial<CalendarDateFie
  */
 export const nowPersian = (data: LocaleData, zoneId?: string): PersianDate => {
   return persianDateFromUnixEpoch(
-    new Date().getTime(),
+    Date.now(),
     zoneId || '',
     weekFirstDay(data.region),
     weekMinDays(data.region),
@@ -374,7 +432,11 @@ export const fieldOfVisualDifference = (
 
   // Determine calendar type to use for comparison, falling back to the default for the
   // current locale.
-  const type: CalendarType = isCalendarDate(a) ? dateType(a) : isCalendarDate(b) ? dateType(b) : selectCalendar(data);
+  const type: CalendarType = isCalendarDate(a)
+    ? dateType(a)
+    : isCalendarDate(b)
+      ? dateType(b)
+      : selectCalendar(data);
 
   // Convert a and b to CalendarDate having the correct type, ensuring their types and timezones match.
   if (!isCalendarDate(a) || type !== dateType(a)) {
@@ -590,7 +652,8 @@ export const timeZoneIds = (): string[] => tzZoneIds();
  *
  * @public
  */
-export const resolveTimeZoneId = (zoneid: string): string | undefined => tzResolveId(substituteZoneAlias(zoneid));
+export const resolveTimeZoneId = (zoneid: string): string | undefined =>
+  tzResolveId(substituteZoneAlias(zoneid));
 
 /**
  * Return additional information for a timezone id, including the
@@ -639,7 +702,8 @@ export const timeZoneInfo = (data: LocaleData, zoneid: string): TimeZoneInfo => 
  *
  * @public
  */
-export const timeZoneFromUTC = (utc: number, zoneid: string): ZoneInfo | undefined => tzFromUTC(zoneid, utc);
+export const timeZoneFromUTC = (utc: number, zoneid: string): ZoneInfo | undefined =>
+  tzFromUTC(zoneid, utc);
 
 /**
  * Lookup the time zone info for the given local "wall clock" timestamp (in milliseconds).
@@ -825,7 +889,13 @@ const _formatDateRaw = <R>(
   const pattern = parseDatePattern(options.pattern);
   const calendar = selectCalendar(data, options.ca);
   const params = getNumberParams(data, options.nu, 'default');
-  const ctx = _context(data, convertDateTo(data, calendar, date), params, options.context, options.alt);
+  const ctx = _context(
+    data,
+    convertDateTo(data, calendar, date),
+    params,
+    options.context,
+    options.alt,
+  );
   return renderDateTime(calendar, ctx, value, true, pattern);
 };
 
@@ -857,7 +927,12 @@ const convertDate = <T>(
     : convertEpoch(data, cons, getEpochUTC(date.date), date.zoneId || 'UTC');
 };
 
-const convertEpoch = <T>(data: LocaleData, cons: CalendarFromUnixEpoch<T>, epoch: number, zoneId: string): T => {
+const convertEpoch = <T>(
+  data: LocaleData,
+  cons: CalendarFromUnixEpoch<T>,
+  epoch: number,
+  zoneId: string,
+): T => {
   return cons(epoch, zoneId, weekFirstDay(data.region), weekMinDays(data.region));
 };
 
@@ -867,7 +942,11 @@ const convertDateTo = (
   date: CalendarDate | ZonedDateTime | Date,
   zoneId?: string,
 ): CalendarDate => {
-  if (isCalendarDate(date) && target === dateType(date) && (!zoneId || zoneId === dateTimeZoneId(date))) {
+  if (
+    isCalendarDate(date) &&
+    target === dateType(date) &&
+    (!zoneId || zoneId === dateTimeZoneId(date))
+  ) {
     return date;
   } else if (date instanceof Date) {
     date = { date, zoneId } as ZonedDateTime;

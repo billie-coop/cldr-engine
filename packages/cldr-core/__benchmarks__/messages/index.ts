@@ -1,15 +1,15 @@
-import { Suite } from 'benchmark';
-import { makeSuite } from '../../../cldr-utils/__benchmarks__/util';
-import { getPluralRules } from '@phensley/plurals';
 import {
   buildMessageMatcher,
-  parseMessagePattern,
-  MessageArg,
-  evaluateMessage,
-  defaultMessageArgConverter,
   createMessageFormatter,
+  defaultMessageArgConverter,
+  evaluateMessage,
   formatMessage,
+  type MessageArg,
+  parseMessagePattern,
 } from '@phensley/messageformat';
+import { getPluralRules } from '@phensley/plurals';
+import type { Suite } from 'benchmark';
+import { makeSuite } from '../../../cldr-utils/__benchmarks__/util';
 
 export const messageSuite: Suite = makeSuite('message');
 

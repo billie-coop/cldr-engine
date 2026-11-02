@@ -1,4 +1,4 @@
-import { createLRU, lruGet, lruSet, lruSize, LRU } from './lru';
+import { createLRU, type LRU, lruGet, lruSet, lruSize } from './lru';
 
 /**
  * Bounded cache of values built from a string key on first use (mutable container).

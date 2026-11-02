@@ -1,11 +1,11 @@
-import { Decimal, decimal } from '@phensley/decimal';
-import { parseNumberPattern } from '../../../src/parsing/number';
+import { type Decimal, decimal } from '@phensley/decimal';
 import {
   numberContext,
   numberContextAdjust,
   numberContextSetCompact,
   numberContextSetPattern,
 } from '../../../src/internals/numbers/context';
+import { parseNumberPattern } from '../../../src/parsing/number';
 
 test('standard', () => {
   const pat = parseNumberPattern('#,##0.00#')[0];

@@ -1,5 +1,5 @@
-import { Decimal } from '@phensley/decimal';
-import { NumberPattern } from '../parsing/number';
+import type { Decimal } from '@phensley/decimal';
+import type { NumberPattern } from '../parsing/number';
 
 /**
  * Renders formatted numbers into a string or an array of parts.

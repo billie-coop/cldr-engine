@@ -1,4 +1,4 @@
-import { UnitLength } from '@phensley/cldr-core';
+import type { UnitLength } from '@phensley/cldr-core';
 
 /**
  * Remove spaces in Japanese unit patterns.

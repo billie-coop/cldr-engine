@@ -1,4 +1,4 @@
-import { DefaultArrayMap, StandardOffsetMap } from './types';
+import { DefaultArrayMap, type StandardOffsetMap } from './types';
 import { readRows } from './util';
 
 export interface ZICResult {
@@ -37,17 +37,18 @@ export const parseZIC = (path: string): ZICResult => {
   for (const row of rows) {
     switch (row[0]) {
       case 'Li':
-      case 'L':
+      case 'L': {
         const [to, fr] = row.slice(1);
         result.links.add(to, fr);
         break;
+      }
 
       case '':
       case 'R':
         // ignore blank lines and rules
         break;
 
-      case 'Z':
+      case 'Z': {
         const id = row[1];
         result.zones.push(id);
 
@@ -56,6 +57,7 @@ export const parseZIC = (path: string): ZICResult => {
         currStd = parseSeconds(row[2]);
         result.stdoff[currId] = currStd;
         break;
+      }
 
       default:
         // zone continuation line updates the standard offset for the zone

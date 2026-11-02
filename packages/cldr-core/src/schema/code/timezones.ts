@@ -1,5 +1,5 @@
-import { KeyIndex } from '@phensley/cldr-types';
-import { field, scope, vector, Scope } from '../instructions';
+import type { KeyIndex } from '@phensley/cldr-types';
+import { field, type Scope, scope, vector } from '../instructions';
 import { MetaZoneIndex, TimeZoneTypeIndex } from '../schema/timezones';
 
 export const TIMEZONE: Scope = scope('TimeZoneNames', 'TimeZones', [

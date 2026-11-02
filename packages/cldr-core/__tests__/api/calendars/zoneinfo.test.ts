@@ -1,6 +1,5 @@
-import { LocaleData } from '../../../src';
+import { type LocaleData, timeZoneInfo } from '../../../src';
 import { calendarsApi } from '../../_helpers';
-import { timeZoneInfo } from '../../../src';
 
 test('timezone exemplar cities', () => {
   let api: LocaleData;

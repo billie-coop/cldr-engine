@@ -1,15 +1,8 @@
-import { ContextTransformFieldType, Vector2Arrow } from '@phensley/cldr-types';
+import type { ContextTransformFieldType, Vector2Arrow } from '@phensley/cldr-types';
 
-import { DateTimeField, DateTimeNode } from '../../parsing/date';
-import { Bundle } from '../../resource/bundle';
-import { CalendarDate } from '../../systems/calendars/types';
-import { AbstractValue } from '../../utils/render';
-import { CalendarContext, CalendarFormatter } from './formatter';
-import { getTZC } from './zoneutil';
-import { vectorGet, fieldGet } from '../../schema/schema/arrows';
-import { contextTransform, formatWrapper } from '../general/internal';
-import { flexDayPeriod, getHourPattern } from './internal';
-import { numberingFormatString } from '../../systems/numbering/decimal';
+import type { DateTimeField, DateTimeNode } from '../../parsing/date';
+import type { Bundle } from '../../resource/bundle';
+import { fieldGet, vectorGet } from '../../schema/schema/arrows';
 import {
   dateDayOfMonth,
   dateDayOfWeek,
@@ -38,6 +31,13 @@ import {
   dateYear,
   dateYearOfWeekOfYear,
 } from '../../systems/calendars/calendar';
+import type { CalendarDate } from '../../systems/calendars/types';
+import { numberingFormatString } from '../../systems/numbering/decimal';
+import type { AbstractValue } from '../../utils/render';
+import { contextTransform, formatWrapper } from '../general/internal';
+import type { CalendarContext, CalendarFormatter } from './formatter';
+import { flexDayPeriod, getHourPattern } from './internal';
+import { getTZC } from './zoneutil';
 
 const min = Math.min;
 
@@ -49,8 +49,11 @@ const widthKey1 = (w: number): string => (w === 5 ? 'narrow' : w === 4 ? 'wide' 
 const _num = <T extends CalendarDate>(ctx: CalendarContext<T>, n: number, minInt: number): string =>
   numberingFormatString(ctx.system, n, false, minInt);
 
-const _year = <T extends CalendarDate>(ctx: CalendarContext<T>, year: number, width: number): string =>
-  _num(ctx, width === 2 ? year % 100 : year, width);
+const _year = <T extends CalendarDate>(
+  ctx: CalendarContext<T>,
+  year: number,
+  width: number,
+): string => _num(ctx, width === 2 ? year % 100 : year, width);
 
 export const calendarFormat = <R>(
   f: CalendarFormatter,
@@ -218,7 +221,10 @@ export const calendarFormat = <R>(
         const ampm = dateHourOfDay(ctx.date) < 12 ? 'am' : 'pm';
         const width = widthKey1(w);
         type = 'dayperiod';
-        value = vectorGet(f.cal.format.dayPeriods, ctx.bundle, width, ampm, [ctx.alt.dayPeriod!, 'none']);
+        value = vectorGet(f.cal.format.dayPeriods, ctx.bundle, width, ampm, [
+          ctx.alt.dayPeriod!,
+          'none',
+        ]);
         break;
       }
 
@@ -328,10 +334,16 @@ const _formatQuarterOrMonth = (
   value: number,
   width: number,
 ): string => {
-  return width >= 3 ? vectorGet(format, ctx.bundle, widthKey1(width), String(value)) : _num(ctx, value, width);
+  return width >= 3
+    ? vectorGet(format, ctx.bundle, widthKey1(width), String(value))
+    : _num(ctx, value, width);
 };
 
-const quarter = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const quarter = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   const [field, width] = node;
   const format = field === 'Q' ? f.cal.format : f.cal.standAlone;
   const quarters = format.quarters;
@@ -339,12 +351,21 @@ const quarter = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node:
   return _formatQuarterOrMonth(ctx, quarters, quarter, width);
 };
 
-const month = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const month = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   const format = node[0] === 'M' ? f.cal.format : f.cal.standAlone;
   return _formatQuarterOrMonth(ctx, format.months, dateMonth(ctx.date), node[1]);
 };
 
-const _weekday = (bundle: Bundle, format: Vector2Arrow<string, string>, date: CalendarDate, width: number): string => {
+const _weekday = (
+  bundle: Bundle,
+  format: Vector2Arrow<string, string>,
+  date: CalendarDate,
+  width: number,
+): string => {
   const key2 = String(dateDayOfWeek(date));
   let key1 = 'abbreviated';
   switch (width) {
@@ -380,7 +401,11 @@ const _weekdayLocal = (
   return numberingFormatString(ctx.system, ord, false, width);
 };
 
-const dayPeriodExt = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const dayPeriodExt = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   const { bundle, date } = ctx;
   const key1 = widthKey1(node[1]);
   const key2 = dateIsAM(date) ? 'am' : 'pm';
@@ -394,7 +419,11 @@ const dayPeriodExt = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, 
   return vectorGet(format, bundle, key1, [key2ext, key2], [ctx.alt.dayPeriod!, 'none']);
 };
 
-const dayPeriodFlex = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const dayPeriodFlex = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   const { bundle, date } = ctx;
   const minutes = dateHourOfDay(date) * 60 + dateMinute(date);
   const key2 = flexDayPeriod(bundle, minutes);
@@ -433,7 +462,7 @@ const fractionalSecond = (ctx: CalendarContext<CalendarDate>, node: DateTimeFiel
   const d = w > 3 ? w - 3 : 0;
   w -= d;
   if (d > 0) {
-    m *= Math.pow(10, d);
+    m *= 10 ** d;
   }
   // Milliseconds always have precision of 3, so handle the cases compactly.
   const n = w === 3 ? m : (w === 2 ? m / 10 : m / 100) | 0;
@@ -444,7 +473,11 @@ const fractionalSecond = (ctx: CalendarContext<CalendarDate>, node: DateTimeFiel
  * Timezone: short/long specific non-location format.
  * https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-zone
  */
-const timezone_z = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const timezone_z = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   if (node[1] > 4) {
     return '';
   }
@@ -452,7 +485,12 @@ const timezone_z = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, no
   if (key2) {
     const { long, short } = f.tz.metaZones;
     const format = node[1] === 4 ? long : short;
-    const name = vectorGet(format, ctx.bundle, dateIsDaylightSavings(ctx.date) ? 'daylight' : 'standard', key2);
+    const name = vectorGet(
+      format,
+      ctx.bundle,
+      dateIsDaylightSavings(ctx.date) ? 'daylight' : 'standard',
+      key2,
+    );
     if (name) {
       return name;
     }
@@ -464,7 +502,11 @@ const timezone_z = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, no
  * Timezone: ISO8601 basic/extended format, long localized GMT format.
  * https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-zone
  */
-const timezone_Z = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const timezone_Z = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   const width = node[1];
   if (width === 4) {
     return timezone_O(f, ctx, ['O', width]);
@@ -487,14 +529,22 @@ const timezone_Z = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, no
 /**
  * Timezone: short/long localized GMT format.
  */
-const timezone_O = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const timezone_O = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   return node[1] === 1 || node[1] === 4 ? _wrapGMT(f, ctx, node[1] === 1) : '';
 };
 
 /**
  * Timezone: short/long generic non-location format.
  */
-const timezone_v = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const timezone_v = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   const width = node[1];
   if (width !== 1 && width !== 4) {
     return '';
@@ -511,28 +561,34 @@ const timezone_v = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, no
  * Timezone: short/long zone ID, exemplar city, generic location format.
  * https://www.unicode.org/reports/tr35/tr35-dates.html#dfst-zone
  */
-const timezone_V = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, node: DateTimeField): string => {
+const timezone_V = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  node: DateTimeField,
+): string => {
   const { bundle } = ctx;
   const stableId = dateTimeZoneStableId(ctx.date);
   const exemplarCity = f.tz.exemplarCity;
   let city = '';
   switch (node[1]) {
-    case 4:
+    case 4: {
       city = vectorGet(exemplarCity, bundle, stableId);
       if (!city) {
         return timezone_O(f, ctx, ['O', 4]);
       }
       const pattern = fieldGet(f.tz.regionFormat, bundle);
       return formatWrapper(pattern, [city]);
+    }
 
     case 3:
       // Exemplar city for the timezone.
       city = vectorGet(exemplarCity, bundle, stableId);
       return city ? city : vectorGet(exemplarCity, bundle, 'Etc/Unknown');
 
-    case 2:
+    case 2: {
       const zoneId = dateTimeZoneId(ctx.date);
       return zoneId;
+    }
 
     case 1:
       return 'unk';
@@ -567,7 +623,11 @@ const timezone_x = (ctx: CalendarContext<CalendarDate>, node: DateTimeField): st
   return fmt;
 };
 
-const _wrapGMT = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, short: boolean): string => {
+const _wrapGMT = (
+  f: CalendarFormatter,
+  ctx: CalendarContext<CalendarDate>,
+  short: boolean,
+): string => {
   const { bundle, date } = ctx;
   const _offset = dateTimeZoneOffset(date);
   if (_offset === 0) {
@@ -598,7 +658,11 @@ const _wrapGMT = (f: CalendarFormatter, ctx: CalendarContext<CalendarDate>, shor
   return formatWrapper(wrap, [fmt]);
 };
 
-const _hourPattern = (f: CalendarFormatter, bundle: Bundle, negative: boolean): readonly DateTimeNode[] => {
+const _hourPattern = (
+  f: CalendarFormatter,
+  bundle: Bundle,
+  negative: boolean,
+): readonly DateTimeNode[] => {
   const raw = fieldGet(f.tz.hourFormat, bundle);
   return getHourPattern(raw, negative);
 };

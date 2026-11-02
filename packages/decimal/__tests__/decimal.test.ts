@@ -1,5 +1,4 @@
 import {
-  RoundingModeType,
   decimal,
   decimalAbs,
   decimalAlignexp,
@@ -23,6 +22,7 @@ import {
   decimalToParts,
   decimalToString,
   decimalTrailingZeros,
+  type RoundingModeType,
 } from '../src';
 import { divpow10 } from '../src/math';
 
@@ -335,7 +335,9 @@ test('shift left', () => {
   expect(decimalShiftleft(parse('12345.234'), 3)).toEqual(parse('12345234.000'));
   expect(decimalShiftleft(parse('12345.234'), 4)).toEqual(parse('123452340.000'));
 
-  expect(decimalShiftleft(parse('12345678900000000000'), 10)).toEqual(parse('123456789000000000000000000000'));
+  expect(decimalShiftleft(parse('12345678900000000000'), 10)).toEqual(
+    parse('123456789000000000000000000000'),
+  );
 });
 
 test('shift right', () => {

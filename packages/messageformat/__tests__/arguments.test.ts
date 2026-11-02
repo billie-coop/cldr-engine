@@ -1,5 +1,5 @@
 import { DecimalConstants, decimal } from '@phensley/decimal';
-import { MessageArg, defaultMessageArgConverter } from '../src';
+import { defaultMessageArgConverter, type MessageArg } from '../src';
 
 const CONVERTER = defaultMessageArgConverter;
 

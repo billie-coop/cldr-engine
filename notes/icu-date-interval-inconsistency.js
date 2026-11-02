@@ -17,10 +17,7 @@
  * in one case but not the other.
  *
  */
-const OPTS = [
-  { day: 'numeric' },
-  { day: 'numeric', minute: '2-digit' }
-];
+const OPTS = [{ day: 'numeric' }, { day: 'numeric', minute: '2-digit' }];
 const start = new Date(Date.UTC(2007, 0, 1, 10, 12, 0));
 const end = new Date(Date.UTC(2008, 0, 2, 11, 13, 0));
 for (let i = 0; i < OPTS.length; i++) {

@@ -1,12 +1,13 @@
 import {
-  GregorianDate,
   dateIsDaylightSavings,
   dateMetaZoneId,
   dateTimeZoneOffset,
+  type GregorianDate,
   gregorianDateFromUnixEpoch,
 } from '../../../src';
 
-const make = (epoch: number | Date, zoneId: string): GregorianDate => gregorianDateFromUnixEpoch(+epoch, zoneId, 1, 1);
+const make = (epoch: number | Date, zoneId: string): GregorianDate =>
+  gregorianDateFromUnixEpoch(+epoch, zoneId, 1, 1);
 
 test('metazones, dst, offsets', () => {
   const zoneId = 'America/New_York';

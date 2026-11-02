@@ -1,10 +1,10 @@
 import {
-  CalendarDate,
-  DateIntervalFormatOptions,
-  TimePeriod,
+  type CalendarDate,
+  type DateIntervalFormatOptions,
   dateAdd,
   dateCompare,
   formatDateInterval,
+  type TimePeriod,
   toGregorianDate,
 } from '../../../src';
 import { calendarsApi } from '../../_helpers';
@@ -42,7 +42,7 @@ test('same day', () => {
   const base = toGregorianDate(api, { date: MARCH_11_2018_070025_UTC, zoneId: 'America/New_York' });
   const later = dateAdd(base, { hour: 1 });
 
-  let s = formatDateInterval(api, base, later, { skeleton: 'yMMMd' });
+  const s = formatDateInterval(api, base, later, { skeleton: 'yMMMd' });
   expect(s).toEqual('Mar 11, 2018');
 });
 
@@ -53,7 +53,7 @@ test('same time', () => {
 
   // No interal patterns currently exist in CLDR for seconds. We would have
   // to generate our own, so for now we format as a standalone date.
-  let s = formatDateInterval(api, base, later, { skeleton: 'jms' });
+  const s = formatDateInterval(api, base, later, { skeleton: 'jms' });
   expect(s).toEqual('3:00:25 AM');
 });
 

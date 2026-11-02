@@ -1,20 +1,28 @@
-import { Schema } from '@phensley/cldr-types';
-import { Decimal, decimal, decimalAdd, decimalMovePoint, decimalSubtract, decimalToString } from '@phensley/decimal';
-import { digitsArrow, fieldArrow, scopeArrow, vectorArrow } from '../schema/schema/arrows';
+import type { Schema } from '@phensley/cldr-types';
 import {
+  type Decimal,
+  decimal,
+  decimalAdd,
+  decimalMovePoint,
+  decimalSubtract,
+  decimalToString,
+} from '@phensley/decimal';
+import {
+  type Digits,
+  type Field,
+  type Instruction,
+  type Origin,
   originGetIndex,
   originGetValues,
-  Digits,
-  Field,
-  Instruction,
-  Origin,
-  Scope,
-  ScopeMap,
-  Vector,
+  type Scope,
+  type ScopeMap,
+  type Vector,
 } from '../schema/instructions';
+import { digitsArrow, fieldArrow, scopeArrow, vectorArrow } from '../schema/schema/arrows';
 import { leftPad } from '../utils/string';
 
-const time = (n: [number, number]): Decimal => decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));
+const time = (n: [number, number]): Decimal =>
+  decimalAdd(decimal(n[0]), decimalMovePoint(decimal(n[1]), -9));
 
 const elapsed = (start: [number, number], end: [number, number]): string =>
   decimalToString(decimalMovePoint(decimalSubtract(time(end), time(start)), 6));

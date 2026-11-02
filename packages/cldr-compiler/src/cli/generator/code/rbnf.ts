@@ -1,6 +1,6 @@
-import { Code, HEADER, NOLINT } from './util';
-import { RBNFPacker } from '../../../resource/rbnf';
 import { RBNFCollector } from '../../../rbnf';
+import { RBNFPacker } from '../../../resource/rbnf';
+import { Code, HEADER, NOLINT } from './util';
 
 export const getRBNF = (_data: any): Code[] => {
   const codes: Code[] = [];

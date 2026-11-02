@@ -1,5 +1,5 @@
-import { LanguageTagField as Tag } from './languagetag';
 import { territoryAliasRaw } from './autogen.aliases';
+import { LanguageTagField as Tag } from './languagetag';
 
 /**
  * @public

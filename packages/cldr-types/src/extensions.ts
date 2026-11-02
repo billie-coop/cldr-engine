@@ -3,7 +3,5 @@
  *
  * @internal
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface Extension {
-  // instantiate(cldr: CLDR): void;
-}
+// biome-ignore lint/suspicious/noEmptyInterface: extension point, filled in by declaration merging
+export interface Extension {}

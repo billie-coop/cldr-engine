@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../../../package.json');
+
 import { Downloader } from './downloader';
 
 export const main = async () => {

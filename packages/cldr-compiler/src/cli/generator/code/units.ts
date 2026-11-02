@@ -1,4 +1,4 @@
-import { lineWrap, Code, HEADER, NOLINT_MAXLINE } from './util';
+import { Code, HEADER, lineWrap, NOLINT_MAXLINE } from './util';
 // import { mphashCreate } from '../../../mphash';
 
 export const getUnits = (data: any): Code[] => {

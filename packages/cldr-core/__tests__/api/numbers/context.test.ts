@@ -1,14 +1,13 @@
-import { CurrencyFormatOptions, Decimal, DecimalFormatOptions } from '../../../src';
+import { decimal, decimalToString } from '@phensley/decimal';
+import type { CurrencyFormatOptions, Decimal, DecimalFormatOptions } from '../../../src';
 import {
+  type NumberContext,
   numberContext,
   numberContextAdjust,
   numberContextSetCompact,
   numberContextSetPattern,
 } from '../../../src/internals/numbers/context';
-
-import { NumberContext } from '../../../src/internals/numbers/context';
-import { parseNumberPattern, NumberPattern } from '../../../src/parsing/number';
-import { decimal, decimalToString } from '@phensley/decimal';
+import { type NumberPattern, parseNumberPattern } from '../../../src/parsing/number';
 
 test('zeros', () => {
   let opts: DecimalFormatOptions;

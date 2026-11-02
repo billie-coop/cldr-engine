@@ -104,6 +104,8 @@ test('parse and render', () => {
 
   ({ id, tag } = resolveLocaleId('en-u-bar-nu-hant-co-standard-ca-islamic-umalqura'));
   expect(id).toEqual('en-u-bar-nu-hant-co-standard-ca-islamic-umalqura');
-  expect(tagExtensions(tag)).toEqual({ u: ['bar', 'ca-islamic-umalqura', 'co-standard', 'nu-hant'] });
+  expect(tagExtensions(tag)).toEqual({
+    u: ['bar', 'ca-islamic-umalqura', 'co-standard', 'nu-hant'],
+  });
   expect(tagExpanded(tag)).toEqual('en-Latn-US-u-bar-ca-islamic-umalqura-co-standard-nu-hant');
 });

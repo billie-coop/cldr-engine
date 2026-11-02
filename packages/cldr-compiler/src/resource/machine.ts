@@ -1,13 +1,13 @@
 import {
-  Digits,
-  Field,
-  Instruction,
-  Origin,
-  Scope,
-  ScopeMap,
-  Vector,
+  type Digits,
+  type Field,
+  type Instruction,
+  type Origin,
   originGetIndex,
   originGetValues,
+  type Scope,
+  type ScopeMap,
+  type Vector,
 } from '@phensley/cldr-core';
 
 const leftPad = (s: number | string, w: number): string => {
@@ -122,7 +122,9 @@ export class EncoderMachine {
         `      ${leftPad('Total', 20)}  ` +
           `${leftPad(totalCount, PADDING)} fields   ${leftPad(totalSize, PADDING)} chars`,
       );
-      console.log(`      ${leftPad('', 20)}  ${leftPad(this.encoder.distinct(), PADDING)} distinct strings`);
+      console.log(
+        `      ${leftPad('', 20)}  ${leftPad(this.encoder.distinct(), PADDING)} distinct strings`,
+      );
     }
   }
 

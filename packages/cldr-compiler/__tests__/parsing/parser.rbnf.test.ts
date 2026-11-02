@@ -29,7 +29,11 @@ test('subs', () => {
   let s: string;
 
   s = '←← point →→;';
-  expect(parse(s)).toEqual([{ kind: 'sub-left' }, { kind: 'literal', n: ' point ' }, { kind: 'sub-right' }]);
+  expect(parse(s)).toEqual([
+    { kind: 'sub-left' },
+    { kind: 'literal', n: ' point ' },
+    { kind: 'sub-right' },
+  ]);
 
   s = '←%spellout-cardinal←點→→→;';
   expect(parse(s)).toEqual([
@@ -83,7 +87,8 @@ test('number format', () => {
 test('rules', () => {
   let s: string;
 
-  s = '[←%spellout-cardinal-feminine-ablative← $(cardinal,one{целой}other{целыми})$ ]→%%fractions-feminine-ablative→;';
+  s =
+    '[←%spellout-cardinal-feminine-ablative← $(cardinal,one{целой}other{целыми})$ ]→%%fractions-feminine-ablative→;';
   expect(parse(s)).toEqual([
     {
       kind: 'optional',

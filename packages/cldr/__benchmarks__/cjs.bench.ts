@@ -4,7 +4,7 @@
  * modules, so they don't see costs specific to TypeScript's CommonJS output (e.g. names
  * re-exported through `export *` barrels are read through getter functions).
  *
- * Requires `pnpm build` first. The module is loaded with Node's own `require`, so Vite
+ * Requires `yarn build` first. The module is loaded with Node's own `require`, so Vite
  * does not transform it.
  */
 import { readFileSync } from 'fs';
@@ -17,7 +17,8 @@ import type * as CLDR from '../src';
 const LIB = join(__dirname, '..', 'lib', 'index.js');
 const c: typeof CLDR = createRequire(__filename)(LIB);
 
-const loader = (id: string): string => readFileSync(join(__dirname, '..', 'packs', `${id}.json`), 'utf-8');
+const loader = (id: string): string =>
+  readFileSync(join(__dirname, '..', 'packs', `${id}.json`), 'utf-8');
 const EN = c.loadLocale(c.createFramework({ loader }), 'en');
 
 const N = 1024;

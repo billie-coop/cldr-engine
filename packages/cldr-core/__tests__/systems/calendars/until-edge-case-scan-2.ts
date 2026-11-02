@@ -1,6 +1,13 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { hrtime } from 'process';
-import { CalendarDate, TimePeriod, dateAdd, dateSince, dateUntil, gregorianDateFromUnixEpoch } from '../../../src';
+import {
+  type CalendarDate,
+  dateAdd,
+  dateSince,
+  dateUntil,
+  gregorianDateFromUnixEpoch,
+  type TimePeriod,
+} from '../../../src';
 import { CalendarConstants } from '../../../src/systems/calendars/constants';
 import {
   CLDRFormatter,
@@ -34,7 +41,7 @@ export const timePeriodPermutations = (numbers: number[]): [Permutation[], Permu
 
   // Produce every permutation of the time period units and numbers.
   const generate = heaps(TIMEPERIOD_TO_DURATION_KEYS.map((k) => k[0]));
-  let curr;
+  let curr: ReturnType<typeof generate.next>;
   while (((curr = generate.next()), !curr.done)) {
     const pos: Partial<TimePeriod> = {};
     const neg: Partial<TimePeriod> = {};
@@ -64,7 +71,7 @@ const scan = (epoch: number, zone: string, positive: Permutation[], negative: Pe
     let tdate: Temporal.ZonedDateTime;
     let tdatestr: string;
 
-    let entry = cache[n];
+    const entry = cache[n];
     if (!entry) {
       cdate = gregorian(n, zone);
       cdatestr = cldrfmt.dateTimeString(cdate);
@@ -133,11 +140,15 @@ const scan = (epoch: number, zone: string, positive: Permutation[], negative: Pe
         let t2 = tempfmt.durationString(tuntil2);
 
         if (c1 !== t1) {
-          console.log(`ERROR: "${c1}" != "${t1}" test: ${start} until cldr2 in ${zone} added ${repr}`);
+          console.log(
+            `ERROR: "${c1}" != "${t1}" test: ${start} until cldr2 in ${zone} added ${repr}`,
+          );
         }
 
         if (c2 !== t2) {
-          console.log(`ERROR: "${c2}" != "${t2}" test: cldr2 until ${start} in ${zone} added ${repr}`);
+          console.log(
+            `ERROR: "${c2}" != "${t2}" test: cldr2 until ${start} in ${zone} added ${repr}`,
+          );
         }
 
         const csince1 = dateSince(cldr1, cldr2);
@@ -159,11 +170,15 @@ const scan = (epoch: number, zone: string, positive: Permutation[], negative: Pe
         t2 = tempfmt.durationString(tsince2);
 
         if (c1 !== t1) {
-          console.log(`ERROR: "${c1}" != "${t1}" test: ${start} since cldr2 in ${zone} added ${repr}`);
+          console.log(
+            `ERROR: "${c1}" != "${t1}" test: ${start} since cldr2 in ${zone} added ${repr}`,
+          );
         }
 
         if (c2 !== t2) {
-          console.log(`ERROR: "${c2}" != "${t2}" test: cldr2 since ${start} in ${zone} added ${repr}`);
+          console.log(
+            `ERROR: "${c2}" != "${t2}" test: cldr2 since ${start} in ${zone} added ${repr}`,
+          );
         }
 
         iters++;

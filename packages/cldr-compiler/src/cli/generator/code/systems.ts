@@ -1,6 +1,6 @@
+import { resolveLanguageTag, tagLanguage, tagScript } from '@phensley/cldr-core';
 import { getSupplemental } from '../../../cldr';
 import { Code, HEADER, NOLINT_MAXLINE } from './util';
-import { resolveLanguageTag, tagLanguage, tagScript } from '@phensley/cldr-core';
 
 const increasing = (s: string[]): boolean => {
   for (let i = 1; i < s.length; i++) {
@@ -14,7 +14,7 @@ const increasing = (s: string[]): boolean => {
   return true;
 };
 
-const escape = (digits: string[]): string => {
+const escapeDigits = (digits: string[]): string => {
   let r = '';
   for (const d of digits) {
     if (r.length > 0) {
@@ -42,7 +42,7 @@ export const getSystems = (_data: any): Code[] => {
     const o = supp.NumberingSystems[k];
     if (o._type === 'numeric') {
       const v: string[] = Array.from(o._digits);
-      numeric += `  ${k}: [${escape(increasing(v) ? v.slice(0, 1) : v)}],\n`;
+      numeric += `  ${k}: [${escapeDigits(increasing(v) ? v.slice(0, 1) : v)}],\n`;
     } else if (o._type === 'algorithmic') {
       const v = o._rules;
       let parts = ['root', v];

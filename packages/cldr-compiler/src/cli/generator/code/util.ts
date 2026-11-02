@@ -1,5 +1,5 @@
-import { Options } from 'prettier';
 import prettier from '@prettier/sync';
+import type { Options } from 'prettier';
 
 export const HEADER = `\
 //
@@ -57,8 +57,8 @@ export class Code {
   }
 }
 
-const ENUM_UNSAFE = /[^a-z\d\/_-]+/gi;
-const DASH = /[\/-]+/g;
+const ENUM_UNSAFE = /[^a-z\d/_-]+/gi;
+const DASH = /[/-]+/g;
 
 export const enumName = (raw: string) => raw.replace(ENUM_UNSAFE, '').replace(DASH, '_');
 

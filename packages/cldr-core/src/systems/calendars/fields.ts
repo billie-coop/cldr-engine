@@ -41,4 +41,6 @@ export const enum DateField {
 /**
  * Fresh, zeroed field array (25 fields) indexed by DateField.
  */
-export const emptyFields = (): number[] => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+export const emptyFields = (): number[] => [
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];

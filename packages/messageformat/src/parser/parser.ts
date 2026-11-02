@@ -1,14 +1,13 @@
+import type { MessageMatcher, MessageState } from './matcher';
 import {
-  Argument,
-  MessageCode,
+  type Argument,
+  type MessageCode,
   MessageOpType,
-  PluralChoice,
+  type PluralChoice,
   PluralChoiceType,
   PluralNumberType,
-  SelectChoice,
+  type SelectChoice,
 } from './types';
-
-import { MessageMatcher, MessageState } from './matcher';
 
 const enum Chars {
   LEFT = '{',
@@ -24,8 +23,11 @@ const enum Chars {
  *
  * @public
  */
-export const parseMessagePattern = (raw: string, matcher: MessageMatcher, disableEscapes?: boolean): MessageCode =>
-  outer({ raw, matcher, disableEscapes }, { t: raw, s: 0, e: raw.length });
+export const parseMessagePattern = (
+  raw: string,
+  matcher: MessageMatcher,
+  disableEscapes?: boolean,
+): MessageCode => outer({ raw, matcher, disableEscapes }, { t: raw, s: 0, e: raw.length });
 
 /**
  * Inputs to the parse of one message pattern.
@@ -191,9 +193,10 @@ const inner = (p: ParseContext, r: MessageState): MessageCode | undefined => {
   // Execute logic to parse instructions by type
   switch (name) {
     case 'plural':
-    case 'selectordinal':
+    case 'selectordinal': {
       const type = name === 'plural' ? PluralNumberType.CARDINAL : PluralNumberType.ORDINAL;
       return plural(p, args, type, m, r);
+    }
 
     case 'select':
       return select(p, args, m, r);
@@ -201,17 +204,17 @@ const inner = (p: ParseContext, r: MessageState): MessageCode | undefined => {
     default:
       return simple(args, name, m, r);
   }
-
-  // This code should never be reached if the 'name' corresponds
-  // to a valid formatter.
-  /* istanbul ignore next -- @preserve */
-  return NOOP;
 };
 
 /**
  * Parse a nested tag sequence '{' ... '}'
  */
-const tag = (p: ParseContext, m: MessageMatcher, r: MessageState, argsub?: Argument): MessageCode | undefined => {
+const tag = (
+  p: ParseContext,
+  m: MessageMatcher,
+  r: MessageState,
+  argsub?: Argument,
+): MessageCode | undefined => {
   // m.debug('  tag', r);
   m.spaces(r);
 
@@ -291,7 +294,12 @@ const plural = (
 /**
  * Parse a select instruction.
  */
-const select = (p: ParseContext, args: Argument[], m: MessageMatcher, r: MessageState): MessageCode => {
+const select = (
+  p: ParseContext,
+  args: Argument[],
+  m: MessageMatcher,
+  r: MessageState,
+): MessageCode => {
   const choices: SelectChoice[] = [];
   do {
     // Parse an identifier to be used as the select choice
@@ -318,7 +326,12 @@ const select = (p: ParseContext, args: Argument[], m: MessageMatcher, r: Message
 /**
  * Simple single-argument formatter with zero or more options.
  */
-const simple = (args: Argument[], name: string, m: MessageMatcher, r: MessageState): MessageCode => {
+const simple = (
+  args: Argument[],
+  name: string,
+  m: MessageMatcher,
+  r: MessageState,
+): MessageCode => {
   const options = m.options(r);
   return [MessageOpType.SIMPLE, name, args, options];
 };

@@ -1,5 +1,5 @@
 import {
-  LanguageTag,
+  type LanguageTag,
   languageTag,
   tagCompact,
   tagExpanded,

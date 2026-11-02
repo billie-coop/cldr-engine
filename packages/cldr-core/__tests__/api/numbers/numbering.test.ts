@@ -1,13 +1,13 @@
-import { numbersApi, unitsApi } from '../../_helpers';
 import {
-  LocaleData,
-  Part,
   formatCurrency,
   formatDecimal,
   formatDecimalToParts,
   formatQuantity,
   formatQuantityToParts,
+  type LocaleData,
+  type Part,
 } from '../../../src';
+import { numbersApi, unitsApi } from '../../_helpers';
 
 test('numbers defaulting', () => {
   let api: LocaleData;

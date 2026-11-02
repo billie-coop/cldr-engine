@@ -1,4 +1,5 @@
 import {
+  DecimalConstants,
   decimal,
   decimalDivide,
   decimalMultiply,
@@ -6,11 +7,19 @@ import {
   isDecimal,
   isRational,
   rational,
-  DecimalConstants,
 } from '../src';
 
 test('isDecimal accepts decimal values', () => {
-  for (const s of ['0', '-0', '1.50', '-123e-30', '99999999999999.999999', 'nan', 'infinity', '-infinity']) {
+  for (const s of [
+    '0',
+    '-0',
+    '1.50',
+    '-123e-30',
+    '99999999999999.999999',
+    'nan',
+    'infinity',
+    '-infinity',
+  ]) {
     expect(isDecimal(decimal(s))).toBe(true);
   }
   for (const d of Object.values(DecimalConstants)) {

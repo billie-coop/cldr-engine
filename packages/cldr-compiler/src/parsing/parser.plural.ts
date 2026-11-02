@@ -95,7 +95,7 @@ const P_INTEGER = matcher(/^\d+/)
   .prefix(P_SPACE)
   .map((v) => parseInt(v, 10));
 
-const P_MODOP = matcher(/^\%/)
+const P_MODOP = matcher(/^%/)
   .prefix(P_SPACE)
   .flatMap(() =>
     matcher(/^\d+/)
@@ -111,7 +111,9 @@ const P_RANGELIST = P_RANGE.or(P_INTEGER).separatedBy(P_COMMA).prefix(P_SPACE);
 
 const P_EXPR = P_OPERAND.flatMap((operand) =>
   P_MODOP.orDefault(0).flatMap((modop) =>
-    P_RELOP.flatMap((relop) => P_RANGELIST.map((rangelist) => new Expr(operand, modop, relop, rangelist))),
+    P_RELOP.flatMap((relop) =>
+      P_RANGELIST.map((rangelist) => new Expr(operand, modop, relop, rangelist)),
+    ),
   ),
 );
 

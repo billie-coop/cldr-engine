@@ -1,12 +1,12 @@
 import { bench, describe } from 'vitest';
 import {
+  type CalendarDate,
   formatDate,
   formatDateInterval,
   formatDateToParts,
   formatRelativeTimeField,
   gregorianDateFromUnixEpoch,
-  CalendarDate,
-  ZonedDateTime,
+  type ZonedDateTime,
 } from '../src';
 import { counter, locale, N } from './_locale';
 
@@ -60,7 +60,12 @@ describe('formatDate { date, zoneId }', () => {
 describe('formatDateInterval', () => {
   bench('same day, hours apart', () => {
     const k = next();
-    formatDateInterval(EN, DATES[k], { date: EPOCHS[k] + 3 * HOUR, zoneId: NY }, { skeleton: 'yMMMdhm' });
+    formatDateInterval(
+      EN,
+      DATES[k],
+      { date: EPOCHS[k] + 3 * HOUR, zoneId: NY },
+      { skeleton: 'yMMMdhm' },
+    );
   });
   bench('days apart, default', () => {
     const k = next();

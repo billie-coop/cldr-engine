@@ -1,12 +1,11 @@
-import { PluralType, UnitInfo } from '@phensley/cldr-types';
+import type { PluralType, UnitInfo } from '@phensley/cldr-types';
 import { DecimalConstants, decimal } from '@phensley/decimal';
 import { pluralCardinal } from '@phensley/plurals';
-
-import { NumberRenderer } from '../internals';
-import { Quantity, UnitFormatOptions } from '../../common/units';
-import { NumberParams } from '../../common/private';
-import { LocaleData } from '../../locale-data';
-import { vectorGet, fieldGet } from '../../schema/schema/arrows';
+import type { NumberParams } from '../../common/private';
+import type { Quantity, UnitFormatOptions } from '../../common/units';
+import type { LocaleData } from '../../locale-data';
+import { fieldGet, vectorGet } from '../../schema/schema/arrows';
+import type { NumberRenderer } from '../internals';
 import { renderDecimal } from '../numbers/internal';
 
 /**
@@ -59,7 +58,11 @@ export const renderUnit = <T>(
   }
 
   // Compound pattern to combine the two units, if any
-  const compound = q.per ? fieldGet(info.perPattern, data) : q.times ? fieldGet(info.timesPattern, data) : '';
+  const compound = q.per
+    ? fieldGet(info.perPattern, data)
+    : q.times
+      ? fieldGet(info.timesPattern, data)
+      : '';
 
   const perunit = q.per || q.times;
   if (perunit) {

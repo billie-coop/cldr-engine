@@ -1,5 +1,5 @@
-import { Event, Suite } from 'benchmark';
 import * as beautify from 'beautify-benchmark';
+import { type Event, Suite } from 'benchmark';
 import chalk from 'chalk';
 
 /**

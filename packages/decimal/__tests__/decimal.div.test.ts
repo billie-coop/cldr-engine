@@ -1,4 +1,11 @@
-import { DecimalConstants, MathContext, decimal, decimalDivide, decimalDivmod, decimalMod } from '../src';
+import {
+  DecimalConstants,
+  decimal,
+  decimalDivide,
+  decimalDivmod,
+  decimalMod,
+  type MathContext,
+} from '../src';
 
 const parse = (s: string) => decimal(s);
 const div = (u: string, v: string, c?: MathContext) => decimalDivide(parse(u), parse(v), c);
@@ -17,7 +24,9 @@ test('divide default', () => {
 
   expect(div('9999999999999', '55555555555')).toEqual(parse('180.00000000178200000001782'));
 
-  expect(div('9999999999999999999999', '9999999999999999999')).toEqual(parse('1000.0000000000000000999'));
+  expect(div('9999999999999999999999', '9999999999999999999')).toEqual(
+    parse('1000.0000000000000000999'),
+  );
 });
 
 test('divide negative', () => {
@@ -50,11 +59,17 @@ test('divide half even', () => {
 
 test('divide decrements qhat', () => {
   // Cases that cause qhat to be decremented in D3
-  expect(div('96441598043416655685', '13367828761276')).toEqual(parse('7214454.92500541360919505766'));
+  expect(div('96441598043416655685', '13367828761276')).toEqual(
+    parse('7214454.92500541360919505766'),
+  );
 
-  expect(div('35314321308673059375', '16403941393069')).toEqual(parse('2152794.896206717783118193836'));
+  expect(div('35314321308673059375', '16403941393069')).toEqual(
+    parse('2152794.896206717783118193836'),
+  );
 
-  expect(div('506806006102288', '46464220541015929')).toEqual(parse('0.0109074466374596544269297722'));
+  expect(div('506806006102288', '46464220541015929')).toEqual(
+    parse('0.0109074466374596544269297722'),
+  );
 });
 
 test('divide add back', () => {
@@ -63,17 +78,25 @@ test('divide add back', () => {
     parse('5016008893999999985.897828785'),
   );
 
-  expect(div('444444444444444444444', '17721038931014482')).toEqual(parse('25080.04446999999851419464499'));
+  expect(div('444444444444444444444', '17721038931014482')).toEqual(
+    parse('25080.04446999999851419464499'),
+  );
 
-  expect(div('15555555555555555555555555', '77777777777777814')).toEqual(parse('199999999.99999990685714285'));
+  expect(div('15555555555555555555555555', '77777777777777814')).toEqual(
+    parse('199999999.99999990685714285'),
+  );
 
-  expect(div('199999999999', '77777777777784000')).toEqual(parse('0.000002571428571415508571428572474'));
+  expect(div('199999999999', '77777777777784000')).toEqual(
+    parse('0.000002571428571415508571428572474'),
+  );
 
   expect(div('888888888888888888888888888888888888888', '33333333000000420')).toEqual(
     parse('26666666933332999999993.30667'),
   );
 
-  expect(div('66666666666666666666666666', '69969109701080089')).toEqual(parse('952801414.1022799999999192286'));
+  expect(div('66666666666666666666666666', '69969109701080089')).toEqual(
+    parse('952801414.1022799999999192286'),
+  );
 });
 
 test('divide by zero', () => {
@@ -149,7 +172,9 @@ test('divide with precision', () => {
   expect(div('10000', '6', { precision: 10 })).toEqual(parse('1666.666667'));
 
   // Default precision 28
-  expect(div('1101600.00', '3.141592653589793238462643383')).toEqual(parse('350650.1706200638037660047075'));
+  expect(div('1101600.00', '3.141592653589793238462643383')).toEqual(
+    parse('350650.1706200638037660047075'),
+  );
 
   expect(div('1101600.00', '3.141592653589793238462643383', { precision: 30 })).toEqual(
     parse('350650.170620063803766004707494'),
@@ -204,7 +229,9 @@ test('divide with scale', () => {
 });
 
 test('divide by single digit', () => {
-  expect(div('982.0065714814661859824253792', '1', { scale: 11 })).toEqual(parse('982.00657148147'));
+  expect(div('982.0065714814661859824253792', '1', { scale: 11 })).toEqual(
+    parse('982.00657148147'),
+  );
   expect(div('982.0065714814661859824253792', '1', { scale: 10 })).toEqual(parse('982.0065714815'));
   expect(div('982.0065714814661859824253792', '1', { scale: 9 })).toEqual(parse('982.006571481'));
   expect(div('982.0065714814661859824253792', '1', { scale: 8 })).toEqual(parse('982.00657148'));
@@ -229,7 +256,9 @@ test('divide by single digit', () => {
   expect(div('982.0065714814661859824253792', '2', { scale: 1 })).toEqual(parse('491.0'));
   expect(div('982.0065714814661859824253792', '2', { scale: 0 })).toEqual(parse('491'));
 
-  expect(div('982.0065714814661859824253792', '3', { scale: 11 })).toEqual(parse('327.33552382716'));
+  expect(div('982.0065714814661859824253792', '3', { scale: 11 })).toEqual(
+    parse('327.33552382716'),
+  );
   expect(div('982.0065714814661859824253792', '3', { scale: 10 })).toEqual(parse('327.3355238272'));
   expect(div('982.0065714814661859824253792', '3', { scale: 9 })).toEqual(parse('327.335523827'));
   expect(div('982.0065714814661859824253792', '3', { scale: 8 })).toEqual(parse('327.33552383'));
@@ -242,7 +271,9 @@ test('divide by single digit', () => {
   expect(div('982.0065714814661859824253792', '3', { scale: 1 })).toEqual(parse('327.3'));
   expect(div('982.0065714814661859824253792', '3', { scale: 0 })).toEqual(parse('327'));
 
-  expect(div('982.0065714814661859824253792', '4', { scale: 11 })).toEqual(parse('245.50164287037'));
+  expect(div('982.0065714814661859824253792', '4', { scale: 11 })).toEqual(
+    parse('245.50164287037'),
+  );
   expect(div('982.0065714814661859824253792', '4', { scale: 10 })).toEqual(parse('245.5016428704'));
   expect(div('982.0065714814661859824253792', '4', { scale: 9 })).toEqual(parse('245.501642870'));
   expect(div('982.0065714814661859824253792', '4', { scale: 8 })).toEqual(parse('245.50164287'));
@@ -280,7 +311,10 @@ test('divmod', () => {
   expect(divmod('12.0000000000000', '12')).toEqual([parse('1'), parse('0.0000000000000')]);
   expect(divmod('12', '3.0000000000000')).toEqual([parse('4'), parse('0.0000000000000')]);
 
-  expect(divmod('96441598043416655685', '13367828761276')).toEqual([parse('7214454'), parse('12365313972381')]);
+  expect(divmod('96441598043416655685', '13367828761276')).toEqual([
+    parse('7214454'),
+    parse('12365313972381'),
+  ]);
 
   expect(divmod('0', '12345')).toEqual([parse('0'), parse('0')]);
   expect(divmod('1.1', '12345')).toEqual([parse('0'), parse('1.1')]);

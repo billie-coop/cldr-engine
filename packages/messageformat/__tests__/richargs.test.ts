@@ -1,5 +1,5 @@
 import { decimal } from '@phensley/decimal';
-import { MessageArg, createMessageFormatter, formatMessage } from '../src';
+import { createMessageFormatter, formatMessage, type MessageArg } from '../src';
 
 // Objects that are not complete Decimal values must be treated like any other unknown object,
 // as 1.x did (expected values recorded from 1.x).

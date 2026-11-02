@@ -11,7 +11,7 @@ export default defineConfig({
       TZ: 'UTC',
     },
     include: ['**/__tests__/**/*.test.ts'],
-    // Benchmarks run only under `vitest bench` (root `pnpm bench`), never in the test run.
+    // Benchmarks run only under `vitest bench` (root `yarn bench`), never in the test run.
     // Restrict to the TypeScript sources: `.scratch/` holds compiled copies from build:lint.
     benchmark: {
       include: ['__benchmarks__/**/*.bench.ts'],

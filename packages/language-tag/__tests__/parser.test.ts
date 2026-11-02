@@ -1,6 +1,6 @@
 import {
-  parseLanguageTag,
   languageTag,
+  parseLanguageTag,
   tagCompact,
   tagExpanded,
   tagExtensions,

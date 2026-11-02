@@ -1,11 +1,16 @@
-import { ContextTransformFieldType, ContextType, ListPatternPositionType, Vector1Arrow } from '@phensley/cldr-types';
-import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
-import { ListPatternType } from '../../common/general';
-import { ContextTransformInfo } from '../../common/private';
-import { LocaleData } from '../../locale-data';
-import { AbstractValue } from '../../utils/render';
-import { parseWrapperPattern, WrapperNode } from '../../parsing/wrapper';
+import type {
+  ContextTransformFieldType,
+  ContextType,
+  ListPatternPositionType,
+  Vector1Arrow,
+} from '@phensley/cldr-types';
+import { type Cache, cacheGet, createCache } from '@phensley/cldr-utils';
+import type { ListPatternType } from '../../common/general';
+import type { ContextTransformInfo } from '../../common/private';
+import type { LocaleData } from '../../locale-data';
+import { parseWrapperPattern, type WrapperNode } from '../../parsing/wrapper';
 import { vectorMapping } from '../../schema/schema/arrows';
+import type { AbstractValue } from '../../utils/render';
 
 /**
  * Size of the shared caches of parsed patterns.
@@ -22,7 +27,11 @@ let wrapperPatternCache: Cache<readonly WrapperNode[]> | undefined;
  * @internal
  */
 export const parseWrapper = (raw: string): readonly WrapperNode[] =>
-  cacheGet(wrapperPatternCache || (wrapperPatternCache = createCache(parseWrapperPattern, PATTERN_CACHE_SIZE)), raw);
+  cacheGet(
+    wrapperPatternCache ||
+      (wrapperPatternCache = createCache(parseWrapperPattern, PATTERN_CACHE_SIZE)),
+    raw,
+  );
 
 /**
  * Contextually transform a string,
@@ -61,7 +70,12 @@ export const contextTransform = (
  *
  * @internal
  */
-export const formatListValue = <R>(data: LocaleData, value: AbstractValue<R>, items: R[], type: ListPatternType): R => {
+export const formatListValue = <R>(
+  data: LocaleData,
+  value: AbstractValue<R>,
+  items: R[],
+  type: ListPatternType,
+): R => {
   const pattern = vectorMapping(selectListPattern(data, type), data);
   let len = items.length;
   if (len < 2) {
@@ -107,7 +121,10 @@ const wrap = <R>(pattern: string, value: AbstractValue<R>, args: R[]): R => {
   return value.render();
 };
 
-const selectListPattern = (data: LocaleData, type: ListPatternType): Vector1Arrow<ListPatternPositionType> => {
+const selectListPattern = (
+  data: LocaleData,
+  type: ListPatternType,
+): Vector1Arrow<ListPatternPositionType> => {
   const p = data.schema.ListPatterns;
   switch (type) {
     case 'unit-long':

@@ -33,7 +33,14 @@ interface PatternBuilder {
 
 const MINUS_NODE: readonly NumberNode[] = [NumberField.MINUS];
 
-const newPattern = (): PatternBuilder => ({ nodes: [], minInt: 0, maxFrac: 0, minFrac: 0, priGroup: 0, secGroup: 0 });
+const newPattern = (): PatternBuilder => ({
+  nodes: [],
+  minInt: 0,
+  maxFrac: 0,
+  minFrac: 0,
+  priGroup: 0,
+  secGroup: 0,
+});
 
 /**
  * Parse a number pattern into its positive and negative forms.
@@ -168,7 +175,14 @@ export const parseNumberPattern = (raw: string): readonly [NumberPattern, Number
     // Derive positive from negative by prepending a minus node
     const { nodes, minInt, maxFrac, minFrac, priGroup, secGroup } = curr;
     save = curr;
-    curr = { nodes: MINUS_NODE.concat(nodes.slice(0)), minInt, maxFrac, minFrac, priGroup, secGroup };
+    curr = {
+      nodes: MINUS_NODE.concat(nodes.slice(0)),
+      minInt,
+      maxFrac,
+      minFrac,
+      priGroup,
+      secGroup,
+    };
   }
   return [save, curr];
 };

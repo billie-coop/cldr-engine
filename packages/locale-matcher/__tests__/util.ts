@@ -110,7 +110,7 @@ export const loadMatchCasesFromRaw = (source: string, lines: [string, number][])
     }
 
     // Directives set parameter values
-    if (line[0] == '@') {
+    if (line[0] === '@') {
       const [key, val] = line.split('=');
       switch (key) {
         case '@supported':

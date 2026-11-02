@@ -1,4 +1,4 @@
-import { Decimal, DecimalConstants, decimal, decimalCompare } from '@phensley/decimal';
+import { type Decimal, DecimalConstants, decimal, decimalCompare } from '@phensley/decimal';
 import { binarySearch } from '../src/utils';
 
 const { ONE, ZERO } = DecimalConstants;

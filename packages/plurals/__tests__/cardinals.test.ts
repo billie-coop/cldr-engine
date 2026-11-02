@@ -1,6 +1,7 @@
-import { pluralCardinal, getPluralRules } from '../src';
+import { getPluralRules, pluralCardinal } from '../src';
 
-const cardinal = (lang: string, n: string, c: number = 0) => pluralCardinal(getPluralRules(lang), n, c);
+const cardinal = (lang: string, n: string, c: number = 0) =>
+  pluralCardinal(getPluralRules(lang), n, c);
 
 test('english', () => {
   const lang = 'en';

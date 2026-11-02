@@ -1,5 +1,5 @@
-import { calendarsApi } from '../../_helpers';
 import { formatDate } from '../../../src';
+import { calendarsApi } from '../../_helpers';
 
 const hasIntl = typeof Intl !== 'undefined' && 'DateTimeFormat' in Intl;
 
@@ -48,7 +48,9 @@ describe.skipIf(!hasIntl)('skeleton best-fit vs Intl.DateTimeFormat', () => {
   for (const locale of ['es', 'ca', 'cs', 'sk', 'bg', 'lt', 'lv', 'ko', 'da']) {
     for (const { skel, opts } of CASES) {
       it(`${locale} ${skel}`, () => {
-        const expected = normalize(new Intl.DateTimeFormat(locale, { ...opts, timeZone: 'UTC' }).format(new Date(MS)));
+        const expected = normalize(
+          new Intl.DateTimeFormat(locale, { ...opts, timeZone: 'UTC' }).format(new Date(MS)),
+        );
         const actual = normalize(formatDate(calendarsApi(locale), date, { skeleton: skel }));
         expect(actual).toEqual(expected);
       });

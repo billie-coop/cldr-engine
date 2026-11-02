@@ -1,26 +1,24 @@
+import { createLRU, lruGet, lruSet } from '@phensley/cldr-utils';
+import { tagLanguage } from '@phensley/language-tag';
+import { resolveLanguageTag, resolveLocaleId } from '@phensley/locale';
 import * as subprocess from 'child_process';
 import { createHash } from 'crypto';
 import * as fs from 'fs';
 import { join } from 'path';
-
-import { createLRU, lruGet, lruSet } from '@phensley/cldr-utils';
-import { resolveLanguageTag, resolveLocaleId } from '@phensley/locale';
-
+import { config as defaultconfig } from '../../../cldr/src/config';
 import {
   buildOrigin,
+  type CLDRFramework,
   cldrFramework,
-  loadPack as parsePack,
+  type LocaleData,
   localeData,
   packGet,
-  CLDRFramework,
-  LocaleData,
-  SchemaConfig,
+  loadPack as parsePack,
+  type SchemaConfig,
 } from '../../src';
 import { buildSchema } from '../../src/internals/schema';
-import { Pack } from '../../src/resource';
-import { config as defaultconfig } from '../../../cldr/src/config';
+import type { Pack } from '../../src/resource';
 import { VERSION } from '../../src/utils/version';
-import { tagLanguage } from '@phensley/language-tag';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../../package.json');

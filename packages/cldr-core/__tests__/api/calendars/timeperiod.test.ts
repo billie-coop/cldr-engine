@@ -1,4 +1,4 @@
-import { Quantity, timePeriodToQuantity } from '../../../src';
+import { type Quantity, timePeriodToQuantity } from '../../../src';
 
 test('time period to quantity', () => {
   let q: Quantity[];

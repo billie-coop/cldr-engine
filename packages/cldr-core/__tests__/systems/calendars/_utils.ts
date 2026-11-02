@@ -1,5 +1,10 @@
-import { Temporal } from '@js-temporal/polyfill';
-import { CalendarDate, TimePeriod, dateToDateString, dateToDateTimeString } from '../../../src';
+import type { Temporal } from '@js-temporal/polyfill';
+import {
+  type CalendarDate,
+  dateToDateString,
+  dateToDateTimeString,
+  type TimePeriod,
+} from '../../../src';
 
 /**
  * Index the elements in an array with an incrementing 1-based number.
@@ -18,7 +23,7 @@ export const enumerate = <T>(args: T[]): [number, T][] => {
  * Format a number as a string with leading zeros of a given maximum width.
  */
 export const zeropad = (n: number, w: number): string => {
-  let s = `${n}`;
+  const s = `${n}`;
   w -= s.length;
   let r = '';
   while (w > 0) {
@@ -77,7 +82,7 @@ export function* zip<T, S>(a: T[], b: S[]) {
  */
 export const zipList = <T, S>(a: T[], b: S[]): [T, S][] => {
   const gen = zip(a, b);
-  let res: [T, S][] = [];
+  const res: [T, S][] = [];
   let next = gen.next();
   while (!next.done) {
     res.push(next.value);
@@ -176,10 +181,10 @@ export const TIMEPERIOD_TO_DURATION_KEYS: [keyof TimePeriod, keyof Temporal.Dura
  * Convert a partial CLDR TimePeriod into a Temporal Duration-like object.
  */
 export const periodToDurationLike = (period: Partial<TimePeriod>): Temporal.DurationLike => {
-  let r: Temporal.DurationLike = {};
+  const r: Temporal.DurationLike = {};
   for (const [src, dst] of TIMEPERIOD_TO_DURATION_KEYS) {
     if (period[src] !== undefined) {
-      let v = period[src];
+      const v = period[src];
       r[dst] = v;
     }
   }
@@ -190,7 +195,7 @@ export const periodToDurationLike = (period: Partial<TimePeriod>): Temporal.Dura
  * Convert a Temporal Duration into a CLDR TimePeriod.
  */
 export const durationToPeriod = (duration: Temporal.Duration): TimePeriod => {
-  let r: TimePeriod = {
+  const r: TimePeriod = {
     year: 0,
     month: 0,
     week: 0,

@@ -1,5 +1,5 @@
+import { tzFromUTC, type ZoneInfo } from '../src';
 import { Timestamp } from './_helpers';
-import { ZoneInfo, tzFromUTC } from '../src';
 
 const ID = 'America/New_York';
 const MAR102019_065930 = new Timestamp(1552201170000);

@@ -1,23 +1,23 @@
-import { UnitType } from '@phensley/cldr-types';
+import type { UnitType } from '@phensley/cldr-types';
 import {
+  decimal,
+  decimalToString,
   rational,
   rationalCompare,
   rationalMultiply,
   rationalToString,
-  decimal,
-  decimalToString,
 } from '@phensley/decimal';
 import {
   ANGLE,
   AREA,
-  DURATION,
-  FactorDef,
-  UnitConversion,
-  unitFactors,
-  unitFactorsGet,
   convertUnits,
   createUnitConverter,
+  DURATION,
+  type FactorDef,
+  type UnitConversion,
   unitConverterAdd,
+  unitFactors,
+  unitFactorsGet,
 } from '../src';
 
 test('factors', () => {
@@ -94,7 +94,13 @@ test('duration century is 100 years (CLDR 48.2.0 convertUnits: century = 100 yea
 
   let conv = createUnitConverter();
   conv = unitConverterAdd(conv, 'duration', unitFactors(DURATION));
-  expect(decimalToString(convertUnits(conv, 'duration', decimal(1), 'century', 'second')!)).toEqual('3155695200');
-  expect(decimalToString(convertUnits(conv, 'duration', decimal(1), 'century', 'year')!)).toEqual('100');
-  expect(decimalToString(convertUnits(conv, 'duration', decimal(1), 'year', 'second')!)).toEqual('31556952');
+  expect(decimalToString(convertUnits(conv, 'duration', decimal(1), 'century', 'second')!)).toEqual(
+    '3155695200',
+  );
+  expect(decimalToString(convertUnits(conv, 'duration', decimal(1), 'century', 'year')!)).toEqual(
+    '100',
+  );
+  expect(decimalToString(convertUnits(conv, 'duration', decimal(1), 'year', 'second')!)).toEqual(
+    '31556952',
+  );
 });

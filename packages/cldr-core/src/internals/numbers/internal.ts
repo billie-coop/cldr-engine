@@ -1,7 +1,13 @@
-import { AltType, CurrencyType, DigitsArrow, NumberSystemInfo, PluralType } from '@phensley/cldr-types';
-
+import type {
+  AltType,
+  CurrencyType,
+  DigitsArrow,
+  NumberSystemInfo,
+  PluralType,
+} from '@phensley/cldr-types';
+import { type Cache, cacheGet, createCache } from '@phensley/cldr-utils';
 import {
-  Decimal,
+  type Decimal,
   decimalAbs,
   decimalDivide,
   decimalIntegerDigits,
@@ -13,24 +19,26 @@ import {
   decimalSetScale,
   decimalShiftright,
 } from '@phensley/decimal';
-
-import { Cache, cacheGet, createCache } from '@phensley/cldr-utils';
-import { CurrencyFormatOptions, DecimalAdjustOptions, DecimalFormatOptions } from '../../common/numbers';
+import { pluralCardinal } from '@phensley/plurals';
+import type {
+  CurrencyFormatOptions,
+  DecimalAdjustOptions,
+  DecimalFormatOptions,
+} from '../../common/numbers';
+import type { NumberParams } from '../../common/private';
+import type { NumberRenderer } from '../../internals/internals';
+import type { LocaleData } from '../../locale-data';
+import { type NumberPattern, parseNumberPattern } from '../../parsing/number';
+import { digitsGet, fieldGet, scopeGet, vectorGet, vectorValid } from '../../schema/schema/arrows';
+import { PATTERN_CACHE_SIZE } from '../general/internal';
 import {
+  type NumberContext,
   numberContext,
-  NumberContext,
   numberContextAdjust,
   numberContextSetCompact,
   numberContextSetPattern,
 } from './context';
-import { NumberParams } from '../../common/private';
-import { parseNumberPattern, NumberPattern } from '../../parsing/number';
 import { getCurrencyFractions } from './util';
-import { LocaleData } from '../../locale-data';
-import { NumberRenderer } from '../../internals/internals';
-import { PATTERN_CACHE_SIZE } from '../general/internal';
-import { vectorGet, vectorValid, scopeGet, fieldGet, digitsGet } from '../../schema/schema/arrows';
-import { pluralCardinal } from '@phensley/plurals';
 
 let adjustPattern: NumberPattern | undefined;
 
@@ -84,7 +92,8 @@ export const currencyPluralName = (data: LocaleData, code: string, plural: Plura
  */
 export const getNumberPattern = (raw: string, negative: boolean): NumberPattern => {
   return cacheGet(
-    numberPatternCache || (numberPatternCache = createCache(parseNumberPattern, PATTERN_CACHE_SIZE)),
+    numberPatternCache ||
+      (numberPatternCache = createCache(parseNumberPattern, PATTERN_CACHE_SIZE)),
     raw,
   )[negative ? 1 : 0];
 };
@@ -110,7 +119,8 @@ export const renderDecimal = <T>(
 
   const decimalFormats = info.decimalFormats;
   const latnDecimalFormats = latnInfo.decimalFormats;
-  const standardRaw = fieldGet(decimalFormats.standard, data) || fieldGet(latnDecimalFormats.standard, data);
+  const standardRaw =
+    fieldGet(decimalFormats.standard, data) || fieldGet(latnDecimalFormats.standard, data);
 
   const plurals = data.plurals;
 
@@ -134,7 +144,14 @@ export const renderDecimal = <T>(
       let q2: Decimal;
       let ndigits: number;
       if (options.divisor) {
-        [q2, ndigits] = setupCompactDivisor(data, n, ctx, standardRaw, options.divisor, patternImpl);
+        [q2, ndigits] = setupCompactDivisor(
+          data,
+          n,
+          ctx,
+          standardRaw,
+          options.divisor,
+          patternImpl,
+        );
       } else {
         [q2, ndigits] = setupCompact(data, n, ctx, standardRaw, patternImpl);
       }
@@ -175,7 +192,9 @@ export const renderDecimal = <T>(
 
       // Select percent or permille symbol.
       const symbol =
-        style === 'percent' || style === 'percent-scaled' ? params.symbols.percentSign : params.symbols.perMille;
+        style === 'percent' || style === 'percent-scaled'
+          ? params.symbols.percentSign
+          : params.symbols.perMille;
 
       // Adjust number using pattern and options, then render.
       const ctx = numberContext(options, round, false, false, -1);
@@ -266,7 +285,8 @@ export const renderCurrency = <T>(
   const currencyFormats = info.currencyFormats;
   const latnDecimalFormats = latnInfo.decimalFormats;
 
-  const standardRaw = fieldGet(currencyFormats.standard, data) || fieldGet(latnDecimalFormats.standard, data);
+  const standardRaw =
+    fieldGet(currencyFormats.standard, data) || fieldGet(latnDecimalFormats.standard, data);
 
   // Some locales have a special decimal symbol for certain currencies, e.g. pt-PT and PTE
   const decimal = vectorGet(data.schema.Currencies.decimal, data, code as CurrencyType) || '';
@@ -276,7 +296,9 @@ export const renderCurrency = <T>(
   switch (style) {
     case 'code':
     case 'name': {
-      const raw = fieldGet(info.decimalFormats.standard, data) || fieldGet(latnInfo.decimalFormats.standard, data);
+      const raw =
+        fieldGet(info.decimalFormats.standard, data) ||
+        fieldGet(latnInfo.decimalFormats.standard, data);
       let pattern = getNumberPattern(raw, decimalIsNegative(n));
 
       // Adjust number using pattern and options, then render.
@@ -313,7 +335,14 @@ export const renderCurrency = <T>(
       let q2: Decimal;
       let ndigits: number;
       if (options.divisor) {
-        [q2, ndigits] = setupCompactDivisor(data, n, ctx, standardRaw, options.divisor, patternImpl);
+        [q2, ndigits] = setupCompactDivisor(
+          data,
+          n,
+          ctx,
+          standardRaw,
+          options.divisor,
+          patternImpl,
+        );
       } else {
         [q2, ndigits] = setupCompact(data, n, ctx, standardRaw, patternImpl);
       }
@@ -342,7 +371,10 @@ export const renderCurrency = <T>(
       let styleArrow = style === 'symbol' ? currencyFormats.standard : currencyFormats.accounting;
       let raw = fieldGet(styleArrow, data);
       if (!raw) {
-        styleArrow = style === 'symbol' ? latnInfo.currencyFormats.standard : latnInfo.currencyFormats.accounting;
+        styleArrow =
+          style === 'symbol'
+            ? latnInfo.currencyFormats.standard
+            : latnInfo.currencyFormats.accounting;
         raw = fieldGet(styleArrow, data);
       }
       let pattern = getNumberPattern(raw, decimalIsNegative(n));

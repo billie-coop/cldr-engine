@@ -1,13 +1,13 @@
 import { Temporal } from '@js-temporal/polyfill';
 import {
-  CalendarDate,
-  TimePeriod,
-  TimePeriodField,
+  type CalendarDate,
   dateAdd,
   dateSince,
   dateToDateString,
   dateToDateTimeString,
   gregorianDateFromUnixEpoch,
+  type TimePeriod,
+  type TimePeriodField,
 } from '../../../src';
 import {
   FEB_28_2024,
@@ -21,7 +21,13 @@ import {
   TOKYO,
   UTC,
 } from './_referencedates';
-import { CLDRFormatter, durationToPeriod, enumerate, periodToDurationLike, TemporalFormatter } from './_utils';
+import {
+  CLDRFormatter,
+  durationToPeriod,
+  enumerate,
+  periodToDurationLike,
+  TemporalFormatter,
+} from './_utils';
 
 const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 

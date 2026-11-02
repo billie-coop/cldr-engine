@@ -1,6 +1,6 @@
-import { UnitType } from '@phensley/cldr-types';
+import type { UnitType } from '@phensley/cldr-types';
 import { CLDR_FACTORS } from './factors.generated';
-import { FactorDef } from './types';
+import type { FactorDef } from './types';
 
 const kfactors = (f: string, u: UnitType[]) => {
   const r: FactorDef[] = [];
@@ -86,11 +86,17 @@ export const AREA: FactorDef[] = [
  *
  * @public
  */
-export const CONSUMPTION: FactorDef[] = [['liter-per-100-kilometer', '1 / 100', 'liter-per-kilometer']];
+export const CONSUMPTION: FactorDef[] = [
+  ['liter-per-100-kilometer', '1 / 100', 'liter-per-kilometer'],
+];
 
-const DIGITAL_BASE: FactorDef[] = kfactors('1000', ['terabit', 'gigabit', 'megabit', 'kilobit', 'bit']).concat([
-  ['byte', '8', 'bit'],
-]);
+const DIGITAL_BASE: FactorDef[] = kfactors('1000', [
+  'terabit',
+  'gigabit',
+  'megabit',
+  'kilobit',
+  'bit',
+]).concat([['byte', '8', 'bit']]);
 
 /**
  * Conversions between CLDR digital units.
@@ -169,9 +175,12 @@ export const FORCE: FactorDef[] = [...CLDR_FACTORS.force];
  *
  * @public
  */
-export const FREQUENCY: FactorDef[] = kfactors('1000', ['gigahertz', 'megahertz', 'kilohertz', 'hertz']).concat(
-  CLDR_FACTORS.frequency,
-);
+export const FREQUENCY: FactorDef[] = kfactors('1000', [
+  'gigahertz',
+  'megahertz',
+  'kilohertz',
+  'hertz',
+]).concat(CLDR_FACTORS.frequency);
 
 /**
  * Conversions between CLDR graphics 'per' units.
@@ -254,9 +263,12 @@ export const MASS: FactorDef[] = [
  *
  * @public
  */
-export const POWER: FactorDef[] = kfactors('1000', ['gigawatt', 'megawatt', 'kilowatt', 'watt']).concat(
-  CLDR_FACTORS.power,
-);
+export const POWER: FactorDef[] = kfactors('1000', [
+  'gigawatt',
+  'megawatt',
+  'kilowatt',
+  'watt',
+]).concat(CLDR_FACTORS.power);
 
 /**
  * Conversions between CLDR pressure units.

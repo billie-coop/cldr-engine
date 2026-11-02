@@ -66,7 +66,15 @@ test('parse and format', () => {
   expect(dayParse('0001-01-01')).toEqual(day(1, 1, 1));
   expect(dayParse('+012345-06-07')).toEqual(day(12345, 6, 7));
   expect(dayParse('-000044-03-15')).toEqual(day(-44, 3, 15));
-  for (const bad of ['2026-02-30', '2026-1-31', '26-01-31', '2026-01-31T00:00', ' 2026-01-31', '-000000-01-01', '']) {
+  for (const bad of [
+    '2026-02-30',
+    '2026-1-31',
+    '26-01-31',
+    '2026-01-31T00:00',
+    ' 2026-01-31',
+    '-000000-01-01',
+    '',
+  ]) {
     expect(dayParse(bad)).toBeUndefined();
   }
   expect(dayParse(undefined as any)).toBeUndefined();
@@ -173,13 +181,9 @@ test('ranges', () => {
   expect(dayRange(p('2026-01-31'), p('2026-01-31')).map(s)).toEqual(['2026-01-31']);
   // Weeks of a month view starting on Monday.
   const first = p('2026-02-01');
-  expect(dayRange(dayStartOfWeek(first, 2), dayEndOf(first, 'month'), { weeks: 1 }).map(s)).toEqual([
-    '2026-01-26',
-    '2026-02-02',
-    '2026-02-09',
-    '2026-02-16',
-    '2026-02-23',
-  ]);
+  expect(dayRange(dayStartOfWeek(first, 2), dayEndOf(first, 'month'), { weeks: 1 }).map(s)).toEqual(
+    ['2026-01-26', '2026-02-02', '2026-02-09', '2026-02-16', '2026-02-23'],
+  );
   // Monthly from the 31st stays on month ends.
   expect(dayRange(p('2026-01-31'), p('2026-05-31'), { months: 1 }).map(s)).toEqual([
     '2026-01-31',

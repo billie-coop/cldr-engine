@@ -1,21 +1,21 @@
+import { tagCompact, tagExpanded } from '@phensley/language-tag';
 import {
   availableLocales,
+  type CLDRFramework,
+  type CurrencyFormatOptions,
   cldrFramework,
   cldrVersion,
+  fieldGet,
+  type NumberSystemInfo,
   parseLanguageTag,
+  type Quantity,
   resolveLocale,
-  CLDRFramework,
-  CurrencyFormatOptions,
-  NumberSystemInfo,
-  Quantity,
-  SchemaConfig,
+  type SchemaConfig,
   scopeGet,
   vectorMapping,
-  fieldGet,
 } from '../src';
 import { parseDatePattern } from '../src/internals/calendars/internal';
 import { getCLDR } from './_helpers';
-import { tagCompact, tagExpanded } from '@phensley/language-tag';
 
 test('init framework', () => {
   const framework = getCLDR();
@@ -123,7 +123,19 @@ test('accessing internals', () => {
   framework.get('en');
 
   const p = parseDatePattern('yyyy/MM/dd h:m:s');
-  expect(p).toEqual([['y', 4], '/', ['M', 2], '/', ['d', 2], ' ', ['h', 1], ':', ['m', 1], ':', ['s', 1]]);
+  expect(p).toEqual([
+    ['y', 4],
+    '/',
+    ['M', 2],
+    '/',
+    ['d', 2],
+    ' ',
+    ['h', 1],
+    ':',
+    ['m', 1],
+    ':',
+    ['s', 1],
+  ]);
 });
 
 test('resolving locales', () => {

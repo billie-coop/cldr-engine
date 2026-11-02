@@ -9,11 +9,12 @@ if (!fs.existsSync(root)) {
   fs.mkdirSync(root);
 }
 
-const packs = fs.readdirSync(root)
-  .filter(n => n.endsWith(EXT))
-  .map(n => join(root, n));
+const packs = fs
+  .readdirSync(root)
+  .filter((n) => n.endsWith(EXT))
+  .map((n) => join(root, n));
 
-packs.forEach(src => {
+packs.forEach((src) => {
   const name = basename(src, EXT);
   const dst = join(root, `${name}.json`);
   const compressed = fs.readFileSync(src);

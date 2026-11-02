@@ -3,7 +3,16 @@ import * as path from 'node:path';
 import { generateCategories, parseConvertUnits } from '../scripts/generate-factors';
 import { CLDR_FACTORS } from '../src/factors.generated';
 
-const UNITS_JSON = path.join(__dirname, '..', '..', 'cldr-compiler', '.cldr', '48.2.0', 'supplemental', 'units.json');
+const UNITS_JSON = path.join(
+  __dirname,
+  '..',
+  '..',
+  'cldr-compiler',
+  '.cldr',
+  '48.2.0',
+  'supplemental',
+  'units.json',
+);
 
 // The CLDR data is downloaded by the cldr-compiler build; skip when it is
 // not present locally (CI runs the build first).
@@ -32,7 +41,10 @@ describe.skipIf(!existsSync(UNITS_JSON))('generated factors (CLDR 48.2.0)', () =
       }
     }
     for (const u of units) {
-      expect({ unit: u.unit, covered: covered.has(u.unit) }).toEqual({ unit: u.unit, covered: true });
+      expect({ unit: u.unit, covered: covered.has(u.unit) }).toEqual({
+        unit: u.unit,
+        covered: true,
+      });
     }
     expect(covered.has('beaufort')).toBe(false);
   });

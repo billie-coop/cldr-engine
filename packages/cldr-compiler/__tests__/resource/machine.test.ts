@@ -1,17 +1,17 @@
 import {
   digits,
   field,
+  keyIndex,
+  type Origin,
   origin,
+  resolveLanguageTag,
+  type Scope,
   scope,
   scopemap,
   vector,
-  Origin,
-  Scope,
-  resolveLanguageTag,
-  keyIndex,
 } from '@phensley/cldr-core';
 
-import { Encoder, EncoderMachine } from '../../src/resource/machine';
+import { type Encoder, EncoderMachine } from '../../src/resource/machine';
 import { ResourcePack } from '../../src/resource/pack';
 
 const parseLocale = (id: string) => ({ id, tag: resolveLanguageTag(id) });

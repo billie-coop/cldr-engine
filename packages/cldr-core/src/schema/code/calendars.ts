@@ -1,5 +1,5 @@
-import { KeyIndexMap } from '@phensley/cldr-types';
-import { field, scope, vector, keyIndex } from '../instructions';
+import type { KeyIndexMap } from '@phensley/cldr-types';
+import { field, keyIndex, scope, vector } from '../instructions';
 import {
   BuddhistEraIndex,
   DateTimePatternFieldValues,

@@ -1,6 +1,6 @@
 import { decimal } from '@phensley/decimal';
-import { NumberingSystem, NumberSymbols } from '../../../src/common/private';
 import { decimalNumberingSystem, numberingFormatString } from '../../../src';
+import type { NumberingSystem, NumberSymbols } from '../../../src/common/private';
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const CHARS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];

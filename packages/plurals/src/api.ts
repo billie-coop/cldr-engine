@@ -1,5 +1,5 @@
-import { cardinalRules, ordinalRules } from './autogen.rules';
 import { pluralRanges } from './autogen.ranges';
+import { cardinalRules, ordinalRules } from './autogen.rules';
 import type { PluralRules } from './rules';
 import type { Rule, RuleMap } from './types';
 

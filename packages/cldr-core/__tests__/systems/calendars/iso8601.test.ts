@@ -1,4 +1,3 @@
-import { ISO8601Date } from '../../../src/systems/calendars';
 import {
   dateDayOfWeek,
   dateIsLeapYear,
@@ -8,6 +7,7 @@ import {
   dateYearOfWeekOfYear,
   iso8601DateFromUnixEpoch,
 } from '../../../src';
+import type { ISO8601Date } from '../../../src/systems/calendars';
 
 const make = (e: number, z: string) => iso8601DateFromUnixEpoch(e, z, -1, -1);
 

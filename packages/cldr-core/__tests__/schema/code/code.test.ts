@@ -1,4 +1,4 @@
-import { buildOrigin, Origin, originGetIndex, originGetValues } from '../../../src';
+import { buildOrigin, type Origin, originGetIndex, originGetValues } from '../../../src';
 
 test('code builder', () => {
   let o: Origin;

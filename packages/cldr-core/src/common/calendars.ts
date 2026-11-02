@@ -1,4 +1,4 @@
-import {
+import type {
   ContextType,
   DateFieldWidthType,
   DayPeriodAltType,
@@ -7,9 +7,9 @@ import {
   FieldWidthType,
   FormatWidthType,
 } from '@phensley/cldr-types';
-import { TimePeriodField } from '../systems/calendars/interval';
-import { CalendarType } from '../systems/calendars/types';
-import { NumberFormatOptions, NumberSystemType } from './numbers';
+import type { TimePeriodField } from '../systems/calendars/interval';
+import type { CalendarType } from '../systems/calendars/types';
+import type { NumberFormatOptions, NumberSystemType } from './numbers';
 
 /**
  * @public

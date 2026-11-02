@@ -1,4 +1,4 @@
-import { RoundingModeType, decimal, decimalShiftright } from '../src';
+import { decimal, decimalShiftright, type RoundingModeType } from '../src';
 
 const parse = (s: string) => decimal(s);
 const shr = (u: string, s: number, m: RoundingModeType) => decimalShiftright(parse(u), s, m);

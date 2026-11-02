@@ -1,5 +1,5 @@
-import { buildConfig, generalApi } from '../_helpers';
 import { getLanguageDisplayName, getRegionDisplayName, getScriptDisplayName } from '../../src';
+import { buildConfig, generalApi } from '../_helpers';
 
 test('custom language display names', () => {
   const cfg = buildConfig({ 'language-id': ['en'] });

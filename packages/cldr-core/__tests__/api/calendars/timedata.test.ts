@@ -1,5 +1,5 @@
+import { bindCalendars, type Calendars, type TimeData, timeData } from '../../../src';
 import { calendarsApi } from '../../_helpers';
-import { bindCalendars, timeData, Calendars, TimeData } from '../../../src';
 
 test('time data', () => {
   let api: Calendars = bindCalendars(calendarsApi('en-US'));

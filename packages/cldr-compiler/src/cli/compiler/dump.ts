@@ -1,12 +1,18 @@
-import * as fs from 'fs';
-import { join } from 'path';
-import * as yargs from 'yargs';
-
-import { Schema } from '@phensley/cldr-types';
-import { buildOrigin, isDigitsArrow, isFieldArrow, isScopeArrow, isVectorArrow, Origin } from '@phensley/cldr-core';
-import { VERSION } from '@phensley/cldr-core/lib/utils/version';
+import {
+  buildOrigin,
+  isDigitsArrow,
+  isFieldArrow,
+  isScopeArrow,
+  isVectorArrow,
+  type Origin,
+} from '@phensley/cldr-core';
 import { buildSchema as buildSchemaTree } from '@phensley/cldr-core/lib/internals/schema';
 import { checksumIndices } from '@phensley/cldr-core/lib/resource/checksum';
+import { VERSION } from '@phensley/cldr-core/lib/utils/version';
+import type { Schema } from '@phensley/cldr-types';
+import * as fs from 'fs';
+import { join } from 'path';
+import type * as yargs from 'yargs';
 import * as CONFIG from './config.json';
 
 export const loader = (lang: string) => {
@@ -14,7 +20,8 @@ export const loader = (lang: string) => {
   return fs.readFileSync(path).toString('utf-8');
 };
 
-export const buildSchema = (origin: Origin, debug: boolean = false): Schema => buildSchemaTree(origin, debug);
+export const buildSchema = (origin: Origin, debug: boolean = false): Schema =>
+  buildSchemaTree(origin, debug);
 
 type Entry = [number, string, number, number] | [number, string];
 

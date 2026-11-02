@@ -1,5 +1,5 @@
+import { type DecimalFormatOptions, formatDecimal } from '../../../src';
 import { numbersApi } from '../../_helpers';
-import { DecimalFormatOptions, formatDecimal } from '../../../src';
 
 test('decimal scientific', () => {
   const api = numbersApi('en');

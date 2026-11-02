@@ -1,5 +1,5 @@
+import { tzFromWall, type ZoneInfo } from '../src';
 import { Timestamp } from './_helpers';
-import { ZoneInfo, tzFromWall } from '../src';
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;

@@ -1,6 +1,6 @@
-import { pad, Code, HEADER, NOLINT_MAXLINE } from './util';
-import { buildPartitions, MapSet } from './partition';
-import { tagCompact, resolveLanguageTag } from '@phensley/cldr-core';
+import { resolveLanguageTag, tagCompact } from '@phensley/cldr-core';
+import { buildPartitions, type MapSet } from './partition';
+import { Code, HEADER, NOLINT_MAXLINE, pad } from './util';
 
 // ANY character used to represent a wildcard in the distance table, so all
 // wildcards sort last when the table is rendered.
@@ -133,7 +133,7 @@ class DistanceMap {
 
   private render(level: number): string {
     const nodes = this.nodes().sort(nodeCmp);
-    let prior: string | undefined = undefined;
+    let prior: string | undefined;
     let rows = 0;
     let res = '';
     nodes.forEach((node) => {
@@ -189,7 +189,11 @@ const addRule = (variables: MapSet, desired: string[], supported: string[], dist
 
     case 3: {
       let node = distanceMap.put(key(desired[0]), key(supported[0]), 0);
-      node = node.map.put(key(desired[1]), key(supported[1]), desired[1] === WILDCARD ? DEFAULT_THRESHOLD : 0);
+      node = node.map.put(
+        key(desired[1]),
+        key(supported[1]),
+        desired[1] === WILDCARD ? DEFAULT_THRESHOLD : 0,
+      );
       if (desired[2] === WILDCARD) {
         node.map.put(key(desired[2]), key(supported[2]), distance);
       } else {
@@ -336,7 +340,8 @@ export const getDistance = (data: any): Code[] => {
   code += NOLINT_MAXLINE;
   code += `export const paradigmLocales: any = ${values};\n\n`;
 
-  code += 'export type DistanceMap = { [x: string]: { [y: string]: DistanceNode | undefined } | undefined };\n';
+  code +=
+    'export type DistanceMap = { [x: string]: { [y: string]: DistanceNode | undefined } | undefined };\n';
   code += 'export type DistanceNode = [number, DistanceMap] | number;\n\n';
 
   const map = convertDistanceMap();
@@ -346,5 +351,8 @@ export const getDistance = (data: any): Code[] => {
 
   const table = distanceMap.toString();
 
-  return [Code.localematcher(['autogen.distance.ts'], code), Code.top(['notes', 'language-distance-table.txt'], table)];
+  return [
+    Code.localematcher(['autogen.distance.ts'], code),
+    Code.top(['notes', 'language-distance-table.txt'], table),
+  ];
 };

@@ -1,7 +1,20 @@
-import { add, divide, divword, divpow10, multiply, subtract, trimLeadingZeros } from './math';
+import {
+  type DecimalFormatter,
+  type Part,
+  partsDecimalFormatter,
+  stringDecimalFormatter,
+} from './format';
+import { add, divide, divpow10, divword, multiply, subtract, trimLeadingZeros } from './math';
 import { allzero, compare, digitCount } from './operations';
-import { partsDecimalFormatter, stringDecimalFormatter, DecimalFormatter, Part } from './format';
-import { Chars, Constants, DecimalFlag, MathContext, ParseFlags, POWERS10, RoundingModeType } from './types';
+import {
+  Chars,
+  Constants,
+  DecimalFlag,
+  type MathContext,
+  ParseFlags,
+  POWERS10,
+  type RoundingModeType,
+} from './types';
 
 const { floor } = Math;
 
@@ -65,7 +78,12 @@ interface Draft {
 }
 
 /** Create a value. All decimals are created here so they share one object shape. */
-const make = (data: number[], sign: number, exp: number, flag: DecimalFlag): Draft => ({ data, sign, exp, flag });
+const make = (data: number[], sign: number, exp: number, flag: DecimalFlag): Draft => ({
+  data,
+  sign,
+  exp,
+  flag,
+});
 
 /** Fresh mutable copy of a value (1.x `new Decimal(d)`). */
 const copy = (d: Decimal): Draft => make(d.data.slice(), d.sign, d.exp, d.flag);
@@ -105,12 +123,16 @@ export const isDecimal = (x: any): x is Decimal => {
  *
  * @public
  */
-export const decimal = (n: DecimalArg): Decimal => (typeof n === 'number' || typeof n === 'string' ? parse(n) : n);
+export const decimal = (n: DecimalArg): Decimal =>
+  typeof n === 'number' || typeof n === 'string' ? parse(n) : n;
 
 /**
  * Parses and interprets a math context argument, with appropriate defaults.
  */
-const parseMathContext = (rounding: RoundingModeType, context?: MathContext): [boolean, number, RoundingModeType] => {
+const parseMathContext = (
+  rounding: RoundingModeType,
+  context?: MathContext,
+): [boolean, number, RoundingModeType] => {
   let usePrecision = true;
   let scaleprec = DEFAULT_PRECISION;
   if (context !== undefined) {
@@ -159,7 +181,8 @@ export const decimalIsFinite = (n: DecimalArg): boolean => decimal(n).flag === 0
  *
  * @public
  */
-export const decimalIsInfinity = (n: DecimalArg): boolean => decimal(n).flag === DecimalFlag.INFINITY;
+export const decimalIsInfinity = (n: DecimalArg): boolean =>
+  decimal(n).flag === DecimalFlag.INFINITY;
 
 /**
  * Indicates the number is negative.
@@ -406,7 +429,8 @@ export const decimalAbs = (n: DecimalArg): Decimal => {
  */
 export const decimalNegate = (n: DecimalArg): Decimal => negate(decimal(n));
 
-const negate = (d: Decimal): Decimal => (d.flag === DecimalFlag.NAN ? d : make(d.data.slice(), -d.sign, d.exp, d.flag));
+const negate = (d: Decimal): Decimal =>
+  d.flag === DecimalFlag.NAN ? d : make(d.data.slice(), -d.sign, d.exp, d.flag);
 
 // ---------------------------------------------------------------------------
 // Arithmetic
@@ -552,7 +576,8 @@ export const decimalDivide = (un: DecimalArg, vn: DecimalArg, context?: MathCont
  *
  * @public
  */
-export const decimalDivmod = (un: DecimalArg, vn: DecimalArg): [Decimal, Decimal] => divmod(decimal(un), decimal(vn));
+export const decimalDivmod = (un: DecimalArg, vn: DecimalArg): [Decimal, Decimal] =>
+  divmod(decimal(un), decimal(vn));
 
 const divmod = (orig: Decimal, vd: Decimal): [Decimal, Decimal] => {
   let v = vd;
@@ -688,8 +713,11 @@ export const decimalScientific = (n: DecimalArg, minIntDigits: number = 1): [Dec
  *
  * @public
  */
-export const decimalSetScale = (n: DecimalArg, scale: number, roundingMode: RoundingModeType = 'half-even'): Decimal =>
-  setScale(decimal(n), scale, roundingMode);
+export const decimalSetScale = (
+  n: DecimalArg,
+  scale: number,
+  roundingMode: RoundingModeType = 'half-even',
+): Decimal => setScale(decimal(n), scale, roundingMode);
 
 const setScale = (d: Decimal, scale: number, roundingMode: RoundingModeType): Decimal => {
   if (d.flag) {
@@ -721,7 +749,8 @@ export const decimalMovePoint = (n: DecimalArg, places: number): Decimal => {
  *
  * @public
  */
-export const decimalShiftleft = (n: DecimalArg, shift: number): Decimal => shiftleft(decimal(n), shift);
+export const decimalShiftleft = (n: DecimalArg, shift: number): Decimal =>
+  shiftleft(decimal(n), shift);
 
 const shiftleft = (d: Decimal, shift: number): Decimal => {
   if (d.flag) {
@@ -738,7 +767,11 @@ const shiftleft = (d: Decimal, shift: number): Decimal => {
  *
  * @public
  */
-export const decimalShiftright = (n: DecimalArg, shift: number, mode: RoundingModeType = 'half-even'): Decimal => {
+export const decimalShiftright = (
+  n: DecimalArg,
+  shift: number,
+  mode: RoundingModeType = 'half-even',
+): Decimal => {
   const d = decimal(n);
   if (d.flag) {
     return d;
@@ -809,7 +842,11 @@ export const decimalToScientificParts = (n: DecimalArg, minIntegers: number = 1)
     return r;
   }
   const sign = exp < 0 ? { type: 'minus', value: '-' } : { type: 'plus', value: '+' };
-  return r.concat([{ type: 'exp', value: 'E' }, sign, { type: 'integer', value: `${Math.abs(exp)}` }]);
+  return r.concat([
+    { type: 'exp', value: 'E' },
+    sign,
+    { type: 'integer', value: `${Math.abs(exp)}` },
+  ]);
 };
 
 /**
@@ -962,9 +999,10 @@ const formatFlagsParts = (d: Decimal): Part[] => {
     case DecimalFlag.NAN:
       return [{ type: 'nan', value: 'NaN' }];
     case DecimalFlag.INFINITY:
-    default:
+    default: {
       const s = d.sign === 1 ? 'Infinity' : '-Infinity';
       return [{ type: 'infinity', value: s }];
+    }
   }
 };
 
@@ -1423,7 +1461,7 @@ const parseString = (str: string): Decimal | string => {
     const code = str.charCodeAt(i);
     switch (code) {
       case Chars.ELOWER:
-      case Chars.EUPPER:
+      case Chars.EUPPER: {
         if (flags & ParseFlags.EXP) {
           return `Extra exponent character at ${i}`;
         }
@@ -1450,6 +1488,7 @@ const parseString = (str: string): Decimal | string => {
         z = 0;
         data.length = 0;
         break;
+      }
 
       case Chars.MINUS:
       case Chars.PLUS:
@@ -1515,12 +1554,14 @@ const TWO = /*#__PURE__*/ parse('2');
 
 // 105 digits of pi - https://oeis.org/A000796/constant
 const PI = /*#__PURE__*/ parse(
-  '3.141592653589793238462643383279502884197169399375105' + '82097494459230781640628620899862803482534211706798214',
+  '3.141592653589793238462643383279502884197169399375105' +
+    '82097494459230781640628620899862803482534211706798214',
 );
 
 // 105 digits of e - https://oeis.org/A001113/constant
 const E = /*#__PURE__*/ parse(
-  '2.718281828459045235360287471352662497757247093699959' + '57496696762772407663035354759457138217852516642742746',
+  '2.718281828459045235360287471352662497757247093699959' +
+    '57496696762772407663035354759457138217852516642742746',
 );
 
 const NAN = /*#__PURE__*/ parse(NaN);

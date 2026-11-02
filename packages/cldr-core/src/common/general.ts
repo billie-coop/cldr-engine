@@ -1,9 +1,15 @@
-import { AltType, ContextType } from '@phensley/cldr-types';
+import type { AltType, ContextType } from '@phensley/cldr-types';
 
 /**
  * @public
  */
-export type ListPatternType = 'and' | 'and-short' | 'or' | 'unit-long' | 'unit-narrow' | 'unit-short';
+export type ListPatternType =
+  | 'and'
+  | 'and-short'
+  | 'or'
+  | 'unit-long'
+  | 'unit-narrow'
+  | 'unit-short';
 
 /**
  * @public

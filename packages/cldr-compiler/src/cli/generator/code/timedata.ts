@@ -1,5 +1,11 @@
-import { parseLanguageTag, tagHasLanguage, tagHasRegion, tagLanguage, tagRegion } from '@phensley/cldr-core';
-import { escapeString, Code, HEADER, NOLINT } from './util';
+import {
+  parseLanguageTag,
+  tagHasLanguage,
+  tagHasRegion,
+  tagLanguage,
+  tagRegion,
+} from '@phensley/cldr-core';
+import { Code, escapeString, HEADER, NOLINT } from './util';
 
 export const getTimeData = (data: any): Code[] => {
   const timeData: { [x: string]: { [y: string]: string } } = {};

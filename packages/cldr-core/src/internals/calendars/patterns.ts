@@ -1,15 +1,19 @@
-import { CalendarSchema, PluralType } from '@phensley/cldr-types';
-import { LRU, createLRU, lruGet, lruSet } from '@phensley/cldr-utils';
+import type { CalendarSchema, PluralType } from '@phensley/cldr-types';
+import { createLRU, type LRU, lruGet, lruSet } from '@phensley/cldr-utils';
 import { decimal } from '@phensley/decimal';
 import { pluralCardinal } from '@phensley/plurals';
-
-import { DateTimeNode, parseDatePattern as parseDatePatternRaw } from '../../parsing/date';
-import { LocaleData } from '../../locale-data';
-import { CalendarDate } from '../../systems/calendars/types';
+import type { LocaleData } from '../../locale-data';
+import { type DateTimeNode, parseDatePattern as parseDatePatternRaw } from '../../parsing/date';
+import { fieldGet, vectorMapping } from '../../schema/schema/arrows';
 import { dateWeekOfMonth, dateWeekOfYear } from '../../systems/calendars/calendar';
-import { vectorMapping, fieldGet } from '../../schema/schema/arrows';
+import type { CalendarDate } from '../../systems/calendars/types';
 import { timeData, timeStrings } from './autogen.timedata';
+import { parseDatePattern } from './internal';
 import {
+  type DatePatternMatcher,
+  type DatePatternMatcherEntry,
+  type DateSkeleton,
+  type DateSkeletonParser,
   datePatternMatcher,
   dateSkeletonParser,
   matcherAdd,
@@ -17,12 +21,7 @@ import {
   matcherMatch,
   matcherSort,
   skeletonParse,
-  DatePatternMatcher,
-  DatePatternMatcherEntry,
-  DateSkeleton,
-  DateSkeletonParser,
 } from './skeleton';
-import { parseDatePattern } from './internal';
 
 export interface CachedSkeletonRequest {
   dateSkel?: DateSkeleton;
@@ -115,9 +114,11 @@ export const calendarPatterns = (
 export const patternsDayPeriods = (p: CalendarPatterns): ThreeLevelMap =>
   vectorMapping(p.schema.standAlone.dayPeriods, p.data);
 
-export const patternsEras = (p: CalendarPatterns): ThreeLevelMap => vectorMapping(p.schema.eras, p.data);
+export const patternsEras = (p: CalendarPatterns): ThreeLevelMap =>
+  vectorMapping(p.schema.eras, p.data);
 
-export const patternsMonths = (p: CalendarPatterns): TwoLevelMap => vectorMapping(p.schema.standAlone.months, p.data);
+export const patternsMonths = (p: CalendarPatterns): TwoLevelMap =>
+  vectorMapping(p.schema.standAlone.months, p.data);
 
 export const patternsWeekdays = (p: CalendarPatterns): TwoLevelMap =>
   vectorMapping(p.schema.standAlone.weekdays, p.data);
@@ -128,10 +129,16 @@ export const patternsQuarters = (p: CalendarPatterns): TwoLevelMap =>
 export const patternsParseSkeleton = (p: CalendarPatterns, raw: string): DateSkeleton =>
   skeletonParse(p.skeletonParser, raw);
 
-export const patternsGetCachedRequest = (p: CalendarPatterns, key: string): CachedSkeletonRequest | undefined =>
-  lruGet(p.skeletonRequestCache, key);
+export const patternsGetCachedRequest = (
+  p: CalendarPatterns,
+  key: string,
+): CachedSkeletonRequest | undefined => lruGet(p.skeletonRequestCache, key);
 
-export const patternsSetCachedRequest = (p: CalendarPatterns, key: string, req: CachedSkeletonRequest): void => {
+export const patternsSetCachedRequest = (
+  p: CalendarPatterns,
+  key: string,
+  req: CachedSkeletonRequest,
+): void => {
   lruSet(p.skeletonRequestCache, key, req);
 };
 
@@ -141,8 +148,12 @@ export const patternsDatePattern = (p: CalendarPatterns, width: string): readonl
 export const patternsTimePattern = (p: CalendarPatterns, width: string): readonly DateTimeNode[] =>
   parseDatePattern(p.timeFormats[width] || '');
 
-export const patternsWrapperPattern = (p: CalendarPatterns, width: string, atTime: boolean): string => {
-  let w = p.wrapperFormatsAt[width];
+export const patternsWrapperPattern = (
+  p: CalendarPatterns,
+  width: string,
+  atTime: boolean,
+): string => {
+  const w = p.wrapperFormatsAt[width];
   return atTime && w ? w : p.wrapperFormats[width] || '';
 };
 
@@ -208,14 +219,16 @@ export const patternsMatchAvailable = (p: CalendarPatterns, skeleton: DateSkelet
 export const patternsMatchInterval = (
   p: CalendarPatterns,
   skeleton: DateSkeleton,
-): DatePatternMatcherEntry<IntervalSkeleton> | undefined => matcherMatch(p.intervalMatcher, skeleton);
+): DatePatternMatcherEntry<IntervalSkeleton> | undefined =>
+  matcherMatch(p.intervalMatcher, skeleton);
 
-export const patternsTimeData = (p: CalendarPatterns): [string, string] => timeDataFor(p.language, p.region);
+export const patternsTimeData = (p: CalendarPatterns): [string, string] =>
+  timeDataFor(p.language, p.region);
 
 const timeDataFor = (language: string, region: string): [string, string] => {
   const world = timeData['']['001'];
   let r: number | undefined;
-  let lang = timeData[language];
+  const lang = timeData[language];
   if (lang !== undefined) {
     r = lang[region];
   }

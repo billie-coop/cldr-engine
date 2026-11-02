@@ -1,10 +1,11 @@
+import { decimal, decimalToString } from '@phensley/decimal';
+import { adjustDecimal, type Decimal, type DecimalAdjustOptions } from '../../../src';
 import { numbersApi } from '../../_helpers';
-import { Decimal, DecimalAdjustOptions, adjustDecimal } from '../../../src';
-import { decimalToString, decimal } from '@phensley/decimal';
 
 const API = numbersApi('en');
 
-const adjust = (s: string, opts?: DecimalAdjustOptions): string => decimalToString(adjustDecimal(API, s, opts));
+const adjust = (s: string, opts?: DecimalAdjustOptions): string =>
+  decimalToString(adjustDecimal(API, s, opts));
 
 const parse = (n: number | string): Decimal => decimal(n);
 
@@ -14,6 +15,7 @@ test('parse decimal', () => {
   d = parse('1.0');
   expect(decimalToString(d)).toEqual('1.0');
 
+  // biome-ignore lint/suspicious/noApproximativeNumericConstant: a literal with these digits
   d = parse(3.14159);
   expect(decimalToString(d)).toEqual('3.14159');
 });

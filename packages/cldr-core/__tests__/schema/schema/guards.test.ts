@@ -17,16 +17,19 @@ test('arrow guards', () => {
   const digits = digitsArrow(1, index, [1, 2]);
   const vector = vectorArrow(1, [index, index]);
 
-  expect([isFieldArrow(field), isScopeArrow(scope), isDigitsArrow(digits), isVectorArrow(vector)]).toEqual([
-    true,
-    true,
-    true,
-    true,
-  ]);
+  expect([
+    isFieldArrow(field),
+    isScopeArrow(scope),
+    isDigitsArrow(digits),
+    isVectorArrow(vector),
+  ]).toEqual([true, true, true, true]);
 
   // Each guard accepts only its own kind.
   for (const x of [field, scope, digits, vector]) {
-    expect([isFieldArrow(x), isScopeArrow(x), isDigitsArrow(x), isVectorArrow(x)].filter((b) => b).length).toEqual(1);
+    expect(
+      [isFieldArrow(x), isScopeArrow(x), isDigitsArrow(x), isVectorArrow(x)].filter((b) => b)
+        .length,
+    ).toEqual(1);
   }
 
   // Objects that only carry the kind tag are not arrows.
@@ -44,7 +47,11 @@ test('arrow guards', () => {
   expect(isVectorArrow({ ...vector, keysets: undefined })).toBe(false);
 
   // Nested key indices must have their fields.
-  expect(isDigitsArrow({ kind: 'digits', offset: 0, index: {}, values: [1], size2: 2 })).toBe(false);
-  expect(isVectorArrow({ kind: 'vector', offset: 1, len: 1, last: 0, factors: [1], keysets: [{}] })).toBe(false);
+  expect(isDigitsArrow({ kind: 'digits', offset: 0, index: {}, values: [1], size2: 2 })).toBe(
+    false,
+  );
+  expect(
+    isVectorArrow({ kind: 'vector', offset: 1, len: 1, last: 0, factors: [1], keysets: [{}] }),
+  ).toBe(false);
   expect(isVectorArrow({ ...vector, keysets: [index, { ...index, keys: undefined }] })).toBe(false);
 });

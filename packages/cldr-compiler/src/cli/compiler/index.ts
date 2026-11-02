@@ -20,10 +20,22 @@ export const main = () => {
       (y: yargs.Argv) =>
         y
           .option('o', { alias: 'out', required: true, description: 'Output directory' })
-          .option('l', { alias: 'lang', description: 'Comma-delimited list of languages to include' })
-          .option('p', { alias: 'patch', description: 'Patch data before generating resource packs' })
-          .option('c', { alias: 'config', description: 'Config to customize generated resource packs' })
-          .option('r', { alias: 'regions', description: 'Optional comma-delimited list of region codes to include' })
+          .option('l', {
+            alias: 'lang',
+            description: 'Comma-delimited list of languages to include',
+          })
+          .option('p', {
+            alias: 'patch',
+            description: 'Patch data before generating resource packs',
+          })
+          .option('c', {
+            alias: 'config',
+            description: 'Config to customize generated resource packs',
+          })
+          .option('r', {
+            alias: 'regions',
+            description: 'Optional comma-delimited list of region codes to include',
+          })
           .option('v', { alias: 'verbose', boolean: true, description: 'Verbose mode' }),
       runPack,
     )
@@ -35,7 +47,10 @@ export const main = () => {
         y
           .option('p', { alias: 'pack', required: true, description: 'Path to resource pack' })
           .option('i', { alias: 'indices', description: 'Show string indices' })
-          .option('c', { alias: 'config', description: 'Path to config used to generate resource pack' }),
+          .option('c', {
+            alias: 'config',
+            description: 'Path to config used to generate resource pack',
+          }),
       runDump,
     )
 
@@ -47,7 +62,11 @@ export const main = () => {
           .option('l', { alias: 'lang', description: 'Languages to include' })
           .option('r', { alias: 'regions', description: 'Regions to include' })
           .option('o', { alias: 'out', default: '.', description: 'Output directory' })
-          .option('v', { alias: 'values', boolean: false, description: 'Include leaf values instead of counts' }),
+          .option('v', {
+            alias: 'values',
+            boolean: false,
+            description: 'Include leaf values instead of counts',
+          }),
       runSchema,
     )
 

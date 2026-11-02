@@ -1,12 +1,12 @@
-import { numbersApi } from '../../_helpers';
 import {
-  DecimalFormatOptions,
-  DecimalFormatStyleType,
-  LocaleData,
-  Part,
+  type DecimalFormatOptions,
+  type DecimalFormatStyleType,
   formatDecimal,
   formatDecimalToParts,
+  type LocaleData,
+  type Part,
 } from '../../../src';
+import { numbersApi } from '../../_helpers';
 
 test('format', () => {
   const api = numbersApi('en');
@@ -231,7 +231,11 @@ test('scientific non-latn', () => {
   s = formatDecimal(api, '1000000000', { style: 'scientific', nu: 'beng' });
   expect(s).toEqual('১E+৯');
 
-  s = formatDecimal(api, '1000000000', { style: 'scientific', nu: 'beng', minimumIntegerDigits: 0 });
+  s = formatDecimal(api, '1000000000', {
+    style: 'scientific',
+    nu: 'beng',
+    minimumIntegerDigits: 0,
+  });
   expect(s).toEqual('১E+৯');
 });
 
@@ -286,16 +290,32 @@ test('decimal compact', () => {
   s = formatDecimal(api, '45.6789', { style: 'short', maximumFractionDigits: 2 });
   expect(s).toEqual('45.68');
 
-  s = formatDecimal(api, '3456789123456789', { style: 'long', group: true, minimumFractionDigits: 1 });
+  s = formatDecimal(api, '3456789123456789', {
+    style: 'long',
+    group: true,
+    minimumFractionDigits: 1,
+  });
   expect(s).toEqual('3,456.8 trillion');
 
-  s = formatDecimal(api, '3456789123456789', { style: 'long', group: true, maximumFractionDigits: 1 });
+  s = formatDecimal(api, '3456789123456789', {
+    style: 'long',
+    group: true,
+    maximumFractionDigits: 1,
+  });
   expect(s).toEqual('3,456.8 trillion');
 
-  s = formatDecimal(api, '3456789123456789', { style: 'long', group: true, minimumSignificantDigits: 2 });
+  s = formatDecimal(api, '3456789123456789', {
+    style: 'long',
+    group: true,
+    minimumSignificantDigits: 2,
+  });
   expect(s).toEqual('3,457 trillion');
 
-  s = formatDecimal(api, '3456789123456789', { style: 'long', group: true, maximumSignificantDigits: 3 });
+  s = formatDecimal(api, '3456789123456789', {
+    style: 'long',
+    group: true,
+    maximumSignificantDigits: 3,
+  });
   expect(s).toEqual('3,460 trillion');
 
   s = formatDecimal(api, '999.99', { style: 'long', group: true, maximumFractionDigits: 1 });
@@ -517,7 +537,10 @@ test('decimal scientific parts', () => {
     { type: 'fraction', value: '235' },
   ]);
 
-  p = formatDecimalToParts(api, '-0.00012345', { style: 'scientific', minimumSignificantDigits: 3 });
+  p = formatDecimalToParts(api, '-0.00012345', {
+    style: 'scientific',
+    minimumSignificantDigits: 3,
+  });
   expect(p).toEqual([
     { type: 'minus', value: '-' },
     { type: 'integer', value: '1' },

@@ -147,14 +147,14 @@ suite in `packages/cldr`). They are not part of the test run. Build first: the s
 other packages through their built output.
 
 ```sh
-pnpm build
-pnpm bench                                   # all suites
-pnpm bench --project @phensley/cldr-core     # one package
-pnpm bench dates                             # files matching "dates"
+yarn build
+yarn bench                                   # all suites
+yarn bench --project @phensley/cldr-core     # one package
+yarn bench dates                             # files matching "dates"
 
 # save a baseline, change something, then compare against it
-pnpm bench --outputJson bench-results/before.json
-pnpm bench --compare bench-results/before.json
+yarn bench --outputJson bench-results/before.json
+yarn bench --compare bench-results/before.json
 ```
 
 `bench-results/` is git-ignored. Run a comparison at least twice; differences under ~5% are
@@ -164,7 +164,7 @@ Vitest runs the TypeScript sources through its own module loader, which adds a c
 cross-module call, so absolute numbers are lower than in a Node app and costs specific to the
 published builds don't show. `packages/cldr/__benchmarks__/cjs.bench.ts` loads the built
 CommonJS `lib/` with Node's own `require`, as a server would, to cover that. The older
-`benchmark.js` suites are still available as `pnpm bench:legacy`.
+`benchmark.js` suites are still available as `yarn bench:legacy`.
 
 ## License
 

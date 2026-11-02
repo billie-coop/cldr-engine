@@ -1,9 +1,9 @@
 import {
-  LanguageTag,
+  type LanguageTag,
+  languageTag,
   parseLanguageTag,
   substituteRegionAliases,
   LanguageTagField as Tag,
-  languageTag,
   tagExtensions,
   tagPrivateUse,
   tagVariant,
@@ -11,7 +11,7 @@ import {
 
 import { languageAliasRaw } from './autogen.aliases';
 import { likelySubtags } from './autogen.subtags';
-import { FastTag, LanguageAliasMap, stringToObject } from './util';
+import { type FastTag, type LanguageAliasMap, stringToObject } from './util';
 
 /**
  * Since a lot of comparisons will be done, we need fast access to
@@ -24,7 +24,11 @@ export const fastTag = (real: LanguageTag): FastTag => {
   // undefined, and we don't want to use its string representation of
   // the undefined value (e.g. 'und', 'Zzzz', etc), we use the field's
   // index number to represent undefined.
-  const fast: FastTag = [real.language || Tag.LANGUAGE, real.script || Tag.SCRIPT, real.region || Tag.REGION];
+  const fast: FastTag = [
+    real.language || Tag.LANGUAGE,
+    real.script || Tag.SCRIPT,
+    real.region || Tag.REGION,
+  ];
 
   // If an extlang subtag exists, replace the language subtag with the first
   // extlang value.
@@ -210,7 +214,8 @@ const initAlias = () => {
   LANGUAGE_ALIAS_MAP = buildLanguageAliasMap();
 };
 
-const toTag = (real: string | LanguageTag): LanguageTag => (typeof real === 'string' ? parseLanguageTag(real) : real);
+const toTag = (real: string | LanguageTag): LanguageTag =>
+  typeof real === 'string' ? parseLanguageTag(real) : real;
 
 /**
  * Substitute language and region aliases only.
@@ -262,7 +267,11 @@ export const addLikelySubtags = (real: string | LanguageTag): LanguageTag => {
 export const removeLikelySubtags = (real: string | LanguageTag): LanguageTag => {
   const tag = toTag(real);
   const max = fastTag(tag);
-  if (max[Tag.LANGUAGE] === Tag.LANGUAGE || max[Tag.SCRIPT] === Tag.SCRIPT || max[Tag.REGION] === Tag.REGION) {
+  if (
+    max[Tag.LANGUAGE] === Tag.LANGUAGE ||
+    max[Tag.SCRIPT] === Tag.SCRIPT ||
+    max[Tag.REGION] === Tag.REGION
+  ) {
     addLikelySubtagsFast(max);
   }
   const tmp = UNDEFINED.slice(0);

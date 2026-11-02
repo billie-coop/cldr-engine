@@ -1,6 +1,6 @@
-import { ContextType } from '@phensley/cldr-types';
+import type { ContextType } from '@phensley/cldr-types';
 
-import { CalendarDate, dateAdd, formatRelativeTime, toGregorianDate } from '../../../src';
+import { type CalendarDate, dateAdd, formatRelativeTime, toGregorianDate } from '../../../src';
 import { calendarsApi } from '../../_helpers';
 
 const UTC = 'UTC';

@@ -1,5 +1,8 @@
+import { createHeap, heapEmpty, heapPop, heapPush } from '@phensley/cldr-utils';
 import {
-  Rational,
+  decimalAlignexp,
+  decimalPrecision,
+  type Rational,
   RationalConstants,
   rational,
   rationalAdd,
@@ -8,11 +11,8 @@ import {
   rationalInverse,
   rationalMultiply,
   rationalNegate,
-  decimalAlignexp,
-  decimalPrecision,
 } from '@phensley/decimal';
-import { createHeap, heapEmpty, heapPop, heapPush } from '@phensley/cldr-utils';
-import { FactorDef } from './types';
+import type { FactorDef } from './types';
 
 type M<T> = { [dst: string]: T | undefined };
 type G<T> = { [src: string]: M<T> };
@@ -105,7 +105,11 @@ export const unitFactors = (factors: readonly FactorDef[]): UnitFactors => {
  *
  * @public
  */
-export const unitFactorsGet = (map: UnitFactors, src: string, dst: string): UnitConversion | undefined => {
+export const unitFactorsGet = (
+  map: UnitFactors,
+  src: string,
+  dst: string,
+): UnitConversion | undefined => {
   // Units are the same, conversion is 1
   if (src === dst) {
     return { path: [src, dst], factors: [ONE] };
@@ -118,7 +122,11 @@ export const unitFactorsGet = (map: UnitFactors, src: string, dst: string): Unit
   if (n) {
     const e = n[dst];
     if (e) {
-      return { path: [src, dst], factors: [e[0]], offset: rationalCompare(e[1], 0) === 0 ? undefined : e[1] };
+      return {
+        path: [src, dst],
+        factors: [e[0]],
+        offset: rationalCompare(e[1], 0) === 0 ? undefined : e[1],
+      };
     }
   }
 
@@ -149,7 +157,8 @@ export const unitFactorsGet = (map: UnitFactors, src: string, dst: string): Unit
     }
 
     // The offset key is only present for affine conversions
-    const r: UnitConversion = rationalCompare(offset, 0) !== 0 ? { path, factors, offset } : { path, factors };
+    const r: UnitConversion =
+      rationalCompare(offset, 0) !== 0 ? { path, factors, offset } : { path, factors };
 
     // Record this conversion factor in the cache
     let tmp = cache[src];
@@ -256,7 +265,10 @@ const cmp = (x: E, y: E) => (x[1] < y[1] ? -1 : x[1] > y[1] ? 1 : 0);
 const precision = (r: Rational) => {
   const n = r.numerator;
   const d = r.denominator;
-  return Math.abs(decimalPrecision(n) + decimalAlignexp(n)) + Math.abs(decimalPrecision(d) + decimalAlignexp(d));
+  return (
+    Math.abs(decimalPrecision(n) + decimalAlignexp(n)) +
+    Math.abs(decimalPrecision(d) + decimalAlignexp(d))
+  );
 };
 
 /**

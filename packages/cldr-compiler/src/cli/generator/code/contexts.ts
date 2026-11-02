@@ -1,4 +1,4 @@
-import { lineWrap, Code, HEADER, NOLINT_MAXLINE } from './util';
+import { Code, HEADER, lineWrap, NOLINT_MAXLINE } from './util';
 
 export const getContexts = (data: any): Code[] => {
   const result: Code[] = [];

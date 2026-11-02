@@ -1,4 +1,3 @@
-export { Day, DayDuration, DayUnit, Disambiguation, Instant, TimeOfDay } from './types';
 export {
   day,
   dayAdd,
@@ -24,6 +23,7 @@ export {
   dayUntil,
   isDay,
 } from './day';
+export { instantParse, instantToString } from './instant';
 export {
   isTimeOfDay,
   timeOfDay,
@@ -34,9 +34,10 @@ export {
   timeOfDayToMillis,
   timeOfDayToString,
 } from './time-of-day';
+export { Day, DayDuration, DayUnit, Disambiguation, Instant, TimeOfDay } from './types';
 export {
-  dayAtTime,
   DayAtTimeOptions,
+  dayAtTime,
   dayFromInstant,
   dayStartInstant,
   dayToday,
@@ -45,4 +46,3 @@ export {
   timeZoneId,
   timeZoneOffset,
 } from './zone';
-export { instantParse, instantToString } from './instant';

@@ -1,5 +1,5 @@
-import { KeyIndex } from '@phensley/cldr-types';
-import { digits, field, scope, scopemap, vector, Scope } from '../instructions';
+import type { KeyIndex } from '@phensley/cldr-types';
+import { digits, field, type Scope, scope, scopemap, vector } from '../instructions';
 import {
   CurrencySpacingPatternIndex,
   CurrencySpacingPosIndex,

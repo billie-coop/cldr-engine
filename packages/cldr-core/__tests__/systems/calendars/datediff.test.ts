@@ -1,21 +1,24 @@
-import { TimePeriodField } from '@phensley/cldr-core/lib';
+import type { TimePeriodField } from '@phensley/cldr-core/lib';
 import {
-  CalendarDate,
-  GregorianDate,
-  TimePeriod,
+  type CalendarDate,
   dateAdd,
   dateDifference,
   dateDifferenceSigned,
   dateToDateTimeString,
   dateUntil,
+  type GregorianDate,
   gregorianDateFromUnixEpoch,
+  type TimePeriod,
 } from '../../../src';
 import { MAR_11_2000, NEW_YORK } from './_referencedates';
 
 const gregorian = (e: number, z: string) => gregorianDateFromUnixEpoch(e, z, 1, 1);
 
 const period = (t: Partial<TimePeriod>): TimePeriod =>
-  Object.assign({ year: 0, month: 0, week: 0, day: 0, hour: 0, minute: 0, second: 0, millis: 0 }, t);
+  Object.assign(
+    { year: 0, month: 0, week: 0, day: 0, hour: 0, minute: 0, second: 0, millis: 0 },
+    t,
+  );
 
 const cldrstr = (c: CalendarDate): string =>
   dateToDateTimeString(c, { includeZoneOffset: true, optionalMilliseconds: true });
@@ -54,7 +57,16 @@ test('difference month vs day', () => {
 
 test('all flags', () => {
   let end: GregorianDate;
-  const fields: TimePeriodField[] = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millis'];
+  const fields: TimePeriodField[] = [
+    'year',
+    'month',
+    'week',
+    'day',
+    'hour',
+    'minute',
+    'second',
+    'millis',
+  ];
 
   //  February 29, 2024 8:30:00 AM GMT-05:00
   const start = gregorian(1709213400000, NEW_YORK);
@@ -74,10 +86,14 @@ test('weeks', () => {
   expect(cldrstr(start)).toEqual('2024-02-29 08:30:00-05:00');
 
   end = dateAdd(start, { day: 15 });
-  expect(dateDifference(start, end, { fields: ['week', 'day'] })).toEqual(period({ week: 2, day: 1 }));
+  expect(dateDifference(start, end, { fields: ['week', 'day'] })).toEqual(
+    period({ week: 2, day: 1 }),
+  );
 
   end = dateAdd(start, { day: 15 });
-  expect(dateDifference(start, end, { fields: ['day'], includeWeeks: true })).toEqual(period({ week: 0, day: 15 }));
+  expect(dateDifference(start, end, { fields: ['day'], includeWeeks: true })).toEqual(
+    period({ week: 0, day: 15 }),
+  );
 });
 
 test('leap year', () => {
@@ -101,7 +117,9 @@ test('leap year', () => {
 
   end = dateAdd(start, { year: 1, month: 2, day: 17 });
   expect(cldrstr(end)).toEqual('2025-05-16 08:30:00-04:00');
-  expect(dateDifference(start, end, { includeWeeks: true })).toEqual(period({ year: 1, month: 2, week: 2, day: 3 }));
+  expect(dateDifference(start, end, { includeWeeks: true })).toEqual(
+    period({ year: 1, month: 2, week: 2, day: 3 }),
+  );
 });
 
 test('month backwards', () => {
@@ -231,7 +249,9 @@ test('diff all fields', () => {
   expect(dateUntil(start, end, {})).toEqual(period({ year: 1, month: 2, day: 3 }));
 
   end = dateAdd(start, { year: 1, month: 2, day: 17 });
-  expect(dateUntil(start, end, { includeWeeks: true })).toEqual(period({ year: 1, month: 2, week: 2, day: 3 }));
+  expect(dateUntil(start, end, { includeWeeks: true })).toEqual(
+    period({ year: 1, month: 2, week: 2, day: 3 }),
+  );
 
   expect(dateUntil(start, end, { fields: ['year', 'month', 'day', 'week'] })).toEqual(
     period({ year: 1, month: 2, week: 2, day: 3 }),
@@ -243,10 +263,14 @@ test('diff YMD', () => {
   const start = gregorian(1709213400000, NEW_YORK);
   expect(cldrstr(start)).toEqual('2024-02-29 08:30:00-05:00');
   let end = dateAdd(start, { year: 1, month: 2, day: 3 });
-  expect(dateUntil(start, end, { fields: ['year', 'month', 'day'] })).toEqual(period({ year: 1, month: 2, day: 3 }));
+  expect(dateUntil(start, end, { fields: ['year', 'month', 'day'] })).toEqual(
+    period({ year: 1, month: 2, day: 3 }),
+  );
 
   end = dateAdd(start, { year: 1, month: 2, day: 17 });
-  expect(dateUntil(start, end, { fields: ['year', 'month', 'day'] })).toEqual(period({ year: 1, month: 2, day: 17 }));
+  expect(dateUntil(start, end, { fields: ['year', 'month', 'day'] })).toEqual(
+    period({ year: 1, month: 2, day: 17 }),
+  );
 
   expect(dateUntil(start, end, { fields: ['year', 'month', 'day', 'week'] })).toEqual(
     period({ year: 1, month: 2, week: 2, day: 3 }),
@@ -257,7 +281,7 @@ test('diff Y', () => {
   //  February 29, 2024 8:30:00 AM GMT-05:00
   const start = gregorian(1709213400000, NEW_YORK);
   expect(cldrstr(start)).toEqual('2024-02-29 08:30:00-05:00');
-  let end = dateAdd(start, { year: 1, month: 2, day: 3 });
+  const end = dateAdd(start, { year: 1, month: 2, day: 3 });
   expect(dateUntil(start, end, { fields: ['year'] })).toEqual(period({ year: 1 }));
 });
 
@@ -265,7 +289,7 @@ test('diff M', () => {
   //  February 29, 2024 8:30:00 AM GMT-05:00
   const start = gregorian(1709213400000, NEW_YORK);
   expect(cldrstr(start)).toEqual('2024-02-29 08:30:00-05:00');
-  let end = dateAdd(start, { year: 1, month: 2, day: 3 });
+  const end = dateAdd(start, { year: 1, month: 2, day: 3 });
   expect(dateUntil(start, end, { fields: ['month'] })).toEqual(period({ month: 14 }));
 });
 
@@ -273,16 +297,18 @@ test('diff YM', () => {
   //  February 29, 2024 8:30:00 AM GMT-05:00
   const start = gregorian(1709213400000, NEW_YORK);
   expect(cldrstr(start)).toEqual('2024-02-29 08:30:00-05:00');
-  let end = dateAdd(start, { year: 1, month: 2, day: 3 });
+  const end = dateAdd(start, { year: 1, month: 2, day: 3 });
   expect(cldrstr(end)).toEqual('2025-05-02 08:30:00-04:00');
-  expect(dateUntil(start, end, { fields: ['year', 'month'] })).toEqual(period({ year: 1, month: 2 }));
+  expect(dateUntil(start, end, { fields: ['year', 'month'] })).toEqual(
+    period({ year: 1, month: 2 }),
+  );
 });
 
 test('diff D', () => {
   //  February 29, 2024 8:30:00 AM GMT-05:00
   const start = gregorian(1709213400000, NEW_YORK);
   expect(cldrstr(start)).toEqual('2024-02-29 08:30:00-05:00');
-  let end = dateAdd(start, { year: 1, month: 2, day: 3 });
+  const end = dateAdd(start, { year: 1, month: 2, day: 3 });
   expect(cldrstr(end)).toEqual('2025-05-02 08:30:00-04:00');
   expect(dateUntil(start, end, { fields: ['day'] })).toEqual(period({ day: 428 }));
 });
@@ -306,9 +332,11 @@ test('diff MD', () => {
   //  February 29, 2024 8:30:00 AM GMT-05:00
   const start = gregorian(1709213400000, NEW_YORK);
   expect(cldrstr(start)).toEqual('2024-02-29 08:30:00-05:00');
-  let end = dateAdd(start, { year: 1, month: 2, day: 3 });
+  const end = dateAdd(start, { year: 1, month: 2, day: 3 });
   expect(cldrstr(end)).toEqual('2025-05-02 08:30:00-04:00');
-  expect(dateUntil(start, end, { fields: ['month', 'day'] })).toEqual(period({ month: 14, day: 3 }));
+  expect(dateUntil(start, end, { fields: ['month', 'day'] })).toEqual(
+    period({ month: 14, day: 3 }),
+  );
 });
 
 test('diff DH', () => {
@@ -320,9 +348,13 @@ test('diff DH', () => {
 
   end = dateAdd(start, { year: 1, month: 2, day: 3, hour: 15 });
   expect(cldrstr(end)).toEqual('2025-05-02 23:30:00-04:00');
-  expect(dateUntil(start, end, { fields: ['day', 'hour'] })).toEqual(period({ month: 0, day: 428, hour: 15 }));
+  expect(dateUntil(start, end, { fields: ['day', 'hour'] })).toEqual(
+    period({ month: 0, day: 428, hour: 15 }),
+  );
 
   end = dateAdd(start, { year: 1, month: 2, day: 3 });
   expect(cldrstr(end)).toEqual('2025-05-02 08:30:00-04:00');
-  expect(dateUntil(start, end, { fields: ['day', 'hour'] })).toEqual(period({ month: 0, day: 428 }));
+  expect(dateUntil(start, end, { fields: ['day', 'hour'] })).toEqual(
+    period({ month: 0, day: 428 }),
+  );
 });

@@ -11,12 +11,12 @@ export interface MessageState {
   e: number;
 }
 
-/* eslint-disable max-len */
+// Matches ICU pattern syntax and whitespace, which includes control characters.
 const IDENTIFIER =
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: see above
   /[^\u0009-\u000d \u0085\u200e\u200f\u2028\u2029\u0021-\u002f\u003a-\u0040\u005b-\u005e\u0060\u007b-\u007e\u00a1-\u00a7\u00a9\u00ab\u00ac\u00ae\u00b0\u00b1\u00b6\u00bb\u00bf\u00d7\u00f7\u2010-\u2027\u2030-\u203e\u2041-\u2053\u2055-\u205e\u2190-\u245f\u2500-\u2775\u2794-\u2bff\u2e00-\u2e7f\u3001-\u3003\u3008-\u3020\u3030\ufd3e\ufd3f\ufe45\ufe46]+/;
-/* eslint-enable max-len */
 
-const OPTION = /[^\s,\{\}]+/;
+const OPTION = /[^\s,{}]+/;
 
 // explicit or plural category
 const PLURAL_CHOICE = /(=\d+(\.\d+)?)|zero|one|two|few|many|other/;
@@ -113,7 +113,11 @@ const substringMatch: MatchFunc = (pattern, r) => {
   return undefined;
 };
 
-const createMatcher = (formatters: string[], compile: regexpFunc, match: MatchFunc): MessageMatcher => {
+const createMatcher = (
+  formatters: string[],
+  compile: regexpFunc,
+  match: MatchFunc,
+): MessageMatcher => {
   const space = compile('[,\\s]+');
   const arg = compile(`(0[1..9]+|\\d+|${IDENTIFIER.source})`);
   const ident = compile(IDENTIFIER.source);
@@ -223,10 +227,11 @@ export const substringMatcher = (formatters: string[], compile: regexpFunc): Mes
  */
 const hasStickyRegexp = /*#__PURE__*/ (() => {
   try {
+    // Built at runtime: a /./y literal is a syntax error where the flag isn't supported.
+    // biome-ignore lint/complexity/useRegexLiterals: feature detection, see above
     const r = new RegExp('.', 'y');
     return r && true;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (e) {
+  } catch {
     /* istanbul ignore next -- @preserve */
     return false;
   }
@@ -260,5 +265,8 @@ export const substringRegexp = (pattern: string): RegExp => new RegExp('^' + pat
  *
  * @public
  */
-export const buildMessageMatcher = (names: string[], sticky: boolean = hasStickyRegexp): MessageMatcher =>
+export const buildMessageMatcher = (
+  names: string[],
+  sticky: boolean = hasStickyRegexp,
+): MessageMatcher =>
   sticky ? stickyMatcher(names, stickyRegexp) : substringMatcher(names, substringRegexp);

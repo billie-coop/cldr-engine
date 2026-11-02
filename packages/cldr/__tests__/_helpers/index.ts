@@ -1,11 +1,12 @@
 import * as fs from 'fs';
 import { join } from 'path';
 
-import { cldrFramework, CLDRFramework, CLDROptions } from '../../src';
+import { type CLDRFramework, type CLDROptions, cldrFramework } from '../../src';
 
 const packPath = (language: string) => join(__dirname, '..', '..', 'packs', `${language}.json`);
 
-export const loader = (language: string): any => fs.readFileSync(packPath(language)).toString('utf-8');
+export const loader = (language: string): any =>
+  fs.readFileSync(packPath(language)).toString('utf-8');
 
 const defaultOptions: CLDROptions = {
   debug: true,

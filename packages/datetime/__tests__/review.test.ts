@@ -62,17 +62,23 @@ test('range boundaries', () => {
 
 test('start of day when the clocks jump over midnight from before it', () => {
   // Toronto went from 1919-03-30 23:30 to 1919-03-31 00:30: the 31st starts at 00:30 local.
-  expect(instantToString(dayStartInstant(day(1919, 3, 31), 'America/Toronto'))).toEqual('1919-03-31T04:30:00.000Z');
+  expect(instantToString(dayStartInstant(day(1919, 3, 31), 'America/Toronto'))).toEqual(
+    '1919-03-31T04:30:00.000Z',
+  );
   expect(
-    timeOfDayToString(timeOfDayFromInstant(dayStartInstant(day(1919, 3, 31), 'America/Toronto'), 'America/Toronto')),
+    timeOfDayToString(
+      timeOfDayFromInstant(dayStartInstant(day(1919, 3, 31), 'America/Toronto'), 'America/Toronto'),
+    ),
   ).toEqual('00:30');
   // Santiago springs forward at midnight: the day starts at 01:00.
   const z = 'America/Santiago';
-  expect(instantToString(dayStartInstant(day(2025, 9, 7), z), z)).toEqual('2025-09-07T01:00:00.000-03:00');
-  // Apia skipped 2011-12-30 entirely.
-  expect(dayToString(dayFromInstant(dayStartInstant(day(2011, 12, 31), 'Pacific/Apia'), 'Pacific/Apia'))).toEqual(
-    '2011-12-31',
+  expect(instantToString(dayStartInstant(day(2025, 9, 7), z), z)).toEqual(
+    '2025-09-07T01:00:00.000-03:00',
   );
+  // Apia skipped 2011-12-30 entirely.
+  expect(
+    dayToString(dayFromInstant(dayStartInstant(day(2011, 12, 31), 'Pacific/Apia'), 'Pacific/Apia')),
+  ).toEqual('2011-12-31');
 });
 
 test('zone ids in any letter case', () => {

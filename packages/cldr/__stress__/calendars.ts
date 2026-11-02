@@ -1,7 +1,13 @@
-import { availableLocales, DateFormatOptions, DateIntervalFormatOptions, FormatWidthType, ZonedDateTime } from '../src';
-import { getCLDR } from '../__tests__/_helpers';
-import { Timer } from './timer';
 import { DateTimePatternFieldValues } from '@phensley/cldr-core/lib/schema';
+import { getCLDR } from '../__tests__/_helpers';
+import {
+  availableLocales,
+  type DateFormatOptions,
+  type DateIntervalFormatOptions,
+  type FormatWidthType,
+  type ZonedDateTime,
+} from '../src';
+import { Timer } from './timer';
 
 const ZONES = ['America/New_York', 'Europe/London', 'Africa/Timbuktu'];
 
@@ -85,7 +91,9 @@ export const calendarStress = (): void => {
     total += i;
     console.log(`[calendars] format ${i} gregorian permutations: ${elapsed} micros`);
   }
-  console.log(`[calendars] executed ${total} total number of calendar permutations, ${empty} empty`);
+  console.log(
+    `[calendars] executed ${total} total number of calendar permutations, ${empty} empty`,
+  );
 };
 
 const buildIntervals = (): [ZonedDateTime, ZonedDateTime][] => {
@@ -168,5 +176,7 @@ export const intervalStress = (): void => {
     total += i;
     console.log(`[calendars] format ${i} interval permutations: ${elapsed} micros`);
   }
-  console.log(`[calendars] executed ${total} total number of interval permutations, ${empty} empty`);
+  console.log(
+    `[calendars] executed ${total} total number of interval permutations, ${empty} empty`,
+  );
 };
