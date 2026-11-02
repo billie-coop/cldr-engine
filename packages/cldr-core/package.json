@@ -42,6 +42,7 @@
   "dependencies": {
     "@phensley/cldr-types": "workspace:~1.16.0",
     "@phensley/cldr-utils": "workspace:~1.16.0",
+    "@phensley/datetime": "workspace:~1.16.0",
     "@phensley/decimal": "workspace:~1.16.0",
     "@phensley/language-tag": "workspace:~1.16.0",
     "@phensley/locale": "workspace:~1.16.0",

@@ -637,6 +637,107 @@ export interface DateZoneInfo {
     readonly zoneid: string;
 }
 
+// @public
+export interface Day {
+    // (undocumented)
+    readonly day: number;
+    // (undocumented)
+    readonly month: number;
+    // (undocumented)
+    readonly year: number;
+}
+
+// @public
+export const day: (year: number, month: number, dayOfMonth: number) => Day;
+
+// @public
+export const dayAdd: (d: Day, duration: DayDuration) => Day;
+
+// @public
+export const dayAtTime: (d: Day, time: TimeOfDay, zone: string, options?: DayAtTimeOptions) => Instant;
+
+// @public
+export interface DayAtTimeOptions {
+    disambiguation?: Disambiguation;
+}
+
+// @public
+export const dayCompare: (a: Day, b: Day) => number;
+
+// @public
+export const dayDaysInMonth: (d: Day) => number;
+
+// @public
+export interface DayDuration {
+    // (undocumented)
+    days?: number;
+    // (undocumented)
+    months?: number;
+    // (undocumented)
+    weeks?: number;
+    // (undocumented)
+    years?: number;
+}
+
+// @public
+export const dayEndOf: (d: Day, unit: "month" | "year") => Day;
+
+// @public
+export const dayEndOfWeek: (d: Day, firstDay: number) => Day;
+
+// @public
+export const dayEquals: (a: Day, b: Day) => boolean;
+
+// @public
+export interface DayFormatOptions {
+    alt?: DateFormatAltOptions;
+    ca?: CalendarType;
+    context?: ContextType;
+    date?: FormatWidthType;
+    nu?: NumberSystemType;
+    skeleton?: string;
+}
+
+// @public
+export const dayFromEpochDay: (n: number) => Day;
+
+// @public
+export const dayFromInstant: (instant: Instant, zone: string) => Day;
+
+// @public
+export const dayFromString: (s: string) => Day;
+
+// @public
+export interface DayIntervalFormatOptions {
+    // (undocumented)
+    alt?: DateFormatAltOptions;
+    // (undocumented)
+    ca?: CalendarType;
+    // (undocumented)
+    context?: ContextType;
+    // (undocumented)
+    nu?: NumberSystemType;
+    skeleton?: string;
+}
+
+// @public
+export const dayIsAfter: (a: Day, b: Day) => boolean;
+
+// @public
+export const dayIsBefore: (a: Day, b: Day) => boolean;
+
+// @public
+export const dayIsLeapYear: (d: Day) => boolean;
+
+// @public
+export const dayOfWeek: (d: Day) => number;
+
+// @public
+export const dayOfYear: (d: Day) => number;
+
+// @public
+export const dayParse: (s: string) => Day | undefined;
+
 // @public (undocumented)
 export const DayPeriodAltIndex: KeyIndex<"none" | "casing">;
 
@@ -650,6 +751,36 @@ export const dayPeriods: (data: LocaleData, opt?: CalendarFieldsOptions) => any;
 //
 // @public (undocumented)
 export const DayPeriodValues: DayPeriodType[];
+
+// @public
+export const dayRange: (start: Day, end: Day, step?: DayDuration) => Day[];
+
+// @public
+export const dayStartInstant: (d: Day, zone: string) => Instant;
+
+// @public
+export const dayStartOf: (d: Day, unit: "month" | "year") => Day;
+
+// @public
+export const dayStartOfWeek: (d: Day, firstDay: number) => Day;
+
+// @public
+export const daySubtract: (d: Day, duration: DayDuration) => Day;
+
+// @public
+export const dayToday: (zone: string, now?: Instant) => Day;
+
+// @public
+export const dayToEpochDay: (d: Day) => number;
+
+// @public
+export const dayToString: (d: Day) => string;
+
+// @public
+export type DayUnit = 'days' | 'weeks' | 'months' | 'years';
+
+// @public
+export const dayUntil: (from: Day, to: Day, unit?: DayUnit) => number;
 
 // @public
 export interface Decimal {
@@ -873,6 +1004,9 @@ export const digitsArrow: <T extends string>(offset: number, index: KeyIndex<T>,
 // @public
 export const digitsGet: <T extends string>(arrow: DigitsArrow<T>, bundle: PrimitiveBundle, key: T, digits: number) => [string, number];
 
+// @public
+export type Disambiguation = 'compatible' | 'earlier' | 'later' | 'reject';
+
 // @public (undocumented)
 export interface DisplayNameOptions {
     // (undocumented)
@@ -993,10 +1127,34 @@ export const formatDateWrapper: (data: LocaleData, date: string, time: string, o
 export const formatDateWrapperToParts: (data: LocaleData, date: Part[], time: Part[], options?: DateWrapperFormatOptions) => Part[];
 
 // @public
+export const formatDay: (data: LocaleData, d: Day, options?: DayFormatOptions) => string;
+
+// @public
+export const formatDayInterval: (data: LocaleData, start: Day, end: Day, options?: DayIntervalFormatOptions) => string;
+
+// @public
+export const formatDayIntervalToParts: (data: LocaleData, start: Day, end: Day, options?: DayIntervalFormatOptions) => Part[];
+
+// @public
+export const formatDayRelative: (data: LocaleData, d: Day, relativeTo: Day, options?: RelativeTimeFieldFormatOptions) => string;
+
+// @public
+export const formatDayToParts: (data: LocaleData, d: Day, options?: DayFormatOptions) => Part[];
+
+// @public
 export const formatDecimal: (data: LocaleData, n: DecimalArg, options?: DecimalFormatOptions) => string;
 
 // @public
 export const formatDecimalToParts: (data: LocaleData, n: DecimalArg, options?: DecimalFormatOptions) => Part[];
+
+// @public
+export const formatInstant: (data: LocaleData, instant: Instant, zone: string, options?: DateFormatOptions) => string;
+
+// @public
+export const formatInstantRelative: (data: LocaleData, instant: Instant, relativeTo: Instant, zone: string, options?: RelativeTimeFormatOptions) => string;
+
+// @public
+export const formatInstantToParts: (data: LocaleData, instant: Instant, zone: string, options?: DateFormatOptions) => Part[];
 
 // @public
 export const formatList: (data: LocaleData, items: string[], type?: ListPatternType) => string;
@@ -1024,6 +1182,12 @@ export const formatRelativeTime: (data: LocaleData, start: CalendarDate | ZonedD
 
 // @public
 export const formatRelativeTimeField: (data: LocaleData, value: DecimalArg, field: RelativeTimeFieldType, options?: RelativeTimeFieldFormatOptions) => string;
+
+// @public
+export const formatTimeOfDay: (data: LocaleData, t: TimeOfDay, options?: TimeOfDayFormatOptions) => string;
+
+// @public
+export const formatTimeOfDayToParts: (data: LocaleData, t: TimeOfDay, options?: TimeOfDayFormatOptions) => Part[];
 
 // @public (undocumented)
 export type FormatWidthType = 'short' | 'medium' | 'long' | 'full';
@@ -1122,6 +1286,15 @@ export const GregorianEraIndex: KeyIndex<string>;
 // @public (undocumented)
 export const GregorianMonthsIndex: KeyIndex<string>;
 
+// @public
+export type Instant = number;
+
+// @public
+export const instantParse: (s: string, zone?: string) => Instant | undefined;
+
+// @public
+export const instantToString: (instant: Instant, zone?: string) => string;
+
 // @public (undocumented)
 export type Instruction = Digits | Field | Origin | Scope | ScopeMap | Vector;
 
@@ -1135,6 +1308,9 @@ export const isBuddhistDate: (x: any) => x is BuddhistDate;
 
 // @public
 export const isCalendarDate: (x: any) => x is CalendarDate;
+
+// @public
+export const isDay: (v: unknown) => v is Day;
 
 // @public
 export const isDecimal: (x: any) => x is Decimal;
@@ -1179,6 +1355,9 @@ export const isRational: (x: any) => x is Rational;
 //
 // @public (undocumented)
 export const isScopeArrow: (x: any) => x is ScopeArrow<any, any>;
+
+// @public
+export const isTimeOfDay: (v: unknown) => v is TimeOfDay;
 
 // Warning: (ae-forgotten-export) The symbol "VectorArrowBase" needs to be exported by the entry point index.d.ts
 //
@@ -2214,6 +2393,9 @@ export const substringMatcher: (formatters: string[], compile: regexpFunc) => Me
 export const substringRegexp: (pattern: string) => RegExp;
 
 // @public
+export const systemTimeZone: () => string | undefined;
+
+// @public
 export const tagCompact: (t: LanguageTag) => string;
 
 // @public
@@ -2275,6 +2457,53 @@ export interface TimeData {
 
 // @public
 export const timeData: (data: LocaleData) => TimeData;
+
+// @public
+export interface TimeOfDay {
+    // (undocumented)
+    readonly hour: number;
+    // (undocumented)
+    readonly millis: number;
+    // (undocumented)
+    readonly minute: number;
+    // (undocumented)
+    readonly second: number;
+}
+
+// @public
+export const timeOfDay: (hour: number, minute?: number, second?: number, millis?: number) => TimeOfDay;
+
+// @public
+export const timeOfDayCompare: (a: TimeOfDay, b: TimeOfDay) => number;
+
+// @public
+export interface TimeOfDayFormatOptions {
+    // (undocumented)
+    alt?: DateFormatAltOptions;
+    // (undocumented)
+    context?: ContextType;
+    // (undocumented)
+    nu?: NumberSystemType;
+    skeleton?: string;
+}
+
+// @public
+export const timeOfDayFromInstant: (instant: Instant, zone: string) => TimeOfDay;
+
+// @public
+export const timeOfDayFromMillis: (ms: number) => TimeOfDay;
+
+// @public
+export const timeOfDayFromString: (s: string) => TimeOfDay;
+
+// @public
+export const timeOfDayParse: (s: string) => TimeOfDay | undefined;
+
+// @public
+export const timeOfDayToMillis: (t: TimeOfDay) => number;
+
+// @public
+export const timeOfDayToString: (t: TimeOfDay) => string;
 
 // @public (undocumented)
 export interface TimePeriod {
@@ -2370,6 +2599,9 @@ export interface TimeZoneInfo {
 
 // @public
 export const timeZoneInfo: (data: LocaleData, zoneid: string) => TimeZoneInfo;
+
+// @public
+export const timeZoneOffset: (zone: string, instant: Instant) => number;
 
 // @public (undocumented)
 export const TimeZoneStableIdIndex: KeyIndex<string>;
@@ -2526,7 +2758,7 @@ export interface ZoneInfo {
 
 // Warnings were encountered during analysis:
 //
-// /Users/steve/Dev/github.com/billie-coop/cldr-engine-2-fixes/packages/cldr-core/lib/resource/pack.d.ts:18:9 - (ae-incompatible-release-tags) The symbol "__index" is marked as @public, but its signature references "ExceptionIndex" which is marked as @internal
+// /Users/steve/Dev/github.com/billie-coop/cldr-engine-2/packages/cldr-core/lib/resource/pack.d.ts:18:9 - (ae-incompatible-release-tags) The symbol "__index" is marked as @public, but its signature references "ExceptionIndex" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 
