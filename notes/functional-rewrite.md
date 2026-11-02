@@ -294,6 +294,25 @@ week accessors are ~3× slower (recomputed per call, see open items).
   were generated from (`defaultTimeZoneData`) and joined to the active data by zone id. Zones the
   active data adds have no metazone (as `Etc/GMT+1` has none). No change with the bundled data
   (1.x had no way to replace it). Tests: `cldr-core/__tests__/systems/calendars/tzdata.test.ts`.
+- **Shared parse caches exposed (P2, API).** `parseDatePattern`, `getHourPattern`,
+  `getNumberPattern` and `parseWrapper` returned the arrays/objects stored in the module-level
+  pattern caches, and were importable from `@phensley/cldr(-core)` (via `export * from
+  './internals'`), so a caller could edit them and change formatting for every framework.
+  **API change:** cldr-core's index no longer re-exports `./internals` or `./api/private` (every
+  name there was `@internal`; nothing outside cldr-core used them; 1.x only reached them through
+  `cldr.Internals`, already dropped). Removed from the public entry points: `parseDatePattern`,
+  `getHourPattern`, `getNumberPattern`, `parseWrapper`, `PATTERN_CACHE_SIZE`, `weekFirstDay`,
+  `weekMinDays`, `getCalendarFormatter`, `renderDateTime`, `renderDateInterval`, `selectCalendar`,
+  `flexDayPeriod`, `renderRelativeTimeField`, `contextTransform`, `formatListValue`,
+  `formatWrapper`, `adjustNumber`, `currencySymbol`, `currencyDisplayName`, `currencyPluralName`,
+  `renderDecimal`, `renderCurrency`, `renderUnit`, `getUnitInfo`, `stringRenderer`,
+  `partsRenderer`, `RE_SYMBOL`, `RE_DIGIT`, `CURRENCY_SPACING_MATCHERS`, `getNumberParams`,
+  `getContextTransformInfo` and the types `NumberRenderer`, `NumberParams`, `CurrencySpacing`
+  (`NumberSymbols` stays exported: the public `decimalNumberingSystem` takes one). `getCurrencyForRegion` / `getCurrencyFractions` stay (explicit export, as in
+  1.x). The parsed node types are now deeply readonly (`DateTimeField = readonly [string, number]`,
+  `readonly DateTimeNode[]`, `readonly WrapperNode[]`, all-readonly `NumberPattern`), so internal
+  code can't mutate them either; no copying was added. Formatting output unchanged.
+  Test: `cldr-core/__tests__/internals/patterncache.test.ts`.
 
 ## 1.x bugs / oddities found (behaviour preserved unless noted)
 

@@ -15,7 +15,7 @@ export interface AbstractValue<R> {
   render(): R;
   reset(): void;
   join(...elems: R[]): R;
-  wrap(pattern: WrapperNode[], args: R[]): void;
+  wrap(pattern: readonly WrapperNode[], args: R[]): void;
   empty(): R;
 }
 
@@ -50,7 +50,7 @@ export const stringValue = (): AbstractValue<string> => {
       str = '';
     },
     join: (...elems: string[]): string => elems.join(''),
-    wrap: (pattern: WrapperNode[], args: string[]): void => {
+    wrap: (pattern: readonly WrapperNode[], args: string[]): void => {
       for (const n of pattern) {
         if (typeof n === 'string') {
           add('literal', n);
@@ -100,7 +100,7 @@ export const partsValue = (): AbstractValue<Part[]> => {
       parts = [];
     },
     join: (...elems: Part[][]): Part[] => ([] as Part[]).concat(...elems),
-    wrap: (pattern: WrapperNode[], args: Part[][]): void => {
+    wrap: (pattern: readonly WrapperNode[], args: Part[][]): void => {
       for (const n of pattern) {
         if (typeof n === 'string') {
           add('literal', n);

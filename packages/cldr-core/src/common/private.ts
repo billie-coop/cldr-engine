@@ -68,8 +68,8 @@ export interface NumberParams {
  */
 export interface DateFormatRequest {
   wrapper: string;
-  date?: DateTimeNode[];
-  time?: DateTimeNode[];
+  date?: readonly DateTimeNode[];
+  time?: readonly DateTimeNode[];
   params: NumberParams;
 }
 
@@ -77,8 +77,8 @@ export interface DateFormatRequest {
  * @internal
  */
 export interface DateIntervalFormatRequest {
-  date?: DateTimeNode[];
-  range?: DateTimeNode[];
+  date?: readonly DateTimeNode[];
+  range?: readonly DateTimeNode[];
   skeleton?: string;
   params: NumberParams;
 

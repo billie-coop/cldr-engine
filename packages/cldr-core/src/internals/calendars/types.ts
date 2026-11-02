@@ -3,15 +3,15 @@ import { NumberParams } from '../../common/private';
 
 export interface DateFormatRequest {
   wrapper?: string;
-  date?: DateTimeNode[];
-  time?: DateTimeNode[];
+  date?: readonly DateTimeNode[];
+  time?: readonly DateTimeNode[];
   params: NumberParams;
 }
 
 export interface DateIntervalFormatRequest {
-  date?: DateTimeNode[];
-  time?: DateTimeNode[];
-  range?: DateTimeNode[];
+  date?: readonly DateTimeNode[];
+  time?: readonly DateTimeNode[];
+  range?: readonly DateTimeNode[];
   skeleton?: string;
   params: NumberParams;
   wrapper: string;

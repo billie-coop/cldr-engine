@@ -14,14 +14,14 @@ import { vectorMapping } from '../../schema/schema/arrows';
  */
 export const PATTERN_CACHE_SIZE = 200;
 
-let wrapperPatternCache: Cache<WrapperNode[]> | undefined;
+let wrapperPatternCache: Cache<readonly WrapperNode[]> | undefined;
 
 /**
  * Parse a wrapper pattern like '{0} {1}' (cached).
  *
  * @internal
  */
-export const parseWrapper = (raw: string): WrapperNode[] =>
+export const parseWrapper = (raw: string): readonly WrapperNode[] =>
   cacheGet(wrapperPatternCache || (wrapperPatternCache = createCache(parseWrapperPattern, PATTERN_CACHE_SIZE)), raw);
 
 /**

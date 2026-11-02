@@ -26,8 +26,8 @@ import { parseDatePattern } from './internal';
 
 export interface CachedSkeletonRequest {
   dateSkel?: DateSkeleton;
-  date?: DateTimeNode[];
-  time?: DateTimeNode[];
+  date?: readonly DateTimeNode[];
+  time?: readonly DateTimeNode[];
 }
 
 export type StandaloneFieldType = 'dayPeriods' | 'eras' | 'months' | 'quarters' | 'weekdays';
@@ -135,10 +135,10 @@ export const patternsSetCachedRequest = (p: CalendarPatterns, key: string, req: 
   lruSet(p.skeletonRequestCache, key, req);
 };
 
-export const patternsDatePattern = (p: CalendarPatterns, width: string): DateTimeNode[] =>
+export const patternsDatePattern = (p: CalendarPatterns, width: string): readonly DateTimeNode[] =>
   parseDatePattern(p.dateFormats[width] || '');
 
-export const patternsTimePattern = (p: CalendarPatterns, width: string): DateTimeNode[] =>
+export const patternsTimePattern = (p: CalendarPatterns, width: string): readonly DateTimeNode[] =>
   parseDatePattern(p.timeFormats[width] || '');
 
 export const patternsWrapperPattern = (p: CalendarPatterns, width: string, atTime: boolean): string => {
@@ -152,7 +152,11 @@ export const patternsWrapperPattern = (p: CalendarPatterns, width: string, atTim
  * patterns don't actually differ based on the plural category. This is here so the design has a
  * chance of supporting pluralization of skeleton patterns in the future.
  */
-export const patternsAvailablePattern = (p: CalendarPatterns, d: CalendarDate, s: DateSkeleton): DateTimeNode[] => {
+export const patternsAvailablePattern = (
+  p: CalendarPatterns,
+  d: CalendarDate,
+  s: DateSkeleton,
+): readonly DateTimeNode[] => {
   if (!p.gregorian) {
     const pattern = s.pattern
       ? s.pattern
@@ -179,7 +183,11 @@ export const patternsAvailablePattern = (p: CalendarPatterns, d: CalendarDate, s
   return parseDatePattern(pattern);
 };
 
-export const patternsIntervalPattern = (p: CalendarPatterns, field: string, skeleton: string): DateTimeNode[] => {
+export const patternsIntervalPattern = (
+  p: CalendarPatterns,
+  field: string,
+  skeleton: string,
+): readonly DateTimeNode[] => {
   const group = p.rawIntervalFormats[field];
   const pattern = group ? group[skeleton] : '';
   return parseDatePattern(pattern || '');
@@ -188,11 +196,11 @@ export const patternsIntervalPattern = (p: CalendarPatterns, field: string, skel
 export const patternsIntervalFallback = (p: CalendarPatterns): string => p.intervalFallback;
 
 export const patternsAdjust = (
-  pattern: DateTimeNode[],
+  pattern: readonly DateTimeNode[],
   skeleton: DateSkeleton,
   matched: DateSkeleton,
   decimalSymbol: string,
-): DateTimeNode[] => matcherAdjust(pattern, skeleton, matched, decimalSymbol);
+): readonly DateTimeNode[] => matcherAdjust(pattern, skeleton, matched, decimalSymbol);
 
 export const patternsMatchAvailable = (p: CalendarPatterns, skeleton: DateSkeleton): DateSkeleton =>
   matcherMatch(p.availableMatcher, skeleton).skeleton;
