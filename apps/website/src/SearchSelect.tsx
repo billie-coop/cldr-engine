@@ -232,7 +232,7 @@ export const SearchSelect = (props: {
       </button>
 
       {open && (
-        <div className="absolute top-full end-0 z-20 mt-1 flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg sm:w-96 dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="absolute top-full start-0 z-20 mt-1 flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg sm:w-96 dark:border-zinc-700 dark:bg-zinc-900">
           <input
             // biome-ignore lint/a11y/noAutofocus: the list opened to be searched
             autoFocus

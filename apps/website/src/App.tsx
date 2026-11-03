@@ -88,8 +88,8 @@ export const App = () => {
       className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100"
     >
       <header className="top-0 z-10 sm:sticky border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-end gap-x-6 gap-y-3 px-4 py-3">
-          <div className="mr-auto">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3">
+          <div>
             <h1 className="text-xl font-semibold tracking-tight">cldr-engine 2</h1>
             <p className="text-xs text-zinc-500">
               {t(
@@ -98,32 +98,36 @@ export const App = () => {
               )}
             </p>
           </div>
-          <SearchSelect
-            label={t('Locale')}
-            placeholder={t('Search languages and regions')}
-            empty={(query) => t('No matches for “{query}”', { query })}
-            value={localeId}
-            onChange={setLocaleId}
-            items={localeOptions}
-            detail={(item) =>
-              localeDetail(cldr, en, item.value).map((line) => (
-                <div key={line} dir="auto">
-                  {line}
-                </div>
-              ))
-            }
-            className="w-full sm:w-64"
-          />
-          <SearchSelect
-            label={t('Time zone')}
-            placeholder={t('Search time zones')}
-            empty={(query) => t('No matches for “{query}”', { query })}
-            value={zone}
-            onChange={setZone}
-            items={zoneOptions}
-            detail={(item) => <div dir="auto">{zoneDetail(cldr, item.value)}</div>}
-            className="w-full sm:w-56"
-          />
+          {/* Pickers on their own row, so their place doesn't depend on how long the
+              translated line above is. */}
+          <div className="flex flex-wrap gap-3">
+            <SearchSelect
+              label={t('Locale')}
+              placeholder={t('Search languages and regions')}
+              empty={(query) => t('No matches for “{query}”', { query })}
+              value={localeId}
+              onChange={setLocaleId}
+              items={localeOptions}
+              detail={(item) =>
+                localeDetail(cldr, en, item.value).map((line) => (
+                  <div key={line} dir="auto">
+                    {line}
+                  </div>
+                ))
+              }
+              className="w-full sm:w-72"
+            />
+            <SearchSelect
+              label={t('Time zone')}
+              placeholder={t('Search time zones')}
+              empty={(query) => t('No matches for “{query}”', { query })}
+              value={zone}
+              onChange={setZone}
+              items={zoneOptions}
+              detail={(item) => <div dir="auto">{zoneDetail(cldr, item.value)}</div>}
+              className="w-full sm:w-72"
+            />
+          </div>
         </div>
         <nav className="mx-auto flex max-w-5xl flex-wrap gap-x-4 gap-y-1 px-4 pb-2 text-sm">
           {NAV.map(([id, label]) => (

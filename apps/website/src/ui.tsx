@@ -18,7 +18,7 @@ export const Section = (props: {
 }) => (
   <section
     id={props.id}
-    className="scroll-mt-28 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+    className="scroll-mt-4 sm:scroll-mt-56 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
   >
     <h2 className="text-lg font-semibold tracking-tight">{props.title}</h2>
     <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{props.intro}</p>
