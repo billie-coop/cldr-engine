@@ -8,6 +8,9 @@
 export const addLikelySubtags: (real: string | LanguageTag) => LanguageTag;
 
 // @public
+export const flagRegion: (flag: string) => string | undefined;
+
+// @public
 export interface LanguageTag {
     readonly extensions: {
         readonly [x: string]: readonly string[];
@@ -27,6 +30,12 @@ export interface Locale {
 }
 
 // @public
+export const localeFlag: (locale: string | LanguageTag) => string | undefined;
+
+// @public
+export const regionFlag: (region: string) => string | undefined;
+
+// @public
 export const removeLikelySubtags: (real: string | LanguageTag) => LanguageTag;
 
 // @public
@@ -34,6 +43,9 @@ export const resolveLanguageTag: (real: string | LanguageTag) => LanguageTag;
 
 // @public
 export const resolveLocaleId: (id: string) => Locale;
+
+// @public
+export const subdivisionFlag: (subdivision: string) => string | undefined;
 
 // @public
 export const substituteAliases: (real: string | LanguageTag) => LanguageTag;

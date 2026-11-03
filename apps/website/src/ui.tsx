@@ -29,7 +29,7 @@ export const Section = (props: {
 
 /** One example: the call on the left, its result on the right. */
 export const Example = (props: { code: string; result: ReactNode; note?: string }) => (
-  <div className="grid gap-1 py-2.5 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] sm:gap-4">
+  <div className="grid grid-cols-[minmax(0,1fr)] gap-1 py-2.5 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] sm:gap-4">
     <code
       dir="ltr"
       className="overflow-x-auto whitespace-pre font-mono text-xs text-zinc-500 dark:text-zinc-400"

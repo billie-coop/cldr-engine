@@ -549,6 +549,28 @@ with an error that contains each checkout's own pack path.
 Shared oddity seen there (kept from 1.x): `newJapaneseDate` / `newISO8601Date` throw "Cannot read
 properties of undefined" for some field sets (no defaults are applied; listed under 1.x bugs).
 
+## Flags and the site's searchable pickers (added 2026-11-02)
+
+- `@phensley/locale` has `regionFlag`, `localeFlag`, `subdivisionFlag` and `flagRegion`,
+  re-exported from `@phensley/cldr`. Flags are built from regional indicator characters; the
+  259 RGI two-letter flags (Emoji 16.0, Sark included) are a 780-byte string. `localeFlag`
+  uses likely subtags and aliases (`ja` → 🇯🇵, `en-UK` → 🇬🇧) and the `u-sd` subdivision
+  extension (England, Scotland, Wales). This replaces the monorepo's `emojiFlags`, which loads
+  all of `emoji-datasource` and matches the last two characters of the expanded tag.
+- The site's locale and time zone pickers are `SearchSelect` (apps/website/src), a combobox
+  over seaq 2.0.0-rc.2 (npm's `latest` is still the 2021 1.1.5 with the old API). Rows show the
+  flag, names in the page's language and the id or current offset; the footer shows the likely
+  tag and currency (locales) or the zone id and its countries (zones). English names, CLDR's
+  own locale names ("Swiss High German"), the id with spaces, zone ids and country names are
+  searchable.
+- seaq scores a match lower the further into the string it falls, so a long field of extra
+  names lost to weak fuzzy matches elsewhere. Each name is now its own short entry; results
+  keep each item's best entry. Threshold 0.5 drops weak matches.
+- Not searchable: a language's name for itself ("Deutsch"), since that needs every
+  language's pack. A small generated autonym table would fix it.
+- Fixed in passing: long code samples widened the page on phones (grid items need
+  `minmax(0,1fr)`).
+
 ## App translations: `createTranslator` (added 2026-11-02)
 
 Stephen's apps had built their own translation layer on 1.x (`@billie-coop/intl`: English text

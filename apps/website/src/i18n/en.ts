@@ -12,6 +12,9 @@ export const en = {
     'v{version} · CLDR {cldr} · plain functions over plain data · every example runs live',
   Locale: 'Locale',
   'Time zone': 'Time zone',
+  'Search languages and regions': 'Search languages and regions',
+  'Search time zones': 'Search time zones',
+  'No matches for “{query}”': 'No matches for “{query}”',
   'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.':
     'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.',
   'Built on cldr-engine by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA tz database.':

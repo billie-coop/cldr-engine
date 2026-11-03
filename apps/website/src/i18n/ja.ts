@@ -8,6 +8,9 @@ export const ja: MessageCatalog<MessageKey> = {
     'v{version} · CLDR {cldr} · シンプルなデータに対するシンプルな関数 · すべての例がライブで動作',
   Locale: 'ロケール',
   'Time zone': 'タイムゾーン',
+  'Search languages and regions': '言語と地域を検索',
+  'Search time zones': 'タイムゾーンを検索',
+  'No matches for “{query}”': '「{query}」に一致する項目はありません',
   'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.':
     'ロケールデータはシンプルなオブジェクト(`loadLocaleAsync(framework, locale)`)で、シンプルな関数に渡します。バンドラーはインポートした関数だけを残します。数値の書式設定だけなら gzip で約 42 KB、日付計算だけなら約 1.3 KB です。',
   'Built on cldr-engine by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA tz database.':

@@ -8,6 +8,9 @@ export const de: MessageCatalog<MessageKey> = {
     'v{version} · CLDR {cldr} · einfache Funktionen über einfache Daten · jedes Beispiel läuft live',
   Locale: 'Gebietsschema',
   'Time zone': 'Zeitzone',
+  'Search languages and regions': 'Sprachen und Regionen suchen',
+  'Search time zones': 'Zeitzonen suchen',
+  'No matches for “{query}”': 'Keine Treffer für „{query}“',
   'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.':
     'Gebietsschema-Daten sind ein einfaches Objekt (`loadLocaleAsync(framework, locale)`), das an einfache Funktionen übergeben wird. Bundler behalten nur die Funktionen, die du importierst: Zahlenformatierung allein sind etwa 42 KB gzip, Tagesrechnung allein etwa 1,3 KB.',
   'Built on cldr-engine by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA tz database.':

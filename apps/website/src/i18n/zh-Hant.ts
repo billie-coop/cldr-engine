@@ -8,6 +8,9 @@ export const zhHant: MessageCatalog<MessageKey> = {
     'v{version} · CLDR {cldr} · 作用於簡單資料的簡單函式 · 每個範例都即時執行',
   Locale: '語言區域',
   'Time zone': '時區',
+  'Search languages and regions': '搜尋語言和地區',
+  'Search time zones': '搜尋時區',
+  'No matches for “{query}”': '沒有符合「{query}」的結果',
   'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.':
     '語言區域資料是一個簡單物件(`loadLocaleAsync(framework, locale)`),傳給簡單函式使用。打包工具只保留你匯入的函式:僅數字格式化約為 42 KB(gzip),僅日期計算約為 1.3 KB。',
   'Built on cldr-engine by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA tz database.':

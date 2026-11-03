@@ -1122,6 +1122,9 @@ export const FieldWidthValues: FieldWidthType[];
 export const firstDayOfWeek: (data: LocaleData) => number;
 
 // @public
+export const flagRegion: (flag: string) => string | undefined;
+
+// @public
 export const formatCurrency: (data: LocaleData, n: DecimalArg, code: CurrencyType, options?: CurrencyFormatOptions) => string;
 
 // @public
@@ -1486,6 +1489,9 @@ export interface LocaleData extends Bundle {
 
 // @public
 export const localeData: (locale: Locale, bundle: Bundle, schema: Schema, indices: KeyIndexMap, config: SchemaConfig) => LocaleData;
+
+// @public
+export const localeFlag: (locale: string | LanguageTag) => string | undefined;
 
 // @public
 export interface LocaleMatch {
@@ -2196,6 +2202,9 @@ export const rationalToString: (un: RationalArg) => string;
 // @public
 export type regexpFunc = (pattern: string) => RegExp;
 
+// @public
+export const regionFlag: (region: string) => string | undefined;
+
 // @public (undocumented)
 export type RegionIdType = ('001' | '002' | '003' | '005' | '009' | '011' | '013' | '014' | '015' | '017' | '018' | '019' | '021' | '029' | '030' | '034' | '035' | '039' | '053' | '054' | '057' | '061' | '142' | '143' | '145' | '150' | '151' | '154' | '155' | '202' | '419' | 'AC' | 'AD' | 'AE' | 'AF' | 'AG' | 'AI' | 'AL' | 'AM' | 'AO' | 'AQ' | 'AR' | 'AS' | 'AT' | 'AU' | 'AW' | 'AX' | 'AZ' | 'BA' | 'BB' | 'BD' | 'BE' | 'BF' | 'BG' | 'BH' | 'BI' | 'BJ' | 'BL' | 'BM' | 'BN' | 'BO' | 'BQ' | 'BR' | 'BS' | 'BT' | 'BV' | 'BW' | 'BY' | 'BZ' | 'CA' | 'CC' | 'CD' | 'CF' | 'CG' | 'CH' | 'CI' | 'CK' | 'CL' | 'CM' | 'CN' | 'CO' | 'CP' | 'CQ' | 'CR' | 'CU' | 'CV' | 'CW' | 'CX' | 'CY' | 'CZ' | 'DE' | 'DG' | 'DJ' | 'DK' | 'DM' | 'DO' | 'DZ' | 'EA' | 'EC' | 'EE' | 'EG' | 'EH' | 'ER' | 'ES' | 'ET' | 'EU' | 'EZ' | 'FI' | 'FJ' | 'FK' | 'FM' | 'FO' | 'FR' | 'GA' | 'GB' | 'GD' | 'GE' | 'GF' | 'GG' | 'GH' | 'GI' | 'GL' | 'GM' | 'GN' | 'GP' | 'GQ' | 'GR' | 'GS' | 'GT' | 'GU' | 'GW' | 'GY' | 'HK' | 'HM' | 'HN' | 'HR' | 'HT' | 'HU' | 'IC' | 'ID' | 'IE' | 'IL' | 'IM' | 'IN' | 'IO' | 'IQ' | 'IR' | 'IS' | 'IT' | 'JE' | 'JM' | 'JO' | 'JP' | 'KE' | 'KG' | 'KH' | 'KI' | 'KM' | 'KN' | 'KP' | 'KR' | 'KW' | 'KY' | 'KZ' | 'LA' | 'LB' | 'LC' | 'LI' | 'LK' | 'LR' | 'LS' | 'LT' | 'LU' | 'LV' | 'LY' | 'MA' | 'MC' | 'MD' | 'ME' | 'MF' | 'MG' | 'MH' | 'MK' | 'ML' | 'MM' | 'MN' | 'MO' | 'MP' | 'MQ' | 'MR' | 'MS' | 'MT' | 'MU' | 'MV' | 'MW' | 'MX' | 'MY' | 'MZ' | 'NA' | 'NC' | 'NE' | 'NF' | 'NG' | 'NI' | 'NL' | 'NO' | 'NP' | 'NR' | 'NU' | 'NZ' | 'OM' | 'PA' | 'PE' | 'PF' | 'PG' | 'PH' | 'PK' | 'PL' | 'PM' | 'PN' | 'PR' | 'PS' | 'PT' | 'PW' | 'PY' | 'QA' | 'QO' | 'RE' | 'RO' | 'RS' | 'RU' | 'RW' | 'SA' | 'SB' | 'SC' | 'SD' | 'SE' | 'SG' | 'SH' | 'SI' | 'SJ' | 'SK' | 'SL' | 'SM' | 'SN' | 'SO' | 'SR' | 'SS' | 'ST' | 'SV' | 'SX' | 'SY' | 'SZ' | 'TA' | 'TC' | 'TD' | 'TF' | 'TG' | 'TH' | 'TJ' | 'TK' | 'TL' | 'TM' | 'TN' | 'TO' | 'TR' | 'TT' | 'TV' | 'TW' | 'TZ' | 'UA' | 'UG' | 'UM' | 'UN' | 'US' | 'UY' | 'UZ' | 'VA' | 'VC' | 'VE' | 'VG' | 'VI' | 'VN' | 'VU' | 'WF' | 'WS' | 'XA' | 'XB' | 'XK' | 'YE' | 'YT' | 'ZA' | 'ZM' | 'ZW' | 'ZZ');
 
@@ -2428,6 +2437,9 @@ export const stringBundle: (id: string, tag: LanguageTag, strings: readonly stri
 
 // @public
 export const stringDecimalFormatter: () => DecimalFormatter<string>;
+
+// @public
+export const subdivisionFlag: (subdivision: string) => string | undefined;
 
 // @public
 export const substituteAliases: (real: string | LanguageTag) => LanguageTag;

@@ -6229,6 +6229,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"seaq@npm:2.0.0-rc.2":
+  version: 2.0.0-rc.2
+  resolution: "seaq@npm:2.0.0-rc.2"
+  checksum: 10c0/b04ec73655e11c07792c353247845507b1bd6af4fd212463fc4e98066afcd6f126f3653a1db73075a6dbdacf74a0693de530846812e237e5fcc3eb899956e2e0
+  languageName: node
+  linkType: hard
+
 "semver@npm:7.8.1":
   version: 7.8.1
   resolution: "semver@npm:7.8.1"
@@ -7371,6 +7378,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:5.1.0"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
+    seaq: "npm:2.0.0-rc.2"
     tailwindcss: "npm:4.2.1"
     typescript: "npm:~5.9.3"
     vite: "npm:7.2.0"

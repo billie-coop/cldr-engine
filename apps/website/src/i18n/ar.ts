@@ -8,6 +8,9 @@ export const ar: MessageCatalog<MessageKey> = {
     'الإصدار {version} · CLDR {cldr} · دوال بسيطة على بيانات بسيطة · كل مثال يعمل مباشرةً',
   Locale: 'اللغة',
   'Time zone': 'المنطقة الزمنية',
+  'Search languages and regions': 'ابحث عن لغة أو منطقة',
+  'Search time zones': 'ابحث عن منطقة زمنية',
+  'No matches for “{query}”': 'لا توجد نتائج لـ "{query}"',
   'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.':
     'بيانات اللغة كائن بسيط (`loadLocaleAsync(framework, locale)`) يُمرَّر إلى دوال بسيطة. تحتفظ أدوات التجميع بالدوال التي تستوردها فقط: تنسيق الأرقام وحده نحو 42 كيلوبايت مضغوطًا، وحساب الأيام وحده نحو 1.3 كيلوبايت.',
   'Built on cldr-engine by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA tz database.':

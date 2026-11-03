@@ -40,3 +40,20 @@ zh-Hant-TW
 he-Hebr-IL
 tlh-Latn-US
 ```
+
+## Flags
+
+Emoji flags for regions and locales, with no emoji data to bundle: a flag is two regional
+indicator characters, and the 259 regions that have one are a short list in the code.
+
+```typescript
+import { flagRegion, localeFlag, regionFlag } from '@phensley/locale';
+
+regionFlag('SC'); // '🇸🇨'
+regionFlag('419'); // undefined: Latin America has no flag
+localeFlag('en-SC'); // '🇸🇨'
+localeFlag('ja'); // '🇯🇵', from the likely region
+localeFlag('en-UK'); // '🇬🇧', old codes are replaced
+localeFlag('en-GB-u-sd-gbsct'); // '🏴󠁧󠁢󠁳󠁣󠁴󠁿', Scotland, from the subdivision extension
+flagRegion('🇫🇷'); // 'FR'
+```

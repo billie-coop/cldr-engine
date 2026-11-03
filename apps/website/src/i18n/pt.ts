@@ -8,6 +8,9 @@ export const pt: MessageCatalog<MessageKey> = {
     'v{version} · CLDR {cldr} · funções simples sobre dados simples · cada exemplo roda ao vivo',
   Locale: 'Idioma',
   'Time zone': 'Fuso horário',
+  'Search languages and regions': 'Pesquisar idiomas e regiões',
+  'Search time zones': 'Pesquisar fusos horários',
+  'No matches for “{query}”': 'Nenhum resultado para “{query}”',
   'Locale data is a plain object (`loadLocaleAsync(framework, locale)`) passed to plain functions. Bundlers keep only the functions you import: number formatting alone is about 42 KB gzipped, day math alone about 1.3 KB.':
     'Os dados de idioma são um objeto simples (`loadLocaleAsync(framework, locale)`) passado a funções simples. Os bundlers mantêm só as funções que você importa: só a formatação de números tem uns 42 KB compactados, só o cálculo de dias uns 1,3 KB.',
   'Built on cldr-engine by Patrick Hensley, with CLDR data from the Unicode Consortium and time zones from the IANA tz database.':

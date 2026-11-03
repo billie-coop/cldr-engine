@@ -1,13 +1,9 @@
-import {
-  cldrVersion,
-  getLanguageDisplayName,
-  type LocaleData,
-  systemTimeZone,
-  timeZoneIds,
-} from '@phensley/cldr';
+import { cldrVersion, type LocaleData, systemTimeZone, timeZoneIds } from '@phensley/cldr';
 import { useEffect, useMemo, useState } from 'react';
 import { pageLanguage, rich, translatorFor } from './i18n';
 import { cldrDataVersion, initialLocale, LOCALES, loadLocale } from './locale';
+import { localeDetail, localeItems, zoneDetail, zoneItems } from './pickers';
+import { SearchSelect } from './SearchSelect';
 import { Dates } from './sections/Dates';
 import { DecimalMath } from './sections/DecimalMath';
 import { Matching } from './sections/Matching';
@@ -15,7 +11,6 @@ import { Messages } from './sections/Messages';
 import { Currency, Numbers } from './sections/Numbers';
 import { Translations } from './sections/Translations';
 import { Units } from './sections/Units';
-import { Select } from './ui';
 
 const QUICK = [
   'en-US',
@@ -50,9 +45,15 @@ export const App = () => {
   const [zone, setZone] = useState(() => systemTimeZone() ?? 'Etc/UTC');
   const [cldr, setCldr] = useState<LocaleData>();
   const [error, setError] = useState<string>();
+  // English names are searchable whatever the page's language.
+  const [en, setEn] = useState<LocaleData>();
   // The page's own text, in the chosen locale's language when there is a catalog for it.
   const t = useMemo(() => translatorFor(localeId), [localeId]);
   const dir = RTL.has(pageLanguage(localeId)) ? 'rtl' : 'ltr';
+
+  useEffect(() => {
+    loadLocale('en').then(setEn, () => {});
+  }, []);
 
   useEffect(() => {
     let live = true;
@@ -65,19 +66,18 @@ export const App = () => {
   }, [localeId]);
 
   // availableLocales() lists 'en', not 'en-US'; keep the chosen id in the list either way.
-  const localeOptions = useMemo(() => {
-    const ids = LOCALES.includes(localeId) ? LOCALES : [localeId, ...LOCALES];
-    return cldr
-      ? ids
-          .map((id) => ({ value: id, label: `${getLanguageDisplayName(cldr, id)} · ${id}` }))
-          .sort((a, b) => a.label.localeCompare(b.label))
-      : ids.map((id) => ({ value: id, label: id }));
-  }, [cldr, localeId]);
+  const localeOptions = useMemo(
+    () =>
+      cldr && localeItems(cldr, en, LOCALES.includes(localeId) ? LOCALES : [localeId, ...LOCALES]),
+    [cldr, en, localeId],
+  );
+  // Offsets as of when the page's locale was chosen.
+  const zoneOptions = useMemo(() => cldr && zoneItems(cldr, en, ZONES, Date.now()), [cldr, en]);
 
   if (error) {
     return <p className="p-8 text-red-600">{t("Couldn't load locale data: {error}", { error })}</p>;
   }
-  if (!cldr) {
+  if (!cldr || !localeOptions || !zoneOptions) {
     return <p className="p-8 text-zinc-500">{t('Loading locale data…')}</p>;
   }
 
@@ -98,19 +98,31 @@ export const App = () => {
               )}
             </p>
           </div>
-          <Select
+          <SearchSelect
             label={t('Locale')}
+            placeholder={t('Search languages and regions')}
+            empty={(query) => t('No matches for “{query}”', { query })}
             value={localeId}
             onChange={setLocaleId}
-            options={localeOptions}
-            className="w-64"
+            items={localeOptions}
+            detail={(item) =>
+              localeDetail(cldr, en, item.value).map((line) => (
+                <div key={line} dir="auto">
+                  {line}
+                </div>
+              ))
+            }
+            className="w-full sm:w-64"
           />
-          <Select
+          <SearchSelect
             label={t('Time zone')}
+            placeholder={t('Search time zones')}
+            empty={(query) => t('No matches for “{query}”', { query })}
             value={zone}
             onChange={setZone}
-            options={ZONES.map((z) => ({ value: z, label: z }))}
-            className="w-56"
+            items={zoneOptions}
+            detail={(item) => <div dir="auto">{zoneDetail(cldr, item.value)}</div>}
+            className="w-full sm:w-56"
           />
         </div>
         <nav className="mx-auto flex max-w-5xl flex-wrap gap-x-4 gap-y-1 px-4 pb-2 text-sm">
@@ -142,7 +154,7 @@ export const App = () => {
         </nav>
       </header>
 
-      <main className="mx-auto grid max-w-5xl gap-6 px-4 py-6">
+      <main className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {rich(
             t(
