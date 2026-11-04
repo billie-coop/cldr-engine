@@ -1,5 +1,14 @@
 # cldr-engine
 
+> **This branch continues as [hereabouts](https://github.com/billie-coop/hereabouts).**
+> `functional-rewrite` rewrote cldr-engine 1.16.0 as plain functions over plain data, added a
+> date/time module, a translator and emoji flags, and moved the repo to Yarn 4. It diverged far
+> enough from [phensley/cldr-engine](https://github.com/phensley/cldr-engine) that we decided
+> to make it a separate port, published as `@billie-coop/hereabouts`, instead of proposing it
+> upstream. hereabouts was imported from this branch at `efd22363`; this branch is kept as a
+> record and isn't developed further. The working log is
+> [notes/functional-rewrite.md](notes/functional-rewrite.md).
+
 Internationalization in Typescript with Unicode CLDR, batteries included.
 
 [![build](https://github.com/phensley/cldr-engine/workflows/Build%20and%20Test/badge.svg)](https://github.com/phensley/cldr-engine/actions)
